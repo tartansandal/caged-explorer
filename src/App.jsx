@@ -118,6 +118,65 @@ const BLUES_ADDITION = {
   D: [[3,11,"♭5"]],
 };
 
+// 3:2 System: Two positions of the pan-handle pentatonic fingering
+// Each position is a 5-note pattern on 2 strings (3 notes + 2 notes)
+// 3-note group = scale degrees 1, 2, 3 (intervals R, 2, 3)
+// 2-note group = scale degrees 5, 6 (intervals 5, 6)
+// Tiled across string pairs: 6-5, 4-3, 2-1 with fret shifts (+2, +3 for B string)
+// Defined for C major pentatonic (effectiveKey=0), transposed like other data
+
+// Position 1: R,2,3 on lower string; 5,6 on upper (higher fret position)
+const THREE_TWO_POS1_MAJ = [
+  // Strings 6-5: C(R)=8, D(2)=10, E(3)=12 on str6; G(5)=10, A(6)=12 on str5
+  { strings: [6, 5], notes: [[6, 8, "R"], [6, 10, "2"], [6, 12, "3"], [5, 10, "5"], [5, 12, "6"]] },
+  // Strings 4-3 (+2 frets)
+  { strings: [4, 3], notes: [[4, 10, "R"], [4, 12, "2"], [4, 14, "3"], [3, 12, "5"], [3, 14, "6"]] },
+  // Strings 2-1 (frets 1-5)
+  { strings: [2, 1], notes: [
+    [2, 1, "R"],
+    [2, 3, "2"],
+    [2, 5, "3"],
+    [1, 3, "5"],
+    [1, 5, "6"]
+  ] },
+];
+
+// Position 2: 5,6 on lower string; R,2,3 on upper (lower fret position)
+const THREE_TWO_POS2_MAJ = [
+  // Strings 6-5: G(5)=3, A(6)=5 on str6; C(R)=3, D(2)=5, E(3)=7 on str5
+  { strings: [6, 5], notes: [[6, 3, "5"], [6, 5, "6"], [5, 3, "R"], [5, 5, "2"], [5, 7, "3"]] },
+  // Strings 4-3 (+2 frets)
+  { strings: [4, 3], notes: [[4, 5, "5"], [4, 7, "6"], [3, 5, "R"], [3, 7, "2"], [3, 9, "3"]] },
+  // Strings 2-1 (+3 more frets)
+  { strings: [2, 1], notes: [[2, 8, "5"], [2, 10, "6"], [1, 8, "R"], [1, 10, "2"], [1, 12, "3"]] },
+];
+
+// Minor pentatonic: R, ♭3, 4, 5, ♭7
+// 3-note group = R, ♭3, 4; 2-note group = 5, ♭7
+
+// Position 1: R,♭3,4 on lower; 5,♭7 on upper
+const THREE_TWO_POS1_MIN = [
+  { strings: [6, 5], notes: [[6, 8, "R"], [6, 11, "♭3"], [6, 13, "4"], [5, 10, "5"], [5, 13, "♭7"]] },
+  { strings: [4, 3], notes: [[4, 10, "R"], [4, 13, "♭3"], [4, 15, "4"], [3, 12, "5"], [3, 15, "♭7"]] },
+  // Strings 2-1
+  { strings: [2, 1], notes: [[2, 1, "R"], [2, 4, "♭3"], [2, 6, "4"], [1, 3, "5"], [1, 6, "♭7"]] },
+];
+
+// Position 2: 5,♭7 on lower; R,♭3,4 on upper
+const THREE_TWO_POS2_MIN = [
+  { strings: [6, 5], notes: [[6, 3, "5"], [6, 6, "♭7"], [5, 3, "R"], [5, 6, "♭3"], [5, 8, "4"]] },
+  { strings: [4, 3], notes: [[4, 5, "5"], [4, 8, "♭7"], [3, 5, "R"], [3, 8, "♭3"], [3, 10, "4"]] },
+  { strings: [2, 1], notes: [[2, 8, "5"], [2, 11, "♭7"], [1, 8, "R"], [1, 11, "♭3"], [1, 13, "4"]] },
+];
+
+// Which shapes align with which 3:2 position
+// Position 2 covers lower frets (C, A, G shapes)
+// Position 1 covers higher frets (E, D shapes)
+const SHAPE_TO_THREE_TWO = {
+  C: 2, A: 2, G: 2,  // Position 2: lower fret area
+  E: 1, D: 1         // Position 1: higher fret area
+};
+
 const CHORD_MAJ = {
   C: { f: ["x",3,2,0,1,0],     i: [null,"R","3","5","R","3"] },
   A: { f: ["x",0,2,2,2,0],     i: [null,"R","5","R","3","5"] },
@@ -304,6 +363,7 @@ export default function CAGEDExplorer() {
   const [pentaMode, setPentaMode] = useState("off");
   const [triadMode, setTriadMode] = useState("major");
   const [labelMode, setLabelMode] = useState("intervals");
+  const [threeTwoMode, setThreeTwoMode] = useState("off");
 
   const effectiveKey = isMinorKey ? (column + 9) % 12 : column;
   const showMajTriad = triadMode === "major" || triadMode === "both";
@@ -317,6 +377,25 @@ export default function CAGEDExplorer() {
   const majPenta = useMemo(() => transpose(PENTA_MAJ, effectiveKey), [effectiveKey]);
   const minPenta = useMemo(() => transpose(PENTA_MIN, effectiveKey), [effectiveKey]);
   const bluesNotes = useMemo(() => transpose(BLUES_ADDITION, effectiveKey), [effectiveKey]);
+
+  // Transpose 3:2 position data
+  const transposeThreeTwo = (positions, semitones) => {
+    return positions.map(pos => {
+      let shifted = pos.notes.map(([str, fret, iv]) => [str, fret + semitones, iv]);
+      if (shifted.length > 0 && Math.min(...shifted.map(([, f]) => f)) >= 12) {
+        shifted = shifted.map(([str, fret, iv]) => [str, fret - 12, iv]);
+      }
+      return {
+        strings: pos.strings,
+        notes: shifted.filter(([, fret]) => fret >= 0 && fret <= 15)
+      };
+    }).filter(pos => pos.notes.length > 0);
+  };
+
+  const threeTwoPos1Maj = useMemo(() => transposeThreeTwo(THREE_TWO_POS1_MAJ, effectiveKey), [effectiveKey]);
+  const threeTwoPos2Maj = useMemo(() => transposeThreeTwo(THREE_TWO_POS2_MAJ, effectiveKey), [effectiveKey]);
+  const threeTwoPos1Min = useMemo(() => transposeThreeTwo(THREE_TWO_POS1_MIN, effectiveKey), [effectiveKey]);
+  const threeTwoPos2Min = useMemo(() => transposeThreeTwo(THREE_TWO_POS2_MIN, effectiveKey), [effectiveKey]);
 
   const pentaData = pentaMode === "major" ? majPenta : (showPenta ? minPenta : null);
 
@@ -351,6 +430,51 @@ export default function CAGEDExplorer() {
     });
     return out;
   }, [pentaData, bluesNotes, visibleShapes, triadPositions, pentaMode]);
+
+  const showThreeTwoBars = threeTwoMode === "on";
+
+  // Compute which 3:2 positions to show based on active shapes
+  const threeTwoBars = useMemo(() => {
+    if (!showThreeTwoBars) return [];
+    const isMinor = pentaMode === "minor" || pentaMode === "blues";
+    const pos1Data = isMinor ? threeTwoPos1Min : threeTwoPos1Maj;
+    const pos2Data = isMinor ? threeTwoPos2Min : threeTwoPos2Maj;
+
+    // Determine which positions to show
+    const showPos1 = activeShape === "all" || SHAPE_TO_THREE_TWO[activeShape] === 1;
+    const showPos2 = activeShape === "all" || SHAPE_TO_THREE_TWO[activeShape] === 2;
+
+    const bars = [];
+
+    const addBarsFromPosition = (posData) => {
+      posData.forEach(pos => {
+        // Group notes by string within this string pair
+        const notesByString = {};
+        pos.notes.forEach(([str, fret, iv]) => {
+          if (!notesByString[str]) notesByString[str] = [];
+          notesByString[str].push({ fret, iv });
+        });
+
+        // Create a bar for each string's notes
+        Object.entries(notesByString).forEach(([str, notes]) => {
+          if (notes.length === 0) return;
+          const sortedFrets = notes.map(n => n.fret).sort((a, b) => a - b);
+          bars.push({
+            string: parseInt(str),
+            minFret: sortedFrets[0],
+            maxFret: sortedFrets[sortedFrets.length - 1],
+            type: notes.length >= 3 ? 3 : 2,
+            notes: notes
+          });
+        });
+      });
+    };
+
+    if (showPos1) addBarsFromPosition(pos1Data);
+    if (showPos2) addBarsFromPosition(pos2Data);
+
+    return bars;
+  }, [showThreeTwoBars, activeShape, pentaMode, threeTwoPos1Maj, threeTwoPos2Maj, threeTwoPos1Min, threeTwoPos2Min]);
 
   const svgW = MARGIN_LEFT + NUM_FRETS * FRET_SPACING + 25;
   const svgH = MARGIN_TOP + 5 * STRING_SPACING + 48;
@@ -480,6 +604,12 @@ export default function CAGEDExplorer() {
             <ToggleButton key={m} label={m === "intervals" ? "Intervals" : m === "notes" ? "Notes" : "Both"}
               active={labelMode === m} onClick={() => setLabelMode(m)} />
           ))}
+          <span style={{ color: "rgba(255,255,255,0.1)", margin: "0 4px", fontSize: "0.8rem" }}>│</span>
+          <span style={{ fontSize: "0.56rem", color: THEME.text.dim, letterSpacing: "0.15em", textTransform: "uppercase" }}>3:2 System</span>
+          {["off", "on"].map(m => (
+            <ToggleButton key={m} label={m === "off" ? "Off" : "On"}
+              active={threeTwoMode === m} onClick={() => setThreeTwoMode(m)} accent={m === "on" && threeTwoMode === "on"} />
+          ))}
         </div>
 
         {/* Fretboard */}
@@ -544,6 +674,25 @@ export default function CAGEDExplorer() {
               return <text key={sh} x={cx} y={MARGIN_TOP - 20} textAnchor="middle" fill={THEME.shape[sh]} fontSize={triadMode === "both" ? 8 : 10} fontWeight={700}>{lbl}</text>;
             })}
 
+            {/* 3:2 System bars - render behind notes */}
+            {threeTwoBars.map((bar, i) => {
+              const x1 = bar.minFret === 0 ? MARGIN_LEFT - 26 : noteX(bar.minFret) - PENTA_RADIUS - 4;
+              const x2 = noteX(bar.maxFret) + PENTA_RADIUS + 4;
+              const barColor = bar.type === 3 ? THEME.interval.R : THEME.interval["5"];
+              return (
+                <rect
+                  key={`bar-${i}`}
+                  x={x1}
+                  y={strY(bar.string) - 5}
+                  width={x2 - x1}
+                  height={10}
+                  rx={5}
+                  fill={barColor}
+                  opacity={0.4}
+                />
+              );
+            })}
+
             {pentaNotes.map(([s, f, iv], i) => (
               <FretDot key={`p${i}`} cx={noteX(f)} cy={strY(s)} radius={PENTA_RADIUS} interval={iv}
                 keyIdx={effectiveKey} labelMode={labelMode} showNoteName={labelMode === "both" && f !== 0} />
@@ -605,6 +754,24 @@ export default function CAGEDExplorer() {
               <p style={{ fontSize: "0.68rem", color: THEME.text.muted, marginTop: 14, maxWidth: 300, lineHeight: 1.55, fontStyle: "italic" }}>
                 The ♭3 sits beside the major 3rd — the tension at the heart of the blues.
               </p>
+            )}
+
+            {showThreeTwoBars && (
+              <>
+                <div style={{ fontSize: "0.55rem", color: THEME.text.dim, textTransform: "uppercase", letterSpacing: "0.2em", margin: "14px 0 8px" }}>
+                  3:2 System
+                </div>
+                <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                    <div style={{ width: 24, height: 10, borderRadius: 5, background: THEME.interval.R, opacity: 0.6 }} />
+                    <span style={{ fontSize: "0.74rem", color: THEME.text.secondary }}>3 notes per string</span>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                    <div style={{ width: 16, height: 10, borderRadius: 5, background: THEME.interval["5"], opacity: 0.6 }} />
+                    <span style={{ fontSize: "0.74rem", color: THEME.text.secondary }}>2 notes per string</span>
+                  </div>
+                </div>
+              </>
             )}
           </div>
 
