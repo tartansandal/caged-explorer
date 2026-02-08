@@ -56,6 +56,9 @@ const THEME = {
     light:  "rgba(255,255,255,0.25)",
     medium: "rgba(255,255,255,0.3)",
   },
+  overlay: {
+    fryingPan: "#d4b070",
+  },
 };
 
 const FRET_SPACING   = 56;
@@ -364,7 +367,7 @@ export default function CAGEDExplorer() {
   const [pentaMode, setPentaMode] = useState("off");
   const [triadMode, setTriadMode] = useState("major");
   const [labelMode, setLabelMode] = useState("intervals");
-  const [threeTwoMode, setThreeTwoMode] = useState("off");
+  const [overlayMode, setOverlayMode] = useState("off");
 
   const effectiveKey = isMinorKey ? (column + 9) % 12 : column;
   const showMajTriad = triadMode === "major" || triadMode === "both";
@@ -432,7 +435,8 @@ export default function CAGEDExplorer() {
     return out;
   }, [pentaData, bluesNotes, visibleShapes, triadPositions, pentaMode]);
 
-  const showThreeTwoBars = threeTwoMode === "on";
+  const showThreeTwoBars = overlayMode === "threeTwo";
+  const showFryingPan = overlayMode === "fryingPan";
 
   // Compute which 3:2 positions to show based on active shapes
   const threeTwoBars = useMemo(() => {
@@ -476,6 +480,78 @@ export default function CAGEDExplorer() {
 
     return bars;
   }, [showThreeTwoBars, activeShape, pentaMode, threeTwoLeftMaj, threeTwoRightMaj, threeTwoLeftMin, threeTwoRightMin]);
+
+  // Compute frying-pan shapes: pan body (shared frets) + handle (outlier note)
+  const fryingPanShapes = useMemo(() => {
+    if (!showFryingPan) return [];
+    const isMinor = pentaMode === "minor" || pentaMode === "blues";
+    const leftData = isMinor ? threeTwoLeftMin : threeTwoLeftMaj;
+    const rightData = isMinor ? threeTwoRightMin : threeTwoRightMaj;
+
+    const showLeft = activeShape === "all" || SHAPE_TO_THREE_TWO[activeShape] === "left";
+    const showRight = activeShape === "all" || SHAPE_TO_THREE_TWO[activeShape] === "right";
+
+    const shapes = [];
+
+    const addShapesFromPosition = (posData, orientation) => {
+      posData.forEach(pos => {
+        // Skip incomplete positions (transposition wrapping)
+        if (pos.notes.length < 4) return;
+
+        const lowerStr = pos.strings[0]; // e.g. 6
+        const upperStr = pos.strings[1]; // e.g. 5
+
+        // Group notes by string
+        const lowerNotes = pos.notes.filter(([s]) => s === lowerStr).map(([, f]) => f).sort((a, b) => a - b);
+        const upperNotes = pos.notes.filter(([s]) => s === upperStr).map(([, f]) => f).sort((a, b) => a - b);
+
+        if (lowerNotes.length === 0 || upperNotes.length === 0) return;
+
+        // Find shared fret range (the "pan"): frets where both strings have notes
+        // Pan = the fret range where both strings overlap
+        const lowerMin = Math.min(...lowerNotes);
+        const lowerMax = Math.max(...lowerNotes);
+        const upperMin = Math.min(...upperNotes);
+        const upperMax = Math.max(...upperNotes);
+
+        // The pan body spans the overlapping fret range of both strings
+        const panMinFret = Math.max(lowerMin, upperMin);
+        const panMaxFret = Math.min(lowerMax, upperMax);
+
+        // The handle is the note(s) outside the pan range
+        // In left-hand orientation: handle toward nut (lower frets) on lower string
+        // In right-hand orientation: handle toward bridge (higher frets) on upper string
+        let handleString, handleFret, handleDirection;
+
+        if (orientation === "left") {
+          // 3-note side is lower string; handle = lowest fret on lower string (below pan)
+          handleString = lowerStr;
+          handleFret = lowerMin;
+          handleDirection = "left"; // toward nut
+        } else {
+          // 3-note side is upper string; handle = highest fret on upper string (above pan)
+          handleString = upperStr;
+          handleFret = upperMax;
+          handleDirection = "right"; // toward bridge
+        }
+
+        shapes.push({
+          lowerStr,
+          upperStr,
+          panMinFret,
+          panMaxFret,
+          handleString,
+          handleFret,
+          handleDirection,
+        });
+      });
+    };
+
+    if (showLeft) addShapesFromPosition(leftData, "left");
+    if (showRight) addShapesFromPosition(rightData, "right");
+
+    return shapes;
+  }, [showFryingPan, activeShape, pentaMode, threeTwoLeftMaj, threeTwoRightMaj, threeTwoLeftMin, threeTwoRightMin]);
 
   const svgW = MARGIN_LEFT + NUM_FRETS * FRET_SPACING + 25;
   const svgH = MARGIN_TOP + 5 * STRING_SPACING + 48;
@@ -586,18 +662,12 @@ export default function CAGEDExplorer() {
           })}
         </div>
 
-        {/* Options Row */}
-        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 6, marginBottom: 16, flexWrap: "wrap" }}>
+        {/* Options Row 1: Triads + Labels */}
+        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 6, marginBottom: 6, flexWrap: "wrap" }}>
           <span style={{ fontSize: "0.56rem", color: THEME.text.dim, letterSpacing: "0.15em", textTransform: "uppercase" }}>Triads</span>
           {["major", "minor", "both", "off"].map(m => (
             <ToggleButton key={m} label={m === "major" ? "Major" : m === "minor" ? "Minor" : m === "both" ? "Both" : "Off"}
               active={triadMode === m} onClick={() => setTriadMode(m)} />
-          ))}
-          <span style={{ color: "rgba(255,255,255,0.1)", margin: "0 4px", fontSize: "0.8rem" }}>│</span>
-          <span style={{ fontSize: "0.56rem", color: THEME.text.dim, letterSpacing: "0.15em", textTransform: "uppercase" }}>Pentatonic</span>
-          {["off", "major", "minor", "blues"].map(m => (
-            <ToggleButton key={m} label={m === "off" ? "Off" : m === "major" ? "Major" : m === "minor" ? "Minor" : "Blues"}
-              active={pentaMode === m} onClick={() => setPentaMode(m)} accent={m !== "off" && pentaMode === m} />
           ))}
           <span style={{ color: "rgba(255,255,255,0.1)", margin: "0 4px", fontSize: "0.8rem" }}>│</span>
           <span style={{ fontSize: "0.56rem", color: THEME.text.dim, letterSpacing: "0.15em", textTransform: "uppercase" }}>Labels</span>
@@ -605,11 +675,20 @@ export default function CAGEDExplorer() {
             <ToggleButton key={m} label={m === "intervals" ? "Intervals" : m === "notes" ? "Notes" : "Both"}
               active={labelMode === m} onClick={() => setLabelMode(m)} />
           ))}
+        </div>
+
+        {/* Options Row 2: Pentatonic + Overlay */}
+        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 6, marginBottom: 16, flexWrap: "wrap" }}>
+          <span style={{ fontSize: "0.56rem", color: THEME.text.dim, letterSpacing: "0.15em", textTransform: "uppercase" }}>Pentatonic</span>
+          {["off", "major", "minor", "blues"].map(m => (
+            <ToggleButton key={m} label={m === "off" ? "Off" : m === "major" ? "Major" : m === "minor" ? "Minor" : "Blues"}
+              active={pentaMode === m} onClick={() => setPentaMode(m)} accent={m !== "off" && pentaMode === m} />
+          ))}
           <span style={{ color: "rgba(255,255,255,0.1)", margin: "0 4px", fontSize: "0.8rem" }}>│</span>
-          <span style={{ fontSize: "0.56rem", color: THEME.text.dim, letterSpacing: "0.15em", textTransform: "uppercase" }}>3:2 System</span>
-          {["off", "on"].map(m => (
-            <ToggleButton key={m} label={m === "off" ? "Off" : "On"}
-              active={threeTwoMode === m} onClick={() => setThreeTwoMode(m)} accent={m === "on" && threeTwoMode === "on"} />
+          <span style={{ fontSize: "0.56rem", color: THEME.text.dim, letterSpacing: "0.15em", textTransform: "uppercase" }}>Overlay</span>
+          {["off", "fryingPan", "threeTwo"].map(m => (
+            <ToggleButton key={m} label={m === "off" ? "Off" : m === "fryingPan" ? "Frying Pan" : "3:2"}
+              active={overlayMode === m} onClick={() => setOverlayMode(m)} accent={m !== "off" && overlayMode === m} />
           ))}
         </div>
 
@@ -673,6 +752,50 @@ export default function CAGEDExplorer() {
               const cx = avg < 0.5 ? MARGIN_LEFT - 16 : MARGIN_LEFT + (avg - 0.5) * FRET_SPACING;
               const lbl = triadMode === "minor" ? sh + "m" : triadMode === "both" ? `${sh}/${sh}m` : sh;
               return <text key={sh} x={cx} y={MARGIN_TOP - 20} textAnchor="middle" fill={THEME.shape[sh]} fontSize={triadMode === "both" ? 8 : 10} fontWeight={700}>{lbl}</text>;
+            })}
+
+            {/* Frying-pan overlay - render behind notes */}
+            {fryingPanShapes.map((pan, i) => {
+              const panX1 = noteX(pan.panMinFret) - PENTA_RADIUS - 6;
+              const panX2 = noteX(pan.panMaxFret) + PENTA_RADIUS + 6;
+              const panY1 = strY(pan.upperStr) - 9;
+              const panY2 = strY(pan.lowerStr) + 9;
+              const handleY = strY(pan.handleString);
+
+              // Handle extends from pan edge to the handle note
+              let handleX1, handleX2;
+              if (pan.handleDirection === "left") {
+                handleX1 = pan.handleFret === 0 ? MARGIN_LEFT - 26 : noteX(pan.handleFret) - PENTA_RADIUS - 4;
+                handleX2 = panX1;
+              } else {
+                handleX1 = panX2;
+                handleX2 = noteX(pan.handleFret) + PENTA_RADIUS + 4;
+              }
+
+              return (
+                <g key={`fp-${i}`}>
+                  <rect
+                    x={panX1} y={panY1}
+                    width={panX2 - panX1} height={panY2 - panY1}
+                    rx={7}
+                    fill={THEME.overlay.fryingPan}
+                    opacity={0.25}
+                    stroke={THEME.overlay.fryingPan}
+                    strokeWidth={0.8}
+                    strokeOpacity={0.35}
+                  />
+                  <rect
+                    x={handleX1} y={handleY - 4}
+                    width={handleX2 - handleX1} height={8}
+                    rx={4}
+                    fill={THEME.overlay.fryingPan}
+                    opacity={0.20}
+                    stroke={THEME.overlay.fryingPan}
+                    strokeWidth={0.6}
+                    strokeOpacity={0.25}
+                  />
+                </g>
+              );
             })}
 
             {/* 3:2 System bars - render behind notes */}
@@ -755,6 +878,28 @@ export default function CAGEDExplorer() {
               <p style={{ fontSize: "0.68rem", color: THEME.text.muted, marginTop: 14, maxWidth: 300, lineHeight: 1.55, fontStyle: "italic" }}>
                 The ♭3 sits beside the major 3rd — the tension at the heart of the blues.
               </p>
+            )}
+
+            {showFryingPan && (
+              <>
+                <div style={{ fontSize: "0.55rem", color: THEME.text.dim, textTransform: "uppercase", letterSpacing: "0.2em", margin: "14px 0 8px" }}>
+                  Frying Pan
+                </div>
+                <div style={{ display: "flex", gap: 14, flexWrap: "wrap", alignItems: "center" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                    <svg width={36} height={20} viewBox="0 0 36 20">
+                      <rect x={10} y={2} width={16} height={16} rx={4} fill={THEME.overlay.fryingPan} opacity={0.35} stroke={THEME.overlay.fryingPan} strokeWidth={0.8} strokeOpacity={0.5} />
+                      <rect x={26} y={7} width={8} height={6} rx={3} fill={THEME.overlay.fryingPan} opacity={0.25} stroke={THEME.overlay.fryingPan} strokeWidth={0.6} strokeOpacity={0.4} />
+                    </svg>
+                    <span style={{ fontSize: "0.74rem", color: THEME.text.secondary }}>5-note group across 2 strings</span>
+                  </div>
+                </div>
+                {activeShape !== "all" && (
+                  <div style={{ fontSize: "0.62rem", color: THEME.text.muted, marginTop: 6, fontStyle: "italic" }}>
+                    {SHAPE_TO_THREE_TWO[activeShape] === "left" ? "Left-hand" : "Right-hand"} orientation ({activeShape} shape)
+                  </div>
+                )}
+              </>
             )}
 
             {showThreeTwoBars && (
