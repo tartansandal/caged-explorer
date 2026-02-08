@@ -441,27 +441,16 @@ export default function CAGEDExplorer() {
   const svgH = MARGIN_TOP + 5 * STRING_SPACING + 48;
 
   const triadLegend = triadMode === "both" ? LEGEND.triadBoth : triadMode === "minor" ? LEGEND.triadMin : LEGEND.triadMaj;
-  const pentaLegend = (() => {
-    if (pentaMode === "off") return [];
-    // Full legends when triads are off
-    if (triadMode === "off") {
-      if (pentaMode === "major") return LEGEND.pentaMajFull;
-      if (pentaMode === "minor") return LEGEND.pentaMinFull;
-      if (pentaMode === "blues") return LEGEND.bluesFull;
-    }
-    // Major penta: need to show "3" when minor triad (since 3 not in minor triad legend)
-    if (pentaMode === "major") {
-      return triadMode === "minor" ? LEGEND.pentaMajWithMin : LEGEND.pentaMaj;
-    }
-    // Minor penta / blues: ♭3 is redundant when minor or both triads shown
-    if (pentaMode === "minor") {
-      return triadMode === "major" ? LEGEND.pentaMin : LEGEND.pentaMinWithMaj;
-    }
-    if (pentaMode === "blues") {
-      return triadMode === "major" ? LEGEND.blues : LEGEND.bluesWithMaj;
-    }
-    return [];
-  })();
+  // Pentatonic legend varies by pentaMode × triadMode:
+  //   triads off  → full legend (includes R, 5 etc.)
+  //   triads on   → omit intervals already in the triad legend
+  const PENTA_LEGEND = {
+    off:   { off: [], major: [], minor: [], both: [] },
+    major: { off: LEGEND.pentaMajFull, major: LEGEND.pentaMaj, minor: LEGEND.pentaMajWithMin, both: LEGEND.pentaMaj },
+    minor: { off: LEGEND.pentaMinFull, major: LEGEND.pentaMin, minor: LEGEND.pentaMinWithMaj, both: LEGEND.pentaMinWithMaj },
+    blues: { off: LEGEND.bluesFull,    major: LEGEND.blues,    minor: LEGEND.bluesWithMaj,    both: LEGEND.bluesWithMaj },
+  };
+  const pentaLegend = PENTA_LEGEND[pentaMode][triadMode];
 
   const keyName = NOTES[effectiveKey];
   const footerKey = (() => {
