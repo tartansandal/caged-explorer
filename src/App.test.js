@@ -207,12 +207,12 @@ describe("assignShapes — coverage", () => {
       const shapeMap = assignShapes(pentaNotes, key, minSemi);
       bluesNotes.forEach(([s, f]) => {
         // There should be a minor pentatonic note at or below this fret on the same string
-        const sameSring = pentaNotes.filter(([ns]) => ns === s);
-        const atOrBelow = sameSring.filter(([, nf]) => nf <= f);
+        const sameString = pentaNotes.filter(([ns]) => ns === s);
+        const atOrBelow = sameString.filter(([, nf]) => nf <= f);
         // Either there's one at or below, or we wrap to the highest
         if (atOrBelow.length === 0) {
           // Wrap case: highest pentatonic note on this string should exist
-          expect(sameSring.length).toBeGreaterThan(0);
+          expect(sameString.length).toBeGreaterThan(0);
         } else {
           expect(atOrBelow.length).toBeGreaterThan(0);
         }
