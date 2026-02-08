@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import {
   generateScale, assignShapes, findShapes, posKey,
-  NUM_FRETS, SCALE, SHAPE_ORDER, FRYING_PAN, SHAPE_TO_THREE_TWO,
+  NUM_FRETS, SCALE, SHAPE_ORDER, FRYING_PAN, SHAPE_ORIENTATION,
 } from "./music.js";
 
 /**
@@ -398,8 +398,8 @@ export default function CAGEDExplorer() {
   // Shape is identical for major/minor pentatonic — determined only by effectiveKey.
   const fryingPanShapes = useMemo(() => {
     if (!showFryingPan) return [];
-    const showLeft = activeShape === "all" || SHAPE_TO_THREE_TWO[activeShape] === "left";
-    const showRight = activeShape === "all" || SHAPE_TO_THREE_TWO[activeShape] === "right";
+    const showLeft = activeShape === "all" || SHAPE_ORIENTATION[activeShape] === "left";
+    const showRight = activeShape === "all" || SHAPE_ORIENTATION[activeShape] === "right";
 
     const shapes = [];
     const addShifted = (templates) => {
@@ -433,8 +433,8 @@ export default function CAGEDExplorer() {
   // Each frying pan produces a 3-note bar (handle string) and a 2-note bar (other string).
   const threeTwoBars = useMemo(() => {
     if (!showThreeTwoBars) return [];
-    const showLeft = activeShape === "all" || SHAPE_TO_THREE_TWO[activeShape] === "left";
-    const showRight = activeShape === "all" || SHAPE_TO_THREE_TWO[activeShape] === "right";
+    const showLeft = activeShape === "all" || SHAPE_ORIENTATION[activeShape] === "left";
+    const showRight = activeShape === "all" || SHAPE_ORIENTATION[activeShape] === "right";
 
     const bars = [];
     const addBars = (templates) => {
@@ -818,7 +818,7 @@ export default function CAGEDExplorer() {
                 </div>
                 {activeShape !== "all" && (
                   <div style={{ fontSize: "0.62rem", color: THEME.text.muted, marginTop: 6, fontStyle: "italic" }}>
-                    {SHAPE_TO_THREE_TWO[activeShape] === "left" ? "Left-hand" : "Right-hand"} orientation ({activeShape} shape)
+                    {SHAPE_ORIENTATION[activeShape] === "left" ? "Left-hand" : "Right-hand"} orientation ({activeShape} shape)
                   </div>
                 )}
               </>

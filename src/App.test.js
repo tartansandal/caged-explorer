@@ -9,7 +9,7 @@ import {
   SHAPE_ORDER,
   FRYING_PAN,
   NUM_FRETS,
-  SHAPE_TO_THREE_TWO,
+  SHAPE_ORIENTATION,
 } from "./music.js";
 
 // ─── generateScale ──────────────────────────────────────────────────────────
@@ -280,10 +280,10 @@ describe("FRYING_PAN geometry", () => {
     }
   });
 
-  it("SHAPE_TO_THREE_TWO maps all 5 shapes", () => {
+  it("SHAPE_ORIENTATION maps all 5 shapes", () => {
     SHAPE_ORDER.forEach((shape) => {
-      expect(SHAPE_TO_THREE_TWO[shape]).toBeDefined();
-      expect(["left", "right"]).toContain(SHAPE_TO_THREE_TWO[shape]);
+      expect(SHAPE_ORIENTATION[shape]).toBeDefined();
+      expect(["left", "right"]).toContain(SHAPE_ORIENTATION[shape]);
     });
   });
 

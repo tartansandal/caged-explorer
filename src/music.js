@@ -43,7 +43,7 @@ export const FRYING_PAN = {
 };
 
 // Which shapes align with which frying-pan orientation
-export const SHAPE_TO_THREE_TWO = {
+export const SHAPE_ORIENTATION = {
   C: "right", A: "right", G: "right",  // Right-hand: handle toward bridge
   E: "left",  D: "left"                // Left-hand: handle toward nut
 };
