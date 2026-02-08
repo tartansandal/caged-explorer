@@ -393,14 +393,13 @@ export default function CAGEDExplorer() {
     const showRight = activeShape === "all" || SHAPE_ORIENTATION[activeShape] === "right";
 
     const shapes = [];
-    const addShifted = (templates) => {
+    const addShifted = (templates, shift) => {
       templates.forEach(t => {
-        const panMin = t.panMin + effectiveKey;
-        const panMax = t.panMax + effectiveKey;
-        const handleFret = t.handleFret + effectiveKey;
+        const panMin = t.panMin + shift;
+        const panMax = t.panMax + shift;
+        const handleFret = t.handleFret + shift;
         // Keep if pan or handle is within visible fretboard
-        const allFrets = [panMin, panMax, handleFret];
-        if (allFrets.some(f => f >= 0 && f <= NUM_FRETS)) {
+        if ([panMin, panMax, handleFret].some(f => f >= 0 && f <= NUM_FRETS)) {
           shapes.push({
             lowerStr: t.pair[0],
             upperStr: t.pair[1],
@@ -414,8 +413,12 @@ export default function CAGEDExplorer() {
       });
     };
 
-    if (showLeft) addShifted(FRYING_PAN.left);
-    if (showRight) addShifted(FRYING_PAN.right);
+    // Try both effectiveKey and effectiveKey-12: the two-octave geometry
+    // covers shifts 0-4, but higher keys need the -12 wrap to fill lower frets.
+    for (const shift of [effectiveKey, effectiveKey - 12]) {
+      if (showLeft) addShifted(FRYING_PAN.left, shift);
+      if (showRight) addShifted(FRYING_PAN.right, shift);
+    }
 
     return shapes;
   }, [showFryingPan, activeShape, effectiveKey]);
@@ -428,11 +431,11 @@ export default function CAGEDExplorer() {
     const showRight = activeShape === "all" || SHAPE_ORIENTATION[activeShape] === "right";
 
     const bars = [];
-    const addBars = (templates) => {
+    const addBars = (templates, shift) => {
       templates.forEach(t => {
-        const panMin = t.panMin + effectiveKey;
-        const panMax = t.panMax + effectiveKey;
-        const handleFret = t.handleFret + effectiveKey;
+        const panMin = t.panMin + shift;
+        const panMax = t.panMax + shift;
+        const handleFret = t.handleFret + shift;
 
         const otherStr = t.pair[0] === t.handleStr ? t.pair[1] : t.pair[0];
 
@@ -460,8 +463,10 @@ export default function CAGEDExplorer() {
       });
     };
 
-    if (showLeft) addBars(FRYING_PAN.left);
-    if (showRight) addBars(FRYING_PAN.right);
+    for (const shift of [effectiveKey, effectiveKey - 12]) {
+      if (showLeft) addBars(FRYING_PAN.left, shift);
+      if (showRight) addBars(FRYING_PAN.right, shift);
+    }
 
     return bars;
   }, [showThreeTwoBars, activeShape, effectiveKey]);
@@ -632,9 +637,16 @@ export default function CAGEDExplorer() {
             })}
 
             {showTriads && activeShape === "all" && SHAPES.map(sh => {
-              const fs = (showMajTriad ? majTriads[sh] : minTriads[sh]).map(([, f]) => f);
-              if (!fs.length) return null;
-              const avg = fs.reduce((a, b) => a + b, 0) / fs.length;
+              const majF = showMajTriad ? majTriads[sh].map(([, f]) => f) : [];
+              const minF = showMinTriad ? minTriads[sh].map(([, f]) => f) : [];
+              const pF = pentaData ? (pentaData[sh] || []).map(([, f]) => f) : [];
+              const allFrets = [...new Set([...majF, ...minF, ...pF])].sort((a, b) => a - b);
+              if (!allFrets.length) return null;
+              // First-cluster centroid: use notes within 7 frets of the lowest to
+              // isolate the first CAGED occurrence and ignore octave repeats.
+              const lo = allFrets[0];
+              const cluster = allFrets.filter(f => f - lo <= 7);
+              const avg = cluster.reduce((a, b) => a + b, 0) / cluster.length;
               const cx = avg < 0.5 ? MARGIN_LEFT - 16 : MARGIN_LEFT + (avg - 0.5) * FRET_SPACING;
               const lbl = triadMode === "minor" ? sh + "m" : triadMode === "both" ? `${sh}/${sh}m` : sh;
               return <text key={sh} x={cx} y={MARGIN_TOP - 20} textAnchor="middle" fill={THEME.shape[sh]} fontSize={triadMode === "both" ? 8 : 10} fontWeight={700}>{lbl}</text>;

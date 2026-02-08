@@ -262,6 +262,81 @@ describe("findShapes", () => {
   });
 });
 
+// ─── shape label positioning ────────────────────────────────────────────────
+
+describe("shape label centroids", () => {
+  const majSemi = SCALE.pentaMaj.map((d) => d.semi);
+  const minSemi = SCALE.pentaMin.map((d) => d.semi);
+
+  // Compute the first-cluster centroid for each shape: take the lowest fret,
+  // keep notes within 7 frets of it, return the average. This isolates the
+  // first CAGED occurrence and ignores the octave repeat.
+  function shapeCentroids(key, triadDeg, pentaDeg, semi) {
+    const triadNotes = generateScale(key, triadDeg);
+    const pentaNotes = generateScale(key, pentaDeg);
+    const shapeMap = assignShapes(pentaNotes, key, semi);
+
+    return SHAPE_ORDER.map((sh) => {
+      const triadF = triadNotes
+        .filter(([s, f]) => {
+          const shapes = findShapes(shapeMap, s, f);
+          return shapes && shapes.includes(sh);
+        })
+        .map(([, f]) => f);
+      const pentaF = pentaNotes
+        .filter(([s, f]) => {
+          const shapes = shapeMap.get(posKey(s, f));
+          return shapes && shapes.includes(sh);
+        })
+        .map(([, f]) => f);
+      const allF = [...new Set([...triadF, ...pentaF])].sort((a, b) => a - b);
+      if (!allF.length) return null;
+      const lo = allF[0];
+      const cluster = allF.filter((f) => f - lo <= 7);
+      return cluster.reduce((a, b) => a + b, 0) / cluster.length;
+    });
+  }
+
+  it("first-cluster centroids are well-separated for all 12 keys", () => {
+    for (let key = 0; key < 12; key++) {
+      for (const [triadDeg, pentaDeg, semi] of [
+        [SCALE.triadMaj, SCALE.pentaMaj, majSemi],
+        [SCALE.triadMin, SCALE.pentaMin, minSemi],
+      ]) {
+        const centroids = shapeCentroids(key, triadDeg, pentaDeg, semi);
+        const valid = centroids.filter((c) => c !== null).sort((a, b) => a - b);
+        for (let i = 1; i < valid.length; i++) {
+          expect(valid[i] - valid[i - 1]).toBeGreaterThanOrEqual(1.0);
+        }
+      }
+    }
+  });
+
+  it("triad-only centroids cluster for some keys (demonstrating label bug)", () => {
+    // For Am (effectiveKey=9), triad-only centroids for shapes A and G
+    // are < 0.5 frets apart, causing label overlap.
+    const key = 9;
+    const triadNotes = generateScale(key, SCALE.triadMin);
+    const pentaNotes = generateScale(key, SCALE.pentaMin);
+    const shapeMap = assignShapes(pentaNotes, key, minSemi);
+
+    const triadCentroids = SHAPE_ORDER.map((sh) => {
+      const frets = triadNotes
+        .filter(([s, f]) => {
+          const shapes = findShapes(shapeMap, s, f);
+          return shapes && shapes.includes(sh);
+        })
+        .map(([, f]) => f);
+      return frets.length ? frets.reduce((a, b) => a + b, 0) / frets.length : null;
+    });
+
+    // A (index 1) and G (index 2) should be very close — proving the bug
+    const aCentroid = triadCentroids[1]; // A
+    const gCentroid = triadCentroids[2]; // G
+    expect(Math.abs(aCentroid - gCentroid)).toBeLessThan(0.5);
+  });
+});
+
 // ─── FRYING_PAN geometry ────────────────────────────────────────────────────
 
 describe("FRYING_PAN geometry", () => {
@@ -285,6 +360,30 @@ describe("FRYING_PAN geometry", () => {
       expect(SHAPE_ORIENTATION[shape]).toBeDefined();
       expect(["left", "right"]).toContain(SHAPE_ORIENTATION[shape]);
     });
+  });
+
+  it("visible pans span both halves of the fretboard for all 12 keys", () => {
+    const mid = Math.floor(NUM_FRETS / 2);
+    for (let key = 0; key < 12; key++) {
+      let hasLower = false;
+      let hasUpper = false;
+      // Must try both shifts to cover the full fretboard for high keys
+      for (const shift of [key, key - 12]) {
+        for (const side of ["left", "right"]) {
+          FRYING_PAN[side].forEach((t) => {
+            const panMin = t.panMin + shift;
+            const panMax = t.panMax + shift;
+            const handleFret = t.handleFret + shift;
+            if ([panMin, panMax, handleFret].some((f) => f >= 0 && f <= NUM_FRETS)) {
+              if (panMin <= mid) hasLower = true;
+              if (panMax > mid) hasUpper = true;
+            }
+          });
+        }
+      }
+      expect(hasLower).toBe(true);
+      expect(hasUpper).toBe(true);
+    }
   });
 
   it("frying pan templates have consistent string pairs", () => {
