@@ -72,6 +72,35 @@ const MARGIN_TOP     = 38;
 const TRIAD_RADIUS   = 10;
 const PENTA_RADIUS   = 8;
 
+// Shared layout styles extracted from JSX
+const STYLE = {
+  keyRow: (mb) => ({ display: "flex", alignItems: "center", justifyContent: "center", gap: 5, marginBottom: mb, flexWrap: "wrap" }),
+  rowLabel: { fontSize: "0.58rem", color: THEME.text.dim, letterSpacing: "0.2em", textTransform: "uppercase", marginRight: 8, minWidth: 32, textAlign: "right" },
+  optionRow: (mb) => ({ display: "flex", justifyContent: "center", alignItems: "center", gap: 6, marginBottom: mb, flexWrap: "wrap" }),
+  optionLabel: { fontSize: "0.56rem", color: THEME.text.dim, letterSpacing: "0.15em", textTransform: "uppercase" },
+  divider: { color: "rgba(255,255,255,0.1)", margin: "0 4px", fontSize: "0.8rem" },
+  keyBtn: (active, sel) => ({
+    borderRadius: 5, padding: "4px 10px", fontSize: "0.75rem", fontWeight: sel ? 700 : 400,
+    cursor: "pointer", transition: "all 0.15s", minWidth: 38, textAlign: "center",
+    background: active ? "#f1f5f9" : sel ? "rgba(241,245,249,0.15)" : THEME.bg.btnOff,
+    color: active ? "#0f172a" : sel ? THEME.text.secondary : THEME.text.muted,
+    border: `1px solid ${active ? "#f1f5f9" : sel ? "rgba(241,245,249,0.25)" : THEME.border.light}`,
+  }),
+  minorKeyBtn: (active, sel) => ({
+    borderRadius: 5, padding: "4px 6px", fontSize: "0.68rem", fontWeight: sel ? 700 : 400,
+    cursor: "pointer", transition: "all 0.15s", minWidth: 38, textAlign: "center",
+    background: active ? "rgba(210,170,140,0.25)" : sel ? "rgba(210,170,140,0.1)" : THEME.bg.btnOff,
+    color: active ? "#d8ac90" : sel ? "#8a7060" : "#4a5568",
+    border: `1px solid ${active ? "rgba(210,170,140,0.4)" : sel ? "rgba(210,170,140,0.15)" : THEME.border.light}`,
+  }),
+  shapeTab: (on, c) => ({
+    background: on ? (c ? c + "20" : "rgba(255,255,255,0.1)") : "transparent",
+    color: on ? (c ? c : THEME.text.primary) : THEME.text.dim,
+    border: `1px solid ${on ? (c ? c + "55" : "rgba(255,255,255,0.15)") : THEME.border.subtle}`,
+    borderRadius: 6, padding: "5px 14px", fontSize: "0.8rem", fontWeight: on ? 600 : 400, cursor: "pointer", transition: "all 0.15s",
+  }),
+};
+
 const INTERVAL_SEMITONES = {
   R:    0,
   "2":  2,
@@ -479,18 +508,13 @@ export default function CAGEDExplorer() {
         </p>
 
         {/* Key Selector: Major Row */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 5, marginBottom: 4, flexWrap: "wrap" }}>
-          <span style={{ fontSize: "0.58rem", color: THEME.text.dim, letterSpacing: "0.2em", textTransform: "uppercase", marginRight: 8, minWidth: 32, textAlign: "right" }}>Major</span>
+        <div style={STYLE.keyRow(4)}>
+          <span style={STYLE.rowLabel}>Major</span>
           {NOTES.map((n, i) => {
             const sel = keyIndex === i;
-            const rowActive = sel && !isMinorKey;
             return (
               <button key={n} onClick={() => { setKeyIndex(i); setIsMinorKey(false); if (triadMode === "minor") setTriadMode("major"); }}
-                style={{ background: rowActive ? "#f1f5f9" : sel ? "rgba(241,245,249,0.15)" : THEME.bg.btnOff,
-                  color: rowActive ? "#0f172a" : sel ? THEME.text.secondary : THEME.text.muted,
-                  border: `1px solid ${rowActive ? "#f1f5f9" : sel ? "rgba(241,245,249,0.25)" : THEME.border.light}`,
-                  borderRadius: 5, padding: "4px 10px", fontSize: "0.75rem", fontWeight: sel ? 700 : 400,
-                  cursor: "pointer", transition: "all 0.15s", minWidth: 38, textAlign: "center" }}>
+                style={STYLE.keyBtn(sel && !isMinorKey, sel)}>
                 {n}
               </button>
             );
@@ -498,21 +522,14 @@ export default function CAGEDExplorer() {
         </div>
 
         {/* Key Selector: Minor Row */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 5, marginBottom: 12, flexWrap: "wrap" }}>
-          <span style={{ fontSize: "0.58rem", color: THEME.text.dim, letterSpacing: "0.2em", textTransform: "uppercase", marginRight: 8, minWidth: 32, textAlign: "right" }}>Minor</span>
+        <div style={STYLE.keyRow(12)}>
+          <span style={STYLE.rowLabel}>Minor</span>
           {NOTES.map((_, i) => {
-            const minIdx = (i + 9) % 12;
-            const minName = NOTES[minIdx] + "m";
             const sel = keyIndex === i;
-            const rowActive = sel && isMinorKey;
             return (
               <button key={i} onClick={() => { setKeyIndex(i); setIsMinorKey(true); if (triadMode === "major") setTriadMode("minor"); }}
-                style={{ background: rowActive ? "rgba(210,170,140,0.25)" : sel ? "rgba(210,170,140,0.1)" : THEME.bg.btnOff,
-                  color: rowActive ? "#d8ac90" : sel ? "#8a7060" : "#4a5568",
-                  border: `1px solid ${rowActive ? "rgba(210,170,140,0.4)" : sel ? "rgba(210,170,140,0.15)" : THEME.border.light}`,
-                  borderRadius: 5, padding: "4px 6px", fontSize: "0.68rem", fontWeight: sel ? 700 : 400,
-                  cursor: "pointer", transition: "all 0.15s", minWidth: 38, textAlign: "center" }}>
-                {minName}
+                style={STYLE.minorKeyBtn(sel && isMinorKey, sel)}>
+                {NOTES[(i + 9) % 12] + "m"}
               </button>
             );
           })}
@@ -522,13 +539,9 @@ export default function CAGEDExplorer() {
         <div style={{ display: "flex", justifyContent: "center", gap: 6, marginBottom: 10 }}>
           {["all", ...SHAPES].map(s => {
             const on = activeShape === s;
-            const c = s === "all" ? THEME.text.secondary : THEME.shape[s];
             return (
               <button key={s} onClick={() => setActiveShape(s)}
-                style={{ background: on ? (s === "all" ? "rgba(255,255,255,0.1)" : c + "20") : "transparent",
-                  color: on ? (s === "all" ? THEME.text.primary : c) : THEME.text.dim,
-                  border: `1px solid ${on ? (s === "all" ? "rgba(255,255,255,0.15)" : c + "55") : THEME.border.subtle}`,
-                  borderRadius: 6, padding: "5px 14px", fontSize: "0.8rem", fontWeight: on ? 600 : 400, cursor: "pointer", transition: "all 0.15s" }}>
+                style={STYLE.shapeTab(on, s === "all" ? null : THEME.shape[s])}>
                 {s === "all" ? "All" : `${s} Shape`}
               </button>
             );
@@ -536,14 +549,14 @@ export default function CAGEDExplorer() {
         </div>
 
         {/* Options Row 1: Triads + Labels */}
-        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 6, marginBottom: 6, flexWrap: "wrap" }}>
-          <span style={{ fontSize: "0.56rem", color: THEME.text.dim, letterSpacing: "0.15em", textTransform: "uppercase" }}>Triads</span>
+        <div style={STYLE.optionRow(6)}>
+          <span style={STYLE.optionLabel}>Triads</span>
           {["major", "minor", "both", "off"].map(m => (
             <ToggleButton key={m} label={m === "major" ? "Major" : m === "minor" ? "Minor" : m === "both" ? "Both" : "Off"}
               active={triadMode === m} onClick={() => setTriadMode(m)} />
           ))}
-          <span style={{ color: "rgba(255,255,255,0.1)", margin: "0 4px", fontSize: "0.8rem" }}>│</span>
-          <span style={{ fontSize: "0.56rem", color: THEME.text.dim, letterSpacing: "0.15em", textTransform: "uppercase" }}>Labels</span>
+          <span style={STYLE.divider}>│</span>
+          <span style={STYLE.optionLabel}>Labels</span>
           {["intervals", "notes", "both"].map(m => (
             <ToggleButton key={m} label={m === "intervals" ? "Intervals" : m === "notes" ? "Notes" : "Both"}
               active={labelMode === m} onClick={() => setLabelMode(m)} />
@@ -551,14 +564,14 @@ export default function CAGEDExplorer() {
         </div>
 
         {/* Options Row 2: Pentatonic + Overlay */}
-        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 6, marginBottom: 16, flexWrap: "wrap" }}>
-          <span style={{ fontSize: "0.56rem", color: THEME.text.dim, letterSpacing: "0.15em", textTransform: "uppercase" }}>Pentatonic</span>
+        <div style={STYLE.optionRow(16)}>
+          <span style={STYLE.optionLabel}>Pentatonic</span>
           {["off", "major", "minor", "blues"].map(m => (
             <ToggleButton key={m} label={m === "off" ? "Off" : m === "major" ? "Major" : m === "minor" ? "Minor" : "Blues"}
               active={pentaMode === m} onClick={() => setPentaMode(m)} accent={m !== "off" && pentaMode === m} />
           ))}
-          <span style={{ color: "rgba(255,255,255,0.1)", margin: "0 4px", fontSize: "0.8rem" }}>│</span>
-          <span style={{ fontSize: "0.56rem", color: THEME.text.dim, letterSpacing: "0.15em", textTransform: "uppercase" }}>Overlay</span>
+          <span style={STYLE.divider}>│</span>
+          <span style={STYLE.optionLabel}>Overlay</span>
           {["off", "fryingPan", "threeTwo"].map(m => (
             <ToggleButton key={m} label={m === "off" ? "Off" : m === "fryingPan" ? "Frying Pan" : "3:2"}
               active={overlayMode === m} onClick={() => setOverlayMode(m)} accent={m !== "off" && overlayMode === m} />
