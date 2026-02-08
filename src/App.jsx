@@ -125,6 +125,20 @@ const scaleName = (mode) => ({
 })[mode] || "";
 
 
+const MAJ_SEMI = SCALE.pentaMaj.map(d => d.semi);
+const MIN_SEMI = SCALE.pentaMin.map(d => d.semi);
+
+const groupByShape = (notes, lookup) => {
+  const byShape = {};
+  SHAPES.forEach(sh => { byShape[sh] = []; });
+  notes.forEach(note => {
+    const [s, f] = note;
+    const shapes = lookup(s, f);
+    if (shapes) shapes.forEach(sh => byShape[sh].push(note));
+  });
+  return byShape;
+};
+
 const fretX = (fret) => MARGIN_LEFT + fret * FRET_SPACING;
 const noteX = (fret) => fret === 0 ? MARGIN_LEFT - 16 : MARGIN_LEFT + (fret - 0.5) * FRET_SPACING;
 const strY = (str) => MARGIN_TOP + (str - 1) * STRING_SPACING;
@@ -274,56 +288,16 @@ export default function CAGEDExplorer() {
   const allBluesNotes = useMemo(() => generateScale(effectiveKey, SCALE.bluesAdd), [effectiveKey]);
 
   // Build separate shape maps for major and minor pentatonic
-  const majSemi = useMemo(() => SCALE.pentaMaj.map(d => d.semi), []);
-  const minSemi = useMemo(() => SCALE.pentaMin.map(d => d.semi), []);
-  const majShapeMap = useMemo(() => assignShapes(allMajPentaNotes, effectiveKey, majSemi), [allMajPentaNotes, effectiveKey, majSemi]);
-  const minShapeMap = useMemo(() => assignShapes(allMinPentaNotes, effectiveKey, minSemi), [allMinPentaNotes, effectiveKey, minSemi]);
+  const majShapeMap = useMemo(() => assignShapes(allMajPentaNotes, effectiveKey, MAJ_SEMI), [allMajPentaNotes, effectiveKey]);
+  const minShapeMap = useMemo(() => assignShapes(allMinPentaNotes, effectiveKey, MIN_SEMI), [allMinPentaNotes, effectiveKey]);
 
   // Per-shape triad data: major triads use major shape map, minor triads use minor shape map
-  const majTriads = useMemo(() => {
-    const byShape = {};
-    SHAPES.forEach(sh => { byShape[sh] = []; });
-    allMajTriadNotes.forEach(note => {
-      const [s, f] = note;
-      const shapes = findShapes(majShapeMap, s, f);
-      if (shapes) shapes.forEach(sh => byShape[sh].push(note));
-    });
-    return byShape;
-  }, [allMajTriadNotes, majShapeMap]);
-
-  const minTriads = useMemo(() => {
-    const byShape = {};
-    SHAPES.forEach(sh => { byShape[sh] = []; });
-    allMinTriadNotes.forEach(note => {
-      const [s, f] = note;
-      const shapes = findShapes(minShapeMap, s, f);
-      if (shapes) shapes.forEach(sh => byShape[sh].push(note));
-    });
-    return byShape;
-  }, [allMinTriadNotes, minShapeMap]);
+  const majTriads = useMemo(() => groupByShape(allMajTriadNotes, (s, f) => findShapes(majShapeMap, s, f)), [allMajTriadNotes, majShapeMap]);
+  const minTriads = useMemo(() => groupByShape(allMinTriadNotes, (s, f) => findShapes(minShapeMap, s, f)), [allMinTriadNotes, minShapeMap]);
 
   // Per-shape pentatonic data
-  const majPenta = useMemo(() => {
-    const byShape = {};
-    SHAPES.forEach(sh => { byShape[sh] = []; });
-    allMajPentaNotes.forEach(note => {
-      const [s, f] = note;
-      const shapes = majShapeMap.get(posKey(s, f));
-      if (shapes) shapes.forEach(sh => byShape[sh].push(note));
-    });
-    return byShape;
-  }, [allMajPentaNotes, majShapeMap]);
-
-  const minPenta = useMemo(() => {
-    const byShape = {};
-    SHAPES.forEach(sh => { byShape[sh] = []; });
-    allMinPentaNotes.forEach(note => {
-      const [s, f] = note;
-      const shapes = minShapeMap.get(posKey(s, f));
-      if (shapes) shapes.forEach(sh => byShape[sh].push(note));
-    });
-    return byShape;
-  }, [allMinPentaNotes, minShapeMap]);
+  const majPenta = useMemo(() => groupByShape(allMajPentaNotes, (s, f) => majShapeMap.get(posKey(s, f))), [allMajPentaNotes, majShapeMap]);
+  const minPenta = useMemo(() => groupByShape(allMinPentaNotes, (s, f) => minShapeMap.get(posKey(s, f))), [allMinPentaNotes, minShapeMap]);
 
   const bluesNotes = useMemo(() => {
     const byShape = {};
