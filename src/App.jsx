@@ -72,7 +72,7 @@ const MARGIN_TOP     = 38;
 const TRIAD_RADIUS   = 10;
 const PENTA_RADIUS   = 8;
 
-const SEMI = {
+const INTERVAL_SEMITONES = {
   R:    0,
   "2":  2,
   "♭3": 3,
@@ -85,19 +85,19 @@ const SEMI = {
 };
 
 const CHORD_MAJ = {
-  C: { f: ["x",3,2,0,1,0],     i: [null,"R","3","5","R","3"] },
-  A: { f: ["x",0,2,2,2,0],     i: [null,"R","5","R","3","5"] },
-  G: { f: [3,2,0,0,0,3],       i: ["R","3","5","R","3","R"] },
-  E: { f: [0,2,2,1,0,0],       i: ["R","5","R","3","5","R"] },
-  D: { f: ["x","x",0,2,3,2],   i: [null,null,"R","5","R","3"] },
+  C: { frets: ["x",3,2,0,1,0],     intervals: [null,"R","3","5","R","3"] },
+  A: { frets: ["x",0,2,2,2,0],     intervals: [null,"R","5","R","3","5"] },
+  G: { frets: [3,2,0,0,0,3],       intervals: ["R","3","5","R","3","R"] },
+  E: { frets: [0,2,2,1,0,0],       intervals: ["R","5","R","3","5","R"] },
+  D: { frets: ["x","x",0,2,3,2],   intervals: [null,null,"R","5","R","3"] },
 };
 
 const CHORD_MIN = {
-  C: { f: ["x",3,1,0,1,"x"],   i: [null,"R","♭3","5","R",null] },
-  A: { f: ["x",0,2,2,1,0],     i: [null,"R","5","R","♭3","5"] },
-  G: { f: [3,1,0,0,3,3],       i: ["R","♭3","5","R","5","R"] },
-  E: { f: [0,2,2,0,0,0],       i: ["R","5","R","♭3","5","R"] },
-  D: { f: ["x","x",0,2,3,1],   i: [null,null,"R","5","R","♭3"] },
+  C: { frets: ["x",3,1,0,1,"x"],   intervals: [null,"R","♭3","5","R",null] },
+  A: { frets: ["x",0,2,2,1,0],     intervals: [null,"R","5","R","♭3","5"] },
+  G: { frets: [3,1,0,0,3,3],       intervals: ["R","♭3","5","R","5","R"] },
+  E: { frets: [0,2,2,0,0,0],       intervals: ["R","5","R","♭3","5","R"] },
+  D: { frets: ["x","x",0,2,3,1],   intervals: [null,null,"R","5","R","♭3"] },
 };
 
 const LEGEND = {
@@ -116,7 +116,7 @@ const LEGEND = {
   bluesFull:     [["R","Root"], ["♭3","Minor 3rd"], ["4","Perfect 4th"], ["♭5","Blue note"], ["5","Perfect 5th"], ["♭7","Minor 7th"]],
 };
 
-const noteName = (interval, keyIdx) => NOTES[(keyIdx + SEMI[interval]) % 12];
+const noteName = (interval, keyIdx) => NOTES[(keyIdx + INTERVAL_SEMITONES[interval]) % 12];
 
 const scaleName = (mode) => ({
   major: "Major Pentatonic",
@@ -160,8 +160,8 @@ function ToggleButton({ label, active, onClick, accent = false, style = {} }) {
 
 function FretDot({ cx, cy, radius, interval, keyIdx, labelMode, shapeBorder, dashed = false, showNoteName = false }) {
   const color = THEME.interval[interval];
-  const nn = noteName(interval, keyIdx);
-  const primary = labelMode === "notes" ? nn : interval;
+  const note = noteName(interval, keyIdx);
+  const primary = labelMode === "notes" ? note : interval;
   const isLong = primary.length > 1;
   const isTriad = radius === TRIAD_RADIUS;
 
@@ -177,7 +177,7 @@ function FretDot({ cx, cy, radius, interval, keyIdx, labelMode, shapeBorder, das
       {showNoteName && (
         <text x={cx + radius + 2} y={cy + radius + 2} textAnchor="start" fill={THEME.text.secondary}
           fontSize={isTriad ? 7 : 6.5} fontWeight={500}>
-          {nn}
+          {note}
         </text>
       )}
     </g>
@@ -192,13 +192,13 @@ function LegendSection({ title, items, dotSize, mt = 0, keyIdx, labelMode }) {
         {title}
       </div>
       <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
-        {items.map(([iv, label]) => {
-          const nn = noteName(iv, keyIdx);
-          const dotLabel = labelMode === "notes" ? nn : iv;
-          const textLabel = labelMode === "notes" ? `${nn} (${label})` : labelMode === "both" ? `${label} · ${nn}` : label;
+        {items.map(([interval, label]) => {
+          const note = noteName(interval, keyIdx);
+          const dotLabel = labelMode === "notes" ? note : interval;
+          const textLabel = labelMode === "notes" ? `${note} (${label})` : labelMode === "both" ? `${label} · ${note}` : label;
           return (
-            <div key={iv} style={{ display: "flex", alignItems: "center", gap: 5 }}>
-              <div style={{ width: dotSize, height: dotSize, borderRadius: "50%", background: THEME.interval[iv],
+            <div key={interval} style={{ display: "flex", alignItems: "center", gap: 5 }}>
+              <div style={{ width: dotSize, height: dotSize, borderRadius: "50%", background: THEME.interval[interval],
                 display: "flex", alignItems: "center", justifyContent: "center",
                 fontSize: dotSize < 18 ? 6 : (dotLabel.length > 1 ? 7 : 9), fontWeight: 700, color: THEME.text.dark }}>
                 {dotLabel}
@@ -213,12 +213,12 @@ function LegendSection({ title, items, dotSize, mt = 0, keyIdx, labelMode }) {
 }
 
 function ChordDiagram({ chord, shape, accent, keyIdx, labelMode, italic = false }) {
-  const S = 16, F = 18, L = 20, T = 26;
-  const maxF = Math.max(...chord.f.filter(x => typeof x === "number"), 3);
+  const STR_GAP = 16, FRET_GAP = 18, LEFT = 20, TOP = 26;
+  const maxF = Math.max(...chord.frets.filter(x => typeof x === "number"), 3);
   const nf = Math.max(4, maxF + 1);
-  const W = L + 5 * S + 18;
-  const H = T + nf * F + 10;
-  const getLabel = (iv) => iv ? (labelMode === "notes" ? noteName(iv, keyIdx) : iv) : null;
+  const W = LEFT + 5 * STR_GAP + 18;
+  const H = TOP + nf * FRET_GAP + 10;
+  const getLabel = (interval) => interval ? (labelMode === "notes" ? noteName(interval, keyIdx) : interval) : null;
 
   return (
     <div style={{ background: THEME.bg.card, borderRadius: 8, padding: "8px 5px 4px", border: `1px solid ${accent}25` }}>
@@ -227,31 +227,31 @@ function ChordDiagram({ chord, shape, accent, keyIdx, labelMode, italic = false 
         {shape}
       </div>
       <svg viewBox={`0 0 ${W} ${H}`} width={W * 1.15} height={H * 1.15}>
-        <rect x={L - 1} y={T} width={5 * S + 2} height={2.5} rx={1} fill={THEME.text.secondary} />
+        <rect x={LEFT - 1} y={TOP} width={5 * STR_GAP + 2} height={2.5} rx={1} fill={THEME.text.secondary} />
         {Array.from({ length: nf }, (_, i) => i + 1).map(f =>
-          <line key={f} x1={L} y1={T + f * F} x2={L + 5 * S} y2={T + f * F} stroke="#334155" strokeWidth={0.7} />
+          <line key={f} x1={LEFT} y1={TOP + f * FRET_GAP} x2={LEFT + 5 * STR_GAP} y2={TOP + f * FRET_GAP} stroke="#334155" strokeWidth={0.7} />
         )}
         {[0, 1, 2, 3, 4, 5].map(i =>
-          <line key={i} x1={L + i * S} y1={T} x2={L + i * S} y2={T + nf * F} stroke={THEME.text.dim} strokeWidth={0.6} />
+          <line key={i} x1={LEFT + i * STR_GAP} y1={TOP} x2={LEFT + i * STR_GAP} y2={TOP + nf * FRET_GAP} stroke={THEME.text.dim} strokeWidth={0.6} />
         )}
-        {chord.f.map((fret, i) => {
-          const x = L + i * S;
-          const iv = chord.i[i];
-          const c = iv ? THEME.interval[iv] : THEME.text.secondary;
-          const label = getLabel(iv);
+        {chord.frets.map((fret, i) => {
+          const x = LEFT + i * STR_GAP;
+          const interval = chord.intervals[i];
+          const c = interval ? THEME.interval[interval] : THEME.text.secondary;
+          const label = getLabel(interval);
           const lSize = label && label.length > 1 ? 5 : 6;
           if (fret === "x") {
-            return <text key={i} x={x} y={T - 7} textAnchor="middle" fill={THEME.text.dim} fontSize={9} fontWeight={700}>✕</text>;
+            return <text key={i} x={x} y={TOP - 7} textAnchor="middle" fill={THEME.text.dim} fontSize={9} fontWeight={700}>✕</text>;
           }
           if (fret === 0) {
             return (
               <g key={i}>
-                <circle cx={x} cy={T - 9} r={5.5} fill="none" stroke={c} strokeWidth={1.3} />
-                <text x={x} y={T - 6.5} textAnchor="middle" fill={c} fontSize={lSize} fontWeight={700}>{label}</text>
+                <circle cx={x} cy={TOP - 9} r={5.5} fill="none" stroke={c} strokeWidth={1.3} />
+                <text x={x} y={TOP - 6.5} textAnchor="middle" fill={c} fontSize={lSize} fontWeight={700}>{label}</text>
               </g>
             );
           }
-          const cy = T + (fret - 0.5) * F;
+          const cy = TOP + (fret - 0.5) * FRET_GAP;
           return (
             <g key={i}>
               <circle cx={x} cy={cy} r={6.5} fill={c} stroke={THEME.stroke.light} strokeWidth={0.6} />
@@ -265,7 +265,7 @@ function ChordDiagram({ chord, shape, accent, keyIdx, labelMode, italic = false 
 }
 
 export default function CAGEDExplorer() {
-  const [column, setColumn] = useState(0);
+  const [keyIndex, setKeyIndex] = useState(0);
   const [isMinorKey, setIsMinorKey] = useState(false);
   const [activeShape, setActiveShape] = useState("C");
   const [pentaMode, setPentaMode] = useState("off");
@@ -273,10 +273,10 @@ export default function CAGEDExplorer() {
   const [labelMode, setLabelMode] = useState("intervals");
   const [overlayMode, setOverlayMode] = useState("off");
 
-  const effectiveKey = isMinorKey ? (column + 9) % 12 : column;
+  const effectiveKey = isMinorKey ? (keyIndex + 9) % 12 : keyIndex;
   const showMajTriad = triadMode === "major" || triadMode === "both";
   const showMinTriad = triadMode === "minor" || triadMode === "both";
-  const anyTriad = triadMode !== "off";
+  const showTriads = triadMode !== "off";
   const showPenta = pentaMode !== "off";
   const visibleShapes = useMemo(() => activeShape === "all" ? SHAPES : [activeShape], [activeShape]);
 
@@ -351,14 +351,14 @@ export default function CAGEDExplorer() {
     const seen = new Set();
     const out = [];
     visibleShapes.forEach(sh => {
-      (pentaData[sh] || []).forEach(([s, f, iv]) => {
+      (pentaData[sh] || []).forEach(([s, f, interval]) => {
         const key = posKey(s, f);
-        if (!seen.has(key) && !triadPositions.has(key)) { seen.add(key); out.push([s, f, iv]); }
+        if (!seen.has(key) && !triadPositions.has(key)) { seen.add(key); out.push([s, f, interval]); }
       });
       if (pentaMode === "blues") {
-        (bluesNotes[sh] || []).forEach(([s, f, iv]) => {
+        (bluesNotes[sh] || []).forEach(([s, f, interval]) => {
           const key = posKey(s, f);
-          if (!seen.has(key) && !triadPositions.has(key)) { seen.add(key); out.push([s, f, iv]); }
+          if (!seen.has(key) && !triadPositions.has(key)) { seen.add(key); out.push([s, f, interval]); }
         });
       }
     });
@@ -380,18 +380,18 @@ export default function CAGEDExplorer() {
       templates.forEach(t => {
         const panMin = t.panMin + effectiveKey;
         const panMax = t.panMax + effectiveKey;
-        const hFret = t.hFret + effectiveKey;
+        const handleFret = t.handleFret + effectiveKey;
         // Keep if pan or handle is within visible fretboard
-        const allFrets = [panMin, panMax, hFret];
+        const allFrets = [panMin, panMax, handleFret];
         if (allFrets.some(f => f >= 0 && f <= NUM_FRETS)) {
           shapes.push({
             lowerStr: t.pair[0],
             upperStr: t.pair[1],
             panMinFret: panMin,
             panMaxFret: panMax,
-            handleString: t.hStr,
-            handleFret: hFret,
-            handleDirection: t.hDir,
+            handleString: t.handleStr,
+            handleFret,
+            handleDirection: t.handleDir,
           });
         }
       });
@@ -415,18 +415,18 @@ export default function CAGEDExplorer() {
       templates.forEach(t => {
         const panMin = t.panMin + effectiveKey;
         const panMax = t.panMax + effectiveKey;
-        const hFret = t.hFret + effectiveKey;
+        const handleFret = t.handleFret + effectiveKey;
 
-        const otherStr = t.pair[0] === t.hStr ? t.pair[1] : t.pair[0];
+        const otherStr = t.pair[0] === t.handleStr ? t.pair[1] : t.pair[0];
 
         // 3-note bar: on handle string, spans from handle fret to far pan edge
         let bar3Min, bar3Max;
-        if (t.hDir === "left") {
-          bar3Min = hFret;
+        if (t.handleDir === "left") {
+          bar3Min = handleFret;
           bar3Max = panMax;
         } else {
           bar3Min = panMin;
-          bar3Max = hFret;
+          bar3Max = handleFret;
         }
 
         // 2-note bar: on other string, spans pan frets
@@ -435,7 +435,7 @@ export default function CAGEDExplorer() {
 
         // Only include bars within visible fretboard
         if (bar3Min >= 0 && bar3Max <= NUM_FRETS) {
-          bars.push({ string: t.hStr, minFret: bar3Min, maxFret: bar3Max, type: 3 });
+          bars.push({ string: t.handleStr, minFret: bar3Min, maxFret: bar3Max, type: 3 });
         }
         if (bar2Min >= 0 && bar2Max <= NUM_FRETS) {
           bars.push({ string: otherStr, minFret: bar2Min, maxFret: bar2Max, type: 2 });
@@ -505,10 +505,10 @@ export default function CAGEDExplorer() {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 5, marginBottom: 4, flexWrap: "wrap" }}>
           <span style={{ fontSize: "0.58rem", color: THEME.text.dim, letterSpacing: "0.2em", textTransform: "uppercase", marginRight: 8, minWidth: 32, textAlign: "right" }}>Major</span>
           {NOTES.map((n, i) => {
-            const sel = column === i;
+            const sel = keyIndex === i;
             const rowActive = sel && !isMinorKey;
             return (
-              <button key={n} onClick={() => { setColumn(i); setIsMinorKey(false); if (triadMode === "minor") setTriadMode("major"); }}
+              <button key={n} onClick={() => { setKeyIndex(i); setIsMinorKey(false); if (triadMode === "minor") setTriadMode("major"); }}
                 style={{ background: rowActive ? "#f1f5f9" : sel ? "rgba(241,245,249,0.15)" : THEME.bg.btnOff,
                   color: rowActive ? "#0f172a" : sel ? THEME.text.secondary : THEME.text.muted,
                   border: `1px solid ${rowActive ? "#f1f5f9" : sel ? "rgba(241,245,249,0.25)" : THEME.border.light}`,
@@ -526,10 +526,10 @@ export default function CAGEDExplorer() {
           {NOTES.map((_, i) => {
             const minIdx = (i + 9) % 12;
             const minName = NOTES[minIdx] + "m";
-            const sel = column === i;
+            const sel = keyIndex === i;
             const rowActive = sel && isMinorKey;
             return (
-              <button key={i} onClick={() => { setColumn(i); setIsMinorKey(true); if (triadMode === "major") setTriadMode("minor"); }}
+              <button key={i} onClick={() => { setKeyIndex(i); setIsMinorKey(true); if (triadMode === "major") setTriadMode("minor"); }}
                 style={{ background: rowActive ? "rgba(210,170,140,0.25)" : sel ? "rgba(210,170,140,0.1)" : THEME.bg.btnOff,
                   color: rowActive ? "#d8ac90" : sel ? "#8a7060" : "#4a5568",
                   border: `1px solid ${rowActive ? "rgba(210,170,140,0.4)" : sel ? "rgba(210,170,140,0.15)" : THEME.border.light}`,
@@ -628,7 +628,7 @@ export default function CAGEDExplorer() {
               <text key={i} x={14} y={strY(6 - i) + 4} textAnchor="middle" fill={THEME.text.dim} fontSize={10} fontFamily="ui-monospace, monospace">{l}</text>
             )}
 
-            {anyTriad && activeShape === "all" && SHAPES.map(sh => {
+            {showTriads && activeShape === "all" && SHAPES.map(sh => {
               const majF = showMajTriad ? majTriads[sh].map(([, f]) => f) : [];
               const minF = showMinTriad ? minTriads[sh].map(([, f]) => f) : [];
               const pF = pentaData ? (pentaData[sh] || []).map(([, f]) => f) : [];
@@ -641,7 +641,7 @@ export default function CAGEDExplorer() {
               return <rect key={sh} x={x1} y={MARGIN_TOP - 13} width={x2 - x1} height={5 * STRING_SPACING + 26} fill={THEME.shape[sh]} opacity={0.04} rx={3} />;
             })}
 
-            {anyTriad && activeShape === "all" && SHAPES.map(sh => {
+            {showTriads && activeShape === "all" && SHAPES.map(sh => {
               const fs = (showMajTriad ? majTriads[sh] : minTriads[sh]).map(([, f]) => f);
               if (!fs.length) return null;
               const avg = fs.reduce((a, b) => a + b, 0) / fs.length;
@@ -713,24 +713,24 @@ export default function CAGEDExplorer() {
               );
             })}
 
-            {pentaNotes.map(([s, f, iv], i) => (
-              <FretDot key={`p${i}`} cx={noteX(f)} cy={strY(s)} radius={PENTA_RADIUS} interval={iv}
+            {pentaNotes.map(([s, f, interval], i) => (
+              <FretDot key={`p${i}`} cx={noteX(f)} cy={strY(s)} radius={PENTA_RADIUS} interval={interval}
                 keyIdx={effectiveKey} labelMode={labelMode} showNoteName={labelMode === "both" && f !== 0} />
             ))}
 
             {showMinTriad && visibleShapes.map(sh =>
               minTriads[sh]
                 .filter(([s, f]) => !(triadMode === "both" && majTriadPositions.has(posKey(s, f))))
-                .map(([s, f, iv], idx) => (
-                  <FretDot key={`m-${sh}-${idx}`} cx={noteX(f)} cy={strY(s)} radius={TRIAD_RADIUS} interval={iv}
+                .map(([s, f, interval], idx) => (
+                  <FretDot key={`m-${sh}-${idx}`} cx={noteX(f)} cy={strY(s)} radius={TRIAD_RADIUS} interval={interval}
                     keyIdx={effectiveKey} labelMode={labelMode} shapeBorder={activeShape === "all" ? THEME.shape[sh] : null}
                     dashed={triadMode === "both"} showNoteName={labelMode === "both" && f !== 0} />
                 ))
             )}
 
             {showMajTriad && visibleShapes.map(sh =>
-              majTriads[sh].map(([s, f, iv], idx) => (
-                <FretDot key={`t-${sh}-${idx}`} cx={noteX(f)} cy={strY(s)} radius={TRIAD_RADIUS} interval={iv}
+              majTriads[sh].map(([s, f, interval], idx) => (
+                <FretDot key={`t-${sh}-${idx}`} cx={noteX(f)} cy={strY(s)} radius={TRIAD_RADIUS} interval={interval}
                   keyIdx={effectiveKey} labelMode={labelMode} shapeBorder={activeShape === "all" ? THEME.shape[sh] : null}
                   showNoteName={labelMode === "both" && f !== 0} />
               ))
@@ -741,10 +741,10 @@ export default function CAGEDExplorer() {
         {/* Bottom Section: Legend + Chord Diagrams */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginTop: 20, gap: 20, flexWrap: "wrap" }}>
           <div>
-            {anyTriad && <LegendSection title={triadMode === "both" ? "Triads" : triadMode === "minor" ? "Minor Triad" : "Triad"}
+            {showTriads && <LegendSection title={triadMode === "both" ? "Triads" : triadMode === "minor" ? "Minor Triad" : "Triad"}
               items={triadLegend} dotSize={20} keyIdx={effectiveKey} labelMode={labelMode} />}
 
-            {anyTriad && triadMode === "both" && (
+            {showTriads && triadMode === "both" && (
               <div style={{ fontSize: "0.6rem", color: THEME.text.muted, marginTop: 6, display: "flex", alignItems: "center", gap: 6 }}>
                 <svg width={20} height={12}>
                   <circle cx={6} cy={6} r={5} fill={THEME.interval["♭3"]} stroke={THEME.stroke.medium} strokeWidth={1} strokeDasharray="3,2" />
@@ -754,9 +754,9 @@ export default function CAGEDExplorer() {
             )}
 
             {pentaLegend.length > 0 && <LegendSection title={scaleName(pentaMode)} items={pentaLegend} dotSize={16}
-              mt={anyTriad ? 14 : 0} keyIdx={effectiveKey} labelMode={labelMode} />}
+              mt={showTriads ? 14 : 0} keyIdx={effectiveKey} labelMode={labelMode} />}
 
-            {anyTriad && activeShape === "all" && (
+            {showTriads && activeShape === "all" && (
               <>
                 <div style={{ fontSize: "0.55rem", color: THEME.text.dim, textTransform: "uppercase", letterSpacing: "0.2em", margin: "14px 0 8px" }}>Shape borders</div>
                 <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
@@ -817,7 +817,7 @@ export default function CAGEDExplorer() {
             )}
           </div>
 
-          {anyTriad && (
+          {showTriads && (
             <div>
               {showMajTriad && (
                 <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: showMinTriad ? 10 : 0 }}>

@@ -245,7 +245,7 @@ describe("findShapes", () => {
     // ♭3 at fret positions — these are not in major pentatonic but should
     // resolve via nearest neighbor
     const minTriadNotes = generateScale(0, SCALE.triadMin);
-    const b3Notes = minTriadNotes.filter(([, , iv]) => iv === "♭3");
+    const b3Notes = minTriadNotes.filter(([, , interval]) => interval === "♭3");
     b3Notes.forEach(([s, f]) => {
       const key = posKey(s, f);
       if (!shapeMap.has(key)) {
@@ -272,8 +272,8 @@ describe("FRYING_PAN geometry", () => {
         const visibleCount = templates.filter((t) => {
           const panMin = t.panMin + key;
           const panMax = t.panMax + key;
-          const hFret = t.hFret + key;
-          return [panMin, panMax, hFret].some((f) => f >= 0 && f <= NUM_FRETS);
+          const handleFret = t.handleFret + key;
+          return [panMin, panMax, handleFret].some((f) => f >= 0 && f <= NUM_FRETS);
         }).length;
         expect(visibleCount).toBeGreaterThanOrEqual(1);
       }
@@ -293,9 +293,9 @@ describe("FRYING_PAN geometry", () => {
         // pair should be adjacent string pairs (6,5), (4,3), or (2,1)
         expect([[6, 5], [4, 3], [2, 1]]).toContainEqual(t.pair);
         // handle string should be one of the pair
-        expect(t.pair).toContain(t.hStr);
+        expect(t.pair).toContain(t.handleStr);
         // handle direction matches side
-        expect(t.hDir).toBe(side);
+        expect(t.handleDir).toBe(side);
       });
     }
   });

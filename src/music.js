@@ -10,11 +10,11 @@ export const TUNING = [4, 9, 2, 7, 11, 4]; // E, A, D, G, B, E
 
 // Scale intervals (semitones from root + interval label)
 export const SCALE = {
-  triadMaj: [{ semi: 0, iv: "R" }, { semi: 4, iv: "3" }, { semi: 7, iv: "5" }],
-  triadMin: [{ semi: 0, iv: "R" }, { semi: 3, iv: "♭3" }, { semi: 7, iv: "5" }],
-  pentaMaj: [{ semi: 0, iv: "R" }, { semi: 2, iv: "2" }, { semi: 4, iv: "3" }, { semi: 7, iv: "5" }, { semi: 9, iv: "6" }],
-  pentaMin: [{ semi: 0, iv: "R" }, { semi: 3, iv: "♭3" }, { semi: 5, iv: "4" }, { semi: 7, iv: "5" }, { semi: 10, iv: "♭7" }],
-  bluesAdd: [{ semi: 6, iv: "♭5" }],
+  triadMaj: [{ semi: 0, label: "R" }, { semi: 4, label: "3" }, { semi: 7, label: "5" }],
+  triadMin: [{ semi: 0, label: "R" }, { semi: 3, label: "♭3" }, { semi: 7, label: "5" }],
+  pentaMaj: [{ semi: 0, label: "R" }, { semi: 2, label: "2" }, { semi: 4, label: "3" }, { semi: 7, label: "5" }, { semi: 9, label: "6" }],
+  pentaMin: [{ semi: 0, label: "R" }, { semi: 3, label: "♭3" }, { semi: 5, label: "4" }, { semi: 7, label: "5" }, { semi: 10, label: "♭7" }],
+  bluesAdd: [{ semi: 6, label: "♭5" }],
 };
 
 export const SHAPE_ORDER = ["C", "A", "G", "E", "D"];
@@ -25,20 +25,20 @@ export const SHAPE_ORDER = ["C", "A", "G", "E", "D"];
 // Two octaves provided so any 15-fret window is covered after shifting.
 export const FRYING_PAN = {
   left: [
-    { pair: [6, 5], panMin: 10, panMax: 12, hStr: 6, hFret: 8, hDir: "left" },
-    { pair: [4, 3], panMin: 12, panMax: 14, hStr: 4, hFret: 10, hDir: "left" },
-    { pair: [2, 1], panMin: 3, panMax: 5, hStr: 2, hFret: 1, hDir: "left" },
-    { pair: [6, 5], panMin: 22, panMax: 24, hStr: 6, hFret: 20, hDir: "left" },
-    { pair: [4, 3], panMin: 24, panMax: 26, hStr: 4, hFret: 22, hDir: "left" },
-    { pair: [2, 1], panMin: 15, panMax: 17, hStr: 2, hFret: 13, hDir: "left" },
+    { pair: [6, 5], panMin: 10, panMax: 12, handleStr: 6, handleFret: 8, handleDir: "left" },
+    { pair: [4, 3], panMin: 12, panMax: 14, handleStr: 4, handleFret: 10, handleDir: "left" },
+    { pair: [2, 1], panMin: 3, panMax: 5, handleStr: 2, handleFret: 1, handleDir: "left" },
+    { pair: [6, 5], panMin: 22, panMax: 24, handleStr: 6, handleFret: 20, handleDir: "left" },
+    { pair: [4, 3], panMin: 24, panMax: 26, handleStr: 4, handleFret: 22, handleDir: "left" },
+    { pair: [2, 1], panMin: 15, panMax: 17, handleStr: 2, handleFret: 13, handleDir: "left" },
   ],
   right: [
-    { pair: [6, 5], panMin: 3, panMax: 5, hStr: 5, hFret: 7, hDir: "right" },
-    { pair: [4, 3], panMin: 5, panMax: 7, hStr: 3, hFret: 9, hDir: "right" },
-    { pair: [2, 1], panMin: 8, panMax: 10, hStr: 1, hFret: 12, hDir: "right" },
-    { pair: [6, 5], panMin: 15, panMax: 17, hStr: 5, hFret: 19, hDir: "right" },
-    { pair: [4, 3], panMin: 17, panMax: 19, hStr: 3, hFret: 21, hDir: "right" },
-    { pair: [2, 1], panMin: 20, panMax: 22, hStr: 1, hFret: 24, hDir: "right" },
+    { pair: [6, 5], panMin: 3, panMax: 5, handleStr: 5, handleFret: 7, handleDir: "right" },
+    { pair: [4, 3], panMin: 5, panMax: 7, handleStr: 3, handleFret: 9, handleDir: "right" },
+    { pair: [2, 1], panMin: 8, panMax: 10, handleStr: 1, handleFret: 12, handleDir: "right" },
+    { pair: [6, 5], panMin: 15, panMax: 17, handleStr: 5, handleFret: 19, handleDir: "right" },
+    { pair: [4, 3], panMin: 17, panMax: 19, handleStr: 3, handleFret: 21, handleDir: "right" },
+    { pair: [2, 1], panMin: 20, panMax: 22, handleStr: 1, handleFret: 24, handleDir: "right" },
   ],
 };
 
@@ -56,11 +56,11 @@ export function generateScale(rootKey, degrees, maxFret = NUM_FRETS) {
   const notes = [];
   TUNING.forEach((openSemi, idx) => {
     const str = 6 - idx;
-    degrees.forEach(({ semi, iv }) => {
+    degrees.forEach(({ semi, label }) => {
       const noteSemi = (rootKey + semi) % 12;
       const baseFret = (noteSemi - openSemi + 12) % 12;
       for (let fret = baseFret; fret <= maxFret; fret += 12) {
-        notes.push([str, fret, iv]);
+        notes.push([str, fret, label]);
       }
     });
   });
@@ -114,15 +114,15 @@ export function assignShapes(pentaNotes, effectiveKey, scaleSemi) {
 // Look up shapes for a note position, falling back to nearest pentatonic note on the same string.
 // Handles notes like ♭3 that aren't at pentatonic positions but belong to the same shape
 // as their nearest pentatonic neighbor (e.g., ♭3 is 1 fret below the major 3).
-export function findShapes(sMap, s, f) {
-  const direct = sMap.get(posKey(s, f));
+export function findShapes(shapeMap, string, fret) {
+  const direct = shapeMap.get(posKey(string, fret));
   if (direct) return direct;
   let best = null;
   let bestDist = Infinity;
-  sMap.forEach((shapes, key) => {
+  shapeMap.forEach((shapes, key) => {
     const [ks, kf] = key.split("-").map(Number);
-    if (ks === s) {
-      const dist = Math.abs(kf - f);
+    if (ks === string) {
+      const dist = Math.abs(kf - fret);
       if (dist < bestDist) { bestDist = dist; best = shapes; }
     }
   });
