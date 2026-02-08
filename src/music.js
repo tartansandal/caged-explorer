@@ -92,7 +92,7 @@ export function assignShapes(pentaNotes, effectiveKey, scaleSemi) {
 
   Object.entries(byString).forEach(([str, notes]) => {
     notes.sort((a, b) => a.fret - b.fret);
-    const s = parseInt(str);
+    const s = Number(str);
 
     notes.forEach((note, i) => {
       const key = posKey(s, note.fret);
