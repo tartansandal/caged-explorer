@@ -118,15 +118,18 @@ const BLUES_ADDITION = {
   D: [[3,11,"♭5"]],
 };
 
-// 3:2 System: Two positions of the pan-handle pentatonic fingering
-// Each position is a 5-note pattern on 2 strings (3 notes + 2 notes)
-// 3-note group = scale degrees 1, 2, 3 (intervals R, 2, 3)
-// 2-note group = scale degrees 5, 6 (intervals 5, 6)
+// 3:2 System: Two orientations of the frying-pan pentatonic fingering
+// Each frying pan is a 5-note pattern on 2 adjacent strings (3 notes + 2 notes).
+// The 2 pairs of notes sharing the same fret form the "pan"; the lone note is the "handle".
+// Major pentatonic: 3-note group = R, 2, 3; 2-note group = 5, 6
 // Tiled across string pairs: 6-5, 4-3, 2-1 with fret shifts (+2, +3 for B string)
 // Defined for C major pentatonic (effectiveKey=0), transposed like other data
+//
+// Left-hand: handle points toward nut (lower frets)
+// Right-hand: handle points toward bridge (higher frets)
 
-// Position 1: R,2,3 on lower string; 5,6 on upper (higher fret position)
-const THREE_TWO_POS1_MAJ = [
+// Left-hand frying pan: R,2,3 on lower string; 5,6 on upper
+const THREE_TWO_LEFT_MAJ = [
   // Strings 6-5: C(R)=8, D(2)=10, E(3)=12 on str6; G(5)=10, A(6)=12 on str5
   { strings: [6, 5], notes: [[6, 8, "R"], [6, 10, "2"], [6, 12, "3"], [5, 10, "5"], [5, 12, "6"]] },
   // Strings 4-3 (+2 frets)
@@ -141,8 +144,8 @@ const THREE_TWO_POS1_MAJ = [
   ] },
 ];
 
-// Position 2: 5,6 on lower string; R,2,3 on upper (lower fret position)
-const THREE_TWO_POS2_MAJ = [
+// Right-hand frying pan: 5,6 on lower string; R,2,3 on upper
+const THREE_TWO_RIGHT_MAJ = [
   // Strings 6-5: G(5)=3, A(6)=5 on str6; C(R)=3, D(2)=5, E(3)=7 on str5
   { strings: [6, 5], notes: [[6, 3, "5"], [6, 5, "6"], [5, 3, "R"], [5, 5, "2"], [5, 7, "3"]] },
   // Strings 4-3 (+2 frets)
@@ -154,27 +157,25 @@ const THREE_TWO_POS2_MAJ = [
 // Minor pentatonic: R, ♭3, 4, 5, ♭7
 // 3-note group = R, ♭3, 4; 2-note group = 5, ♭7
 
-// Position 1: R,♭3,4 on lower; 5,♭7 on upper
-const THREE_TWO_POS1_MIN = [
+// Left-hand frying pan: R,♭3,4 on lower; 5,♭7 on upper
+const THREE_TWO_LEFT_MIN = [
   { strings: [6, 5], notes: [[6, 8, "R"], [6, 11, "♭3"], [6, 13, "4"], [5, 10, "5"], [5, 13, "♭7"]] },
   { strings: [4, 3], notes: [[4, 10, "R"], [4, 13, "♭3"], [4, 15, "4"], [3, 12, "5"], [3, 15, "♭7"]] },
   // Strings 2-1
   { strings: [2, 1], notes: [[2, 1, "R"], [2, 4, "♭3"], [2, 6, "4"], [1, 3, "5"], [1, 6, "♭7"]] },
 ];
 
-// Position 2: 5,♭7 on lower; R,♭3,4 on upper
-const THREE_TWO_POS2_MIN = [
+// Right-hand frying pan: 5,♭7 on lower; R,♭3,4 on upper
+const THREE_TWO_RIGHT_MIN = [
   { strings: [6, 5], notes: [[6, 3, "5"], [6, 6, "♭7"], [5, 3, "R"], [5, 6, "♭3"], [5, 8, "4"]] },
   { strings: [4, 3], notes: [[4, 5, "5"], [4, 8, "♭7"], [3, 5, "R"], [3, 8, "♭3"], [3, 10, "4"]] },
   { strings: [2, 1], notes: [[2, 8, "5"], [2, 11, "♭7"], [1, 8, "R"], [1, 11, "♭3"], [1, 13, "4"]] },
 ];
 
-// Which shapes align with which 3:2 position
-// Position 2 covers lower frets (C, A, G shapes)
-// Position 1 covers higher frets (E, D shapes)
+// Which shapes align with which frying-pan orientation
 const SHAPE_TO_THREE_TWO = {
-  C: 2, A: 2, G: 2,  // Position 2: lower fret area
-  E: 1, D: 1         // Position 1: higher fret area
+  C: "right", A: "right", G: "right",  // Right-hand: handle toward bridge
+  E: "left",  D: "left"                // Left-hand: handle toward nut
 };
 
 const CHORD_MAJ = {
@@ -392,10 +393,10 @@ export default function CAGEDExplorer() {
     }).filter(pos => pos.notes.length > 0);
   };
 
-  const threeTwoPos1Maj = useMemo(() => transposeThreeTwo(THREE_TWO_POS1_MAJ, effectiveKey), [effectiveKey]);
-  const threeTwoPos2Maj = useMemo(() => transposeThreeTwo(THREE_TWO_POS2_MAJ, effectiveKey), [effectiveKey]);
-  const threeTwoPos1Min = useMemo(() => transposeThreeTwo(THREE_TWO_POS1_MIN, effectiveKey), [effectiveKey]);
-  const threeTwoPos2Min = useMemo(() => transposeThreeTwo(THREE_TWO_POS2_MIN, effectiveKey), [effectiveKey]);
+  const threeTwoLeftMaj = useMemo(() => transposeThreeTwo(THREE_TWO_LEFT_MAJ, effectiveKey), [effectiveKey]);
+  const threeTwoRightMaj = useMemo(() => transposeThreeTwo(THREE_TWO_RIGHT_MAJ, effectiveKey), [effectiveKey]);
+  const threeTwoLeftMin = useMemo(() => transposeThreeTwo(THREE_TWO_LEFT_MIN, effectiveKey), [effectiveKey]);
+  const threeTwoRightMin = useMemo(() => transposeThreeTwo(THREE_TWO_RIGHT_MIN, effectiveKey), [effectiveKey]);
 
   const pentaData = pentaMode === "major" ? majPenta : (showPenta ? minPenta : null);
 
@@ -437,12 +438,12 @@ export default function CAGEDExplorer() {
   const threeTwoBars = useMemo(() => {
     if (!showThreeTwoBars) return [];
     const isMinor = pentaMode === "minor" || pentaMode === "blues";
-    const pos1Data = isMinor ? threeTwoPos1Min : threeTwoPos1Maj;
-    const pos2Data = isMinor ? threeTwoPos2Min : threeTwoPos2Maj;
+    const leftData = isMinor ? threeTwoLeftMin : threeTwoLeftMaj;
+    const rightData = isMinor ? threeTwoRightMin : threeTwoRightMaj;
 
-    // Determine which positions to show
-    const showPos1 = activeShape === "all" || SHAPE_TO_THREE_TWO[activeShape] === 1;
-    const showPos2 = activeShape === "all" || SHAPE_TO_THREE_TWO[activeShape] === 2;
+    // Determine which orientations to show
+    const showLeft = activeShape === "all" || SHAPE_TO_THREE_TWO[activeShape] === "left";
+    const showRight = activeShape === "all" || SHAPE_TO_THREE_TWO[activeShape] === "right";
 
     const bars = [];
 
@@ -470,11 +471,11 @@ export default function CAGEDExplorer() {
       });
     };
 
-    if (showPos1) addBarsFromPosition(pos1Data);
-    if (showPos2) addBarsFromPosition(pos2Data);
+    if (showLeft) addBarsFromPosition(leftData);
+    if (showRight) addBarsFromPosition(rightData);
 
     return bars;
-  }, [showThreeTwoBars, activeShape, pentaMode, threeTwoPos1Maj, threeTwoPos2Maj, threeTwoPos1Min, threeTwoPos2Min]);
+  }, [showThreeTwoBars, activeShape, pentaMode, threeTwoLeftMaj, threeTwoRightMaj, threeTwoLeftMin, threeTwoRightMin]);
 
   const svgW = MARGIN_LEFT + NUM_FRETS * FRET_SPACING + 25;
   const svgH = MARGIN_TOP + 5 * STRING_SPACING + 48;
