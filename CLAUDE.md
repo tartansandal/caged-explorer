@@ -27,19 +27,19 @@ Music theory logic lives in `src/music.js` (pure functions + data constants), ke
 - `generateScale(rootKey, degrees)` — Places scale notes on the fretboard using guitar tuning math
 - `assignShapes(pentaNotes, effectiveKey, scaleSemi)` — Maps pentatonic note positions to CAGED shapes; each note can belong to 1-2 adjacent shapes (boundary sharing)
 - `findShapes(shapeMap, string, fret)` — Looks up shapes for a position with nearest-neighbor fallback for notes not directly in the pentatonic map
-- Constants: `TUNING`, `SCALE` (interval definitions for triads/pentatonics/blues), `FRYING_PAN` (overlay geometry), `SHAPE_ORDER`, `SHAPE_TO_THREE_TWO`
+- Constants: `TUNING`, `SCALE` (interval definitions for triads/pentatonics/blues), `FRYING_PAN` (overlay geometry), `SHAPE_ORDER`, `SHAPE_ORIENTATION`
 
-**`src/App.jsx`** — Single `CAGEDExplorer` component (~880 lines) with subcomponents:
+**`src/App.jsx`** — Single `CAGEDExplorer` component (~850 lines) with subcomponents:
 - `ToggleButton`, `FretDot`, `LegendSection`, `ChordDiagram`
-- UI constants: `THEME` (complete color palette), `CHORD_MAJ/MIN` (open chord fingerings), `LEGEND` (context-sensitive legend entries), `SEMI` (interval-to-semitone mapping)
+- UI constants: `THEME` (complete color palette), `CHORD_MAJ/MIN` (open chord fingerings), `LEGEND` (context-sensitive legend entries), `INTERVAL_SEMITONES` (interval-to-semitone mapping)
 
 ### Key Concept: effectiveKey
 
-The `effectiveKey` variable transforms between the displayed key and the underlying music theory. For major keys it equals the column index directly; for minor keys it's `(column + 9) % 12` (relative major). All scale generation and shape assignment use `effectiveKey`.
+The `effectiveKey` variable transforms between the displayed key and the underlying music theory. For major keys it equals `keyIndex` directly; for minor keys it's `(keyIndex + 9) % 12` (relative major). All scale generation and shape assignment use `effectiveKey`.
 
 ### State Management
 
-React hooks only (`useState`, `useMemo`). Main state: `column` (key index 0-11), `isMinorKey`, `activeShape` (C/A/G/E/D or 'all'), `pentaMode` (off/major/minor/blues), `triadMode` (off/major/minor/both), `labelMode` (intervals/notes/both), `overlayMode` (off/fryingPan/threeTwo).
+React hooks only (`useState`, `useMemo`). Main state: `keyIndex` (0-11), `isMinorKey`, `activeShape` (C/A/G/E/D or 'all'), `pentaMode` (off/major/minor/blues), `triadMode` (off/major/minor/both), `labelMode` (intervals/notes/both), `overlayMode` (off/fryingPan/threeTwo).
 
 ### Overlay System
 
