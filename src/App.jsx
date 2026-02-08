@@ -1,4 +1,8 @@
 import { useState, useMemo } from "react";
+import {
+  generateScale, assignShapes, findShapes, posKey,
+  NUM_FRETS, SCALE, SHAPE_ORDER, FRYING_PAN, SHAPE_TO_THREE_TWO,
+} from "./music.js";
 
 /**
  * CAGED System Explorer
@@ -6,7 +10,7 @@ import { useState, useMemo } from "react";
  */
 
 const NOTES = ["C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"];
-const SHAPES = ["C", "A", "G", "E", "D"];
+const SHAPES = SHAPE_ORDER;
 const STR_NAMES = ["E", "A", "D", "G", "B", "e"];
 
 const THEME = {
@@ -65,7 +69,6 @@ const FRET_SPACING   = 56;
 const STRING_SPACING = 26;
 const MARGIN_LEFT    = 52;
 const MARGIN_TOP     = 38;
-const NUM_FRETS      = 15;
 const TRIAD_RADIUS   = 10;
 const PENTA_RADIUS   = 8;
 
@@ -79,106 +82,6 @@ const SEMI = {
   "5":  7,
   "6":  9,
   "♭7": 10,
-};
-
-const TRIAD_MAJ = {
-  C: [[5,3,"R"], [4,2,"3"], [3,0,"5"], [2,1,"R"], [1,0,"3"]],
-  A: [[5,3,"R"], [4,5,"5"], [3,5,"R"], [2,5,"3"], [1,3,"5"]],
-  G: [[6,8,"R"], [5,7,"3"], [4,5,"5"], [3,5,"R"], [2,5,"3"], [1,8,"R"]],
-  E: [[6,8,"R"], [5,10,"5"], [4,10,"R"], [3,9,"3"], [2,8,"5"], [1,8,"R"]],
-  D: [[4,10,"R"], [3,12,"5"], [2,13,"R"], [1,12,"3"]],
-};
-
-const TRIAD_MIN = {
-  C: [[5,3,"R"], [4,1,"♭3"], [3,0,"5"], [2,1,"R"], [1,3,"5"]],
-  A: [[5,3,"R"], [4,5,"5"], [3,5,"R"], [2,4,"♭3"], [1,3,"5"]],
-  G: [[6,8,"R"], [5,6,"♭3"], [4,5,"5"], [3,5,"R"], [2,8,"5"], [1,8,"R"]],
-  E: [[6,8,"R"], [5,10,"5"], [4,10,"R"], [3,8,"♭3"], [2,8,"5"], [1,8,"R"]],
-  D: [[4,10,"R"], [3,12,"5"], [2,13,"R"], [1,11,"♭3"]],
-};
-
-const PENTA_MAJ = {
-  C: [[6,0,"3"], [6,3,"5"], [5,0,"6"], [5,3,"R"], [4,0,"2"], [4,2,"3"], [3,0,"5"], [3,2,"6"], [2,1,"R"], [2,3,"2"], [1,0,"3"], [1,3,"5"]],
-  A: [[6,3,"5"], [6,5,"6"], [5,3,"R"], [5,5,"2"], [4,2,"3"], [4,5,"5"], [3,2,"6"], [3,5,"R"], [2,3,"2"], [2,5,"3"], [1,3,"5"], [1,5,"6"]],
-  G: [[6,5,"6"], [6,8,"R"], [5,5,"2"], [5,7,"3"], [4,5,"5"], [4,7,"6"], [3,5,"R"], [3,7,"2"], [2,5,"3"], [2,8,"5"], [1,5,"6"], [1,8,"R"]],
-  E: [[6,8,"R"], [6,10,"2"], [5,7,"3"], [5,10,"5"], [4,7,"6"], [4,10,"R"], [3,7,"2"], [3,9,"3"], [2,8,"5"], [2,10,"6"], [1,8,"R"], [1,10,"2"]],
-  D: [[6,10,"2"], [6,12,"3"], [5,10,"5"], [5,12,"6"], [4,10,"R"], [4,12,"2"], [3,9,"3"], [3,12,"5"], [2,10,"6"], [2,13,"R"], [1,10,"2"], [1,12,"3"]],
-};
-
-const PENTA_MIN = {
-  C: [[6,1,"4"], [6,3,"5"], [5,1,"♭7"], [5,3,"R"], [4,1,"♭3"], [4,3,"4"], [3,0,"5"], [3,3,"♭7"], [2,1,"R"], [2,4,"♭3"], [1,1,"4"], [1,3,"5"]],
-  A: [[6,3,"5"], [6,6,"♭7"], [5,3,"R"], [5,6,"♭3"], [4,3,"4"], [4,5,"5"], [3,3,"♭7"], [3,5,"R"], [2,4,"♭3"], [2,6,"4"], [1,3,"5"], [1,6,"♭7"]],
-  G: [[6,6,"♭7"], [6,8,"R"], [5,6,"♭3"], [5,8,"4"], [4,5,"5"], [4,8,"♭7"], [3,5,"R"], [3,8,"♭3"], [2,6,"4"], [2,8,"5"], [1,6,"♭7"], [1,8,"R"]],
-  E: [[6,8,"R"], [6,11,"♭3"], [5,8,"4"], [5,10,"5"], [4,8,"♭7"], [4,10,"R"], [3,8,"♭3"], [3,10,"4"], [2,8,"5"], [2,11,"♭7"], [1,8,"R"], [1,11,"♭3"]],
-  D: [[6,11,"♭3"], [6,13,"4"], [5,10,"5"], [5,13,"♭7"], [4,10,"R"], [4,13,"♭3"], [3,10,"4"], [3,12,"5"], [2,11,"♭7"], [2,13,"R"], [1,11,"♭3"], [1,13,"4"]],
-};
-
-const BLUES_ADDITION = {
-  C: [[6,2,"♭5"], [1,2,"♭5"]],
-  A: [[4,4,"♭5"]],
-  G: [[2,7,"♭5"]],
-  E: [[5,9,"♭5"]],
-  D: [[3,11,"♭5"]],
-};
-
-// 3:2 System: Two orientations of the frying-pan pentatonic fingering
-// Each frying pan is a 5-note pattern on 2 adjacent strings (3 notes + 2 notes).
-// The 2 pairs of notes sharing the same fret form the "pan"; the lone note is the "handle".
-// Major pentatonic: 3-note group = R, 2, 3; 2-note group = 5, 6
-// Tiled across string pairs: 6-5, 4-3, 2-1 with fret shifts (+2, +3 for B string)
-// Defined for C major pentatonic (effectiveKey=0), transposed like other data
-//
-// Left-hand: handle points toward nut (lower frets)
-// Right-hand: handle points toward bridge (higher frets)
-
-// Left-hand frying pan: R,2,3 on lower string; 5,6 on upper
-const THREE_TWO_LEFT_MAJ = [
-  // Strings 6-5: C(R)=8, D(2)=10, E(3)=12 on str6; G(5)=10, A(6)=12 on str5
-  { strings: [6, 5], notes: [[6, 8, "R"], [6, 10, "2"], [6, 12, "3"], [5, 10, "5"], [5, 12, "6"]] },
-  // Strings 4-3 (+2 frets)
-  { strings: [4, 3], notes: [[4, 10, "R"], [4, 12, "2"], [4, 14, "3"], [3, 12, "5"], [3, 14, "6"]] },
-  // Strings 2-1 (frets 1-5)
-  { strings: [2, 1], notes: [
-    [2, 1, "R"],
-    [2, 3, "2"],
-    [2, 5, "3"],
-    [1, 3, "5"],
-    [1, 5, "6"]
-  ] },
-];
-
-// Right-hand frying pan: 5,6 on lower string; R,2,3 on upper
-const THREE_TWO_RIGHT_MAJ = [
-  // Strings 6-5: G(5)=3, A(6)=5 on str6; C(R)=3, D(2)=5, E(3)=7 on str5
-  { strings: [6, 5], notes: [[6, 3, "5"], [6, 5, "6"], [5, 3, "R"], [5, 5, "2"], [5, 7, "3"]] },
-  // Strings 4-3 (+2 frets)
-  { strings: [4, 3], notes: [[4, 5, "5"], [4, 7, "6"], [3, 5, "R"], [3, 7, "2"], [3, 9, "3"]] },
-  // Strings 2-1 (+3 more frets)
-  { strings: [2, 1], notes: [[2, 8, "5"], [2, 10, "6"], [1, 8, "R"], [1, 10, "2"], [1, 12, "3"]] },
-];
-
-// Minor pentatonic: R, ♭3, 4, 5, ♭7
-// 3-note group = R, ♭3, 4; 2-note group = 5, ♭7
-
-// Left-hand frying pan: R,♭3,4 on lower; 5,♭7 on upper
-const THREE_TWO_LEFT_MIN = [
-  { strings: [6, 5], notes: [[6, 8, "R"], [6, 11, "♭3"], [6, 13, "4"], [5, 10, "5"], [5, 13, "♭7"]] },
-  { strings: [4, 3], notes: [[4, 10, "R"], [4, 13, "♭3"], [4, 15, "4"], [3, 12, "5"], [3, 15, "♭7"]] },
-  // Strings 2-1
-  { strings: [2, 1], notes: [[2, 1, "R"], [2, 4, "♭3"], [2, 6, "4"], [1, 3, "5"], [1, 6, "♭7"]] },
-];
-
-// Right-hand frying pan: 5,♭7 on lower; R,♭3,4 on upper
-const THREE_TWO_RIGHT_MIN = [
-  { strings: [6, 5], notes: [[6, 3, "5"], [6, 6, "♭7"], [5, 3, "R"], [5, 6, "♭3"], [5, 8, "4"]] },
-  { strings: [4, 3], notes: [[4, 5, "5"], [4, 8, "♭7"], [3, 5, "R"], [3, 8, "♭3"], [3, 10, "4"]] },
-  { strings: [2, 1], notes: [[2, 8, "5"], [2, 11, "♭7"], [1, 8, "R"], [1, 11, "♭3"], [1, 13, "4"]] },
-];
-
-// Which shapes align with which frying-pan orientation
-const SHAPE_TO_THREE_TWO = {
-  C: "right", A: "right", G: "right",  // Right-hand: handle toward bridge
-  E: "left",  D: "left"                // Left-hand: handle toward nut
 };
 
 const CHORD_MAJ = {
@@ -221,23 +124,10 @@ const scaleName = (mode) => ({
   blues: "Blues Scale",
 })[mode] || "";
 
-const transpose = (data, semitones) => {
-  const result = {};
-  for (const [shape, notes] of Object.entries(data)) {
-    let shifted = notes.map(([str, fret, iv]) => [str, fret + semitones, iv]);
-    if (shifted.length > 0 && Math.min(...shifted.map(([, f]) => f)) >= 12) {
-      shifted = shifted.map(([str, fret, iv]) => [str, fret - 12, iv]);
-    }
-    result[shape] = shifted.filter(([, fret]) => fret >= 0 && fret <= 15);
-  }
-  return result;
-};
 
 const fretX = (fret) => MARGIN_LEFT + fret * FRET_SPACING;
 const noteX = (fret) => fret === 0 ? MARGIN_LEFT - 16 : MARGIN_LEFT + (fret - 0.5) * FRET_SPACING;
 const strY = (str) => MARGIN_TOP + (str - 1) * STRING_SPACING;
-const posKey = (str, fret) => `${str}-${fret}`;
-
 function ToggleButton({ label, active, onClick, accent = false, style = {} }) {
   const bg = active ? (accent ? THEME.bg.btnAccent : THEME.bg.btnOn) : THEME.bg.btnOff;
   const color = active ? (accent ? "#93c5fd" : THEME.text.secondary) : THEME.text.dim;
@@ -376,30 +266,96 @@ export default function CAGEDExplorer() {
   const showPenta = pentaMode !== "off";
   const visibleShapes = useMemo(() => activeShape === "all" ? SHAPES : [activeShape], [activeShape]);
 
-  const majTriads = useMemo(() => transpose(TRIAD_MAJ, effectiveKey), [effectiveKey]);
-  const minTriads = useMemo(() => transpose(TRIAD_MIN, effectiveKey), [effectiveKey]);
-  const majPenta = useMemo(() => transpose(PENTA_MAJ, effectiveKey), [effectiveKey]);
-  const minPenta = useMemo(() => transpose(PENTA_MIN, effectiveKey), [effectiveKey]);
-  const bluesNotes = useMemo(() => transpose(BLUES_ADDITION, effectiveKey), [effectiveKey]);
+  // Generate all scale notes and assign CAGED shapes via pentatonic positions
+  const allMajTriadNotes = useMemo(() => generateScale(effectiveKey, SCALE.triadMaj), [effectiveKey]);
+  const allMinTriadNotes = useMemo(() => generateScale(effectiveKey, SCALE.triadMin), [effectiveKey]);
+  const allMajPentaNotes = useMemo(() => generateScale(effectiveKey, SCALE.pentaMaj), [effectiveKey]);
+  const allMinPentaNotes = useMemo(() => generateScale(effectiveKey, SCALE.pentaMin), [effectiveKey]);
+  const allBluesNotes = useMemo(() => generateScale(effectiveKey, SCALE.bluesAdd), [effectiveKey]);
 
-  // Transpose 3:2 position data
-  const transposeThreeTwo = (positions, semitones) => {
-    return positions.map(pos => {
-      let shifted = pos.notes.map(([str, fret, iv]) => [str, fret + semitones, iv]);
-      if (shifted.length > 0 && Math.min(...shifted.map(([, f]) => f)) >= 12) {
-        shifted = shifted.map(([str, fret, iv]) => [str, fret - 12, iv]);
-      }
-      return {
-        strings: pos.strings,
-        notes: shifted.filter(([, fret]) => fret >= 0 && fret <= 15)
-      };
-    }).filter(pos => pos.notes.length > 0);
-  };
+  // Build separate shape maps for major and minor pentatonic
+  const majSemi = useMemo(() => SCALE.pentaMaj.map(d => d.semi), []);
+  const minSemi = useMemo(() => SCALE.pentaMin.map(d => d.semi), []);
+  const majShapeMap = useMemo(() => assignShapes(allMajPentaNotes, effectiveKey, majSemi), [allMajPentaNotes, effectiveKey, majSemi]);
+  const minShapeMap = useMemo(() => assignShapes(allMinPentaNotes, effectiveKey, minSemi), [allMinPentaNotes, effectiveKey, minSemi]);
 
-  const threeTwoLeftMaj = useMemo(() => transposeThreeTwo(THREE_TWO_LEFT_MAJ, effectiveKey), [effectiveKey]);
-  const threeTwoRightMaj = useMemo(() => transposeThreeTwo(THREE_TWO_RIGHT_MAJ, effectiveKey), [effectiveKey]);
-  const threeTwoLeftMin = useMemo(() => transposeThreeTwo(THREE_TWO_LEFT_MIN, effectiveKey), [effectiveKey]);
-  const threeTwoRightMin = useMemo(() => transposeThreeTwo(THREE_TWO_RIGHT_MIN, effectiveKey), [effectiveKey]);
+  // Per-shape triad data: major triads use major shape map, minor triads use minor shape map
+  const majTriads = useMemo(() => {
+    const byShape = {};
+    SHAPES.forEach(sh => { byShape[sh] = []; });
+    allMajTriadNotes.forEach(note => {
+      const [s, f] = note;
+      const shapes = findShapes(majShapeMap, s, f);
+      if (shapes) shapes.forEach(sh => byShape[sh].push(note));
+    });
+    return byShape;
+  }, [allMajTriadNotes, majShapeMap]);
+
+  const minTriads = useMemo(() => {
+    const byShape = {};
+    SHAPES.forEach(sh => { byShape[sh] = []; });
+    allMinTriadNotes.forEach(note => {
+      const [s, f] = note;
+      const shapes = findShapes(minShapeMap, s, f);
+      if (shapes) shapes.forEach(sh => byShape[sh].push(note));
+    });
+    return byShape;
+  }, [allMinTriadNotes, minShapeMap]);
+
+  // Per-shape pentatonic data
+  const majPenta = useMemo(() => {
+    const byShape = {};
+    SHAPES.forEach(sh => { byShape[sh] = []; });
+    allMajPentaNotes.forEach(note => {
+      const [s, f] = note;
+      const shapes = majShapeMap.get(posKey(s, f));
+      if (shapes) shapes.forEach(sh => byShape[sh].push(note));
+    });
+    return byShape;
+  }, [allMajPentaNotes, majShapeMap]);
+
+  const minPenta = useMemo(() => {
+    const byShape = {};
+    SHAPES.forEach(sh => { byShape[sh] = []; });
+    allMinPentaNotes.forEach(note => {
+      const [s, f] = note;
+      const shapes = minShapeMap.get(posKey(s, f));
+      if (shapes) shapes.forEach(sh => byShape[sh].push(note));
+    });
+    return byShape;
+  }, [allMinPentaNotes, minShapeMap]);
+
+  const bluesNotes = useMemo(() => {
+    const byShape = {};
+    SHAPES.forEach(sh => { byShape[sh] = []; });
+    allBluesNotes.forEach(note => {
+      const [s, f] = note;
+      // ♭5 sits between minor pentatonic 4 and 5. Assign via minor shape map
+      // by finding the nearest pentatonic note at or below this fret.
+      // If none found (♭5 at fret 0), wrap to the highest pentatonic note on
+      // the string, which represents the end of the previous CAGED cycle.
+      let bestShape = null;
+      let bestFret = -1;
+      let highestFret = -1;
+      let highestShape = null;
+      minShapeMap.forEach((shapes, key) => {
+        const [ks, kf] = key.split("-").map(Number);
+        if (ks === s) {
+          if (kf <= f && kf > bestFret) {
+            bestFret = kf;
+            bestShape = shapes[0];
+          }
+          if (kf > highestFret) {
+            highestFret = kf;
+            highestShape = shapes[0];
+          }
+        }
+      });
+      const shape = bestShape || highestShape;
+      if (shape) byShape[shape].push(note);
+    });
+    return byShape;
+  }, [allBluesNotes, minShapeMap]);
 
   const pentaData = pentaMode === "major" ? majPenta : (showPenta ? minPenta : null);
 
@@ -438,120 +394,86 @@ export default function CAGEDExplorer() {
   const showThreeTwoBars = overlayMode === "threeTwo";
   const showFryingPan = overlayMode === "fryingPan";
 
-  // Compute which 3:2 positions to show based on active shapes
-  const threeTwoBars = useMemo(() => {
-    if (!showThreeTwoBars) return [];
-    const isMinor = pentaMode === "minor" || pentaMode === "blues";
-    const leftData = isMinor ? threeTwoLeftMin : threeTwoLeftMaj;
-    const rightData = isMinor ? threeTwoRightMin : threeTwoRightMaj;
-
-    // Determine which orientations to show
-    const showLeft = activeShape === "all" || SHAPE_TO_THREE_TWO[activeShape] === "left";
-    const showRight = activeShape === "all" || SHAPE_TO_THREE_TWO[activeShape] === "right";
-
-    const bars = [];
-
-    const addBarsFromPosition = (posData) => {
-      posData.forEach(pos => {
-        // Group notes by string within this string pair
-        const notesByString = {};
-        pos.notes.forEach(([str, fret, iv]) => {
-          if (!notesByString[str]) notesByString[str] = [];
-          notesByString[str].push({ fret, iv });
-        });
-
-        // Create a bar for each string's notes
-        Object.entries(notesByString).forEach(([str, notes]) => {
-          if (notes.length === 0) return;
-          const sortedFrets = notes.map(n => n.fret).sort((a, b) => a - b);
-          bars.push({
-            string: parseInt(str),
-            minFret: sortedFrets[0],
-            maxFret: sortedFrets[sortedFrets.length - 1],
-            type: notes.length >= 3 ? 3 : 2,
-            notes: notes
-          });
-        });
-      });
-    };
-
-    if (showLeft) addBarsFromPosition(leftData);
-    if (showRight) addBarsFromPosition(rightData);
-
-    return bars;
-  }, [showThreeTwoBars, activeShape, pentaMode, threeTwoLeftMaj, threeTwoRightMaj, threeTwoLeftMin, threeTwoRightMin]);
-
-  // Compute frying-pan shapes: pan body (shared frets) + handle (outlier note)
+  // Frying pan geometry: shift static geometry by effectiveKey, filter to visible frets.
+  // Shape is identical for major/minor pentatonic — determined only by effectiveKey.
   const fryingPanShapes = useMemo(() => {
     if (!showFryingPan) return [];
-    const isMinor = pentaMode === "minor" || pentaMode === "blues";
-    const leftData = isMinor ? threeTwoLeftMin : threeTwoLeftMaj;
-    const rightData = isMinor ? threeTwoRightMin : threeTwoRightMaj;
-
     const showLeft = activeShape === "all" || SHAPE_TO_THREE_TWO[activeShape] === "left";
     const showRight = activeShape === "all" || SHAPE_TO_THREE_TWO[activeShape] === "right";
 
     const shapes = [];
-
-    const addShapesFromPosition = (posData, orientation) => {
-      posData.forEach(pos => {
-        // Skip incomplete positions (transposition wrapping)
-        if (pos.notes.length < 4) return;
-
-        const lowerStr = pos.strings[0]; // e.g. 6
-        const upperStr = pos.strings[1]; // e.g. 5
-
-        // Group notes by string
-        const lowerNotes = pos.notes.filter(([s]) => s === lowerStr).map(([, f]) => f).sort((a, b) => a - b);
-        const upperNotes = pos.notes.filter(([s]) => s === upperStr).map(([, f]) => f).sort((a, b) => a - b);
-
-        if (lowerNotes.length === 0 || upperNotes.length === 0) return;
-
-        // Find shared fret range (the "pan"): frets where both strings have notes
-        // Pan = the fret range where both strings overlap
-        const lowerMin = Math.min(...lowerNotes);
-        const lowerMax = Math.max(...lowerNotes);
-        const upperMin = Math.min(...upperNotes);
-        const upperMax = Math.max(...upperNotes);
-
-        // The pan body spans the overlapping fret range of both strings
-        const panMinFret = Math.max(lowerMin, upperMin);
-        const panMaxFret = Math.min(lowerMax, upperMax);
-
-        // The handle is the note(s) outside the pan range
-        // In left-hand orientation: handle toward nut (lower frets) on lower string
-        // In right-hand orientation: handle toward bridge (higher frets) on upper string
-        let handleString, handleFret, handleDirection;
-
-        if (orientation === "left") {
-          // 3-note side is lower string; handle = lowest fret on lower string (below pan)
-          handleString = lowerStr;
-          handleFret = lowerMin;
-          handleDirection = "left"; // toward nut
-        } else {
-          // 3-note side is upper string; handle = highest fret on upper string (above pan)
-          handleString = upperStr;
-          handleFret = upperMax;
-          handleDirection = "right"; // toward bridge
+    const addShifted = (templates) => {
+      templates.forEach(t => {
+        const panMin = t.panMin + effectiveKey;
+        const panMax = t.panMax + effectiveKey;
+        const hFret = t.hFret + effectiveKey;
+        // Keep if pan or handle is within visible fretboard
+        const allFrets = [panMin, panMax, hFret];
+        if (allFrets.some(f => f >= 0 && f <= NUM_FRETS)) {
+          shapes.push({
+            lowerStr: t.pair[0],
+            upperStr: t.pair[1],
+            panMinFret: panMin,
+            panMaxFret: panMax,
+            handleString: t.hStr,
+            handleFret: hFret,
+            handleDirection: t.hDir,
+          });
         }
-
-        shapes.push({
-          lowerStr,
-          upperStr,
-          panMinFret,
-          panMaxFret,
-          handleString,
-          handleFret,
-          handleDirection,
-        });
       });
     };
 
-    if (showLeft) addShapesFromPosition(leftData, "left");
-    if (showRight) addShapesFromPosition(rightData, "right");
+    if (showLeft) addShifted(FRYING_PAN.left);
+    if (showRight) addShifted(FRYING_PAN.right);
 
     return shapes;
-  }, [showFryingPan, activeShape, pentaMode, threeTwoLeftMaj, threeTwoRightMaj, threeTwoLeftMin, threeTwoRightMin]);
+  }, [showFryingPan, activeShape, effectiveKey]);
+
+  // 3:2 bars: derived from frying pan geometry.
+  // Each frying pan produces a 3-note bar (handle string) and a 2-note bar (other string).
+  const threeTwoBars = useMemo(() => {
+    if (!showThreeTwoBars) return [];
+    const showLeft = activeShape === "all" || SHAPE_TO_THREE_TWO[activeShape] === "left";
+    const showRight = activeShape === "all" || SHAPE_TO_THREE_TWO[activeShape] === "right";
+
+    const bars = [];
+    const addBars = (templates) => {
+      templates.forEach(t => {
+        const panMin = t.panMin + effectiveKey;
+        const panMax = t.panMax + effectiveKey;
+        const hFret = t.hFret + effectiveKey;
+
+        const otherStr = t.pair[0] === t.hStr ? t.pair[1] : t.pair[0];
+
+        // 3-note bar: on handle string, spans from handle fret to far pan edge
+        let bar3Min, bar3Max;
+        if (t.hDir === "left") {
+          bar3Min = hFret;
+          bar3Max = panMax;
+        } else {
+          bar3Min = panMin;
+          bar3Max = hFret;
+        }
+
+        // 2-note bar: on other string, spans pan frets
+        const bar2Min = panMin;
+        const bar2Max = panMax;
+
+        // Only include bars within visible fretboard
+        if (bar3Min >= 0 && bar3Max <= NUM_FRETS) {
+          bars.push({ string: t.hStr, minFret: bar3Min, maxFret: bar3Max, type: 3 });
+        }
+        if (bar2Min >= 0 && bar2Max <= NUM_FRETS) {
+          bars.push({ string: otherStr, minFret: bar2Min, maxFret: bar2Max, type: 2 });
+        }
+      });
+    };
+
+    if (showLeft) addBars(FRYING_PAN.left);
+    if (showRight) addBars(FRYING_PAN.right);
+
+    return bars;
+  }, [showThreeTwoBars, activeShape, effectiveKey]);
 
   const svgW = MARGIN_LEFT + NUM_FRETS * FRET_SPACING + 25;
   const svgH = MARGIN_TOP + 5 * STRING_SPACING + 48;
