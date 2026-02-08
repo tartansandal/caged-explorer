@@ -139,6 +139,22 @@ const groupByShape = (notes, lookup) => {
   return byShape;
 };
 
+// Find the first shape of the nearest pentatonic note at-or-below this fret
+// on the same string. Wraps to the highest note if none found below (e.g. ♭5
+// at fret 0). Returns a single-element array for use with groupByShape.
+const findShapeBelow = (shapeMap, string, fret) => {
+  let bestShape = null, bestFret = -1;
+  let highestShape = null, highestFret = -1;
+  shapeMap.forEach((shapes, key) => {
+    const [ks, kf] = key.split("-").map(Number);
+    if (ks !== string) return;
+    if (kf <= fret && kf > bestFret) { bestFret = kf; bestShape = shapes[0]; }
+    if (kf > highestFret) { highestFret = kf; highestShape = shapes[0]; }
+  });
+  const shape = bestShape || highestShape;
+  return shape ? [shape] : null;
+};
+
 const fretX = (fret) => MARGIN_LEFT + fret * FRET_SPACING;
 const noteX = (fret) => fret === 0 ? MARGIN_LEFT - 16 : MARGIN_LEFT + (fret - 0.5) * FRET_SPACING;
 const strY = (str) => MARGIN_TOP + (str - 1) * STRING_SPACING;
@@ -299,37 +315,9 @@ export default function CAGEDExplorer() {
   const majPenta = useMemo(() => groupByShape(allMajPentaNotes, (s, f) => majShapeMap.get(posKey(s, f))), [allMajPentaNotes, majShapeMap]);
   const minPenta = useMemo(() => groupByShape(allMinPentaNotes, (s, f) => minShapeMap.get(posKey(s, f))), [allMinPentaNotes, minShapeMap]);
 
-  const bluesNotes = useMemo(() => {
-    const byShape = {};
-    SHAPES.forEach(sh => { byShape[sh] = []; });
-    allBluesNotes.forEach(note => {
-      const [s, f] = note;
-      // ♭5 sits between minor pentatonic 4 and 5. Assign via minor shape map
-      // by finding the nearest pentatonic note at or below this fret.
-      // If none found (♭5 at fret 0), wrap to the highest pentatonic note on
-      // the string, which represents the end of the previous CAGED cycle.
-      let bestShape = null;
-      let bestFret = -1;
-      let highestFret = -1;
-      let highestShape = null;
-      minShapeMap.forEach((shapes, key) => {
-        const [ks, kf] = key.split("-").map(Number);
-        if (ks === s) {
-          if (kf <= f && kf > bestFret) {
-            bestFret = kf;
-            bestShape = shapes[0];
-          }
-          if (kf > highestFret) {
-            highestFret = kf;
-            highestShape = shapes[0];
-          }
-        }
-      });
-      const shape = bestShape || highestShape;
-      if (shape) byShape[shape].push(note);
-    });
-    return byShape;
-  }, [allBluesNotes, minShapeMap]);
+  // ♭5 sits between minor pentatonic 4 and 5 — assign to the shape of the
+  // nearest pentatonic note at or below on the same string.
+  const bluesNotes = useMemo(() => groupByShape(allBluesNotes, (s, f) => findShapeBelow(minShapeMap, s, f)), [allBluesNotes, minShapeMap]);
 
   const pentaData = pentaMode === "major" ? majPenta : (showPenta ? minPenta : null);
 
