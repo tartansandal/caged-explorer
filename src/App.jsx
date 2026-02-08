@@ -520,8 +520,8 @@ export default function CAGEDExplorer() {
       <div style={{ maxWidth: 1000, margin: "0 auto" }}>
 
         <h1 style={{ textAlign: "center", fontSize: "2.5rem", fontWeight: 300, margin: "0 0 2px",
-          letterSpacing: "0.25em", textTransform: "uppercase", color: "#f1f5f9", fontFamily: "Georgia, 'Times New Roman', serif" }}>
-          CAGED
+          letterSpacing: "0.25em", color: "#f1f5f9", fontFamily: "Georgia, 'Times New Roman', serif" }}>
+          CAGED Explorer
         </h1>
         <p style={{ textAlign: "center", fontSize: "0.62rem", color: THEME.text.muted, margin: "0 0 22px",
           letterSpacing: "0.28em", textTransform: "uppercase" }}>
