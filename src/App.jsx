@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import {
-  generateScale, assignShapes, findShapes, posKey,
+  generateScale, assignShapes, findShapes, clipFirstRegion, posKey,
   NUM_FRETS, SCALE, SHAPE_ORDER, FRYING_PAN, SHAPE_ORIENTATION,
 } from "./music.js";
 
@@ -166,20 +166,6 @@ const groupByShape = (notes, lookup) => {
     if (shapes) shapes.forEach(sh => byShape[sh].push(note));
   });
   return byShape;
-};
-
-// Clip a shape's note array to its first contiguous fret region.
-// Each CAGED shape spans ~4-5 frets; a gap >6 indicates an octave repeat.
-const clipFirstRegion = (notes) => {
-  if (notes.length === 0) return notes;
-  const frets = [...new Set(notes.map(([, f]) => f))].sort((a, b) => a - b);
-  for (let i = 1; i < frets.length; i++) {
-    if (frets[i] - frets[i - 1] > 6) {
-      const cutoff = frets[i];
-      return notes.filter(([, f]) => f < cutoff);
-    }
-  }
-  return notes;
 };
 
 const clipByShape = (byShape) => {

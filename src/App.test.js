@@ -3,6 +3,7 @@ import {
   generateScale,
   assignShapes,
   findShapes,
+  clipFirstRegion,
   posKey,
   TUNING,
   SCALE,
@@ -334,6 +335,62 @@ describe("shape label centroids", () => {
     const aCentroid = triadCentroids[1]; // A
     const gCentroid = triadCentroids[2]; // G
     expect(Math.abs(aCentroid - gCentroid)).toBeLessThan(0.5);
+  });
+});
+
+// ─── clipFirstRegion ─────────────────────────────────────────────────────────
+
+describe("clipFirstRegion", () => {
+  it("returns empty array unchanged", () => {
+    expect(clipFirstRegion([])).toEqual([]);
+  });
+
+  it("returns notes unchanged when no octave gap exists", () => {
+    const notes = [[1, 0, "R"], [1, 3, "3"], [2, 2, "5"]];
+    expect(clipFirstRegion(notes)).toEqual(notes);
+  });
+
+  it("clips octave-repeat notes when gap > 6 frets", () => {
+    const notes = [[1, 0, "3"], [2, 1, "R"], [1, 3, "5"], [1, 12, "3"], [2, 13, "R"], [1, 15, "5"]];
+    const clipped = clipFirstRegion(notes);
+    expect(clipped.every(([, f]) => f < 12)).toBe(true);
+    expect(clipped).toHaveLength(3);
+  });
+
+  it("clips C shape triad in key of C to first region only", () => {
+    const majSemi = SCALE.pentaMaj.map(d => d.semi);
+    const triadNotes = generateScale(0, SCALE.triadMaj);
+    const pentaNotes = generateScale(0, SCALE.pentaMaj);
+    const shapeMap = assignShapes(pentaNotes, 0, majSemi);
+
+    // Collect C shape triad notes
+    const cNotes = triadNotes.filter(([s, f]) => {
+      const shapes = findShapes(shapeMap, s, f);
+      return shapes && shapes.includes("C");
+    });
+
+    // Without clipping, C shape has notes at both low and high frets
+    const maxFret = Math.max(...cNotes.map(([, f]) => f));
+    expect(maxFret).toBeGreaterThanOrEqual(12);
+
+    // After clipping, all notes should be in the first region
+    const clipped = clipFirstRegion(cNotes);
+    const clippedMax = Math.max(...clipped.map(([, f]) => f));
+    expect(clippedMax).toBeLessThan(12);
+  });
+
+  it("does not clip shapes that have no octave repeat within 15 frets", () => {
+    const majSemi = SCALE.pentaMaj.map(d => d.semi);
+    const pentaNotes = generateScale(0, SCALE.pentaMaj);
+    const shapeMap = assignShapes(pentaNotes, 0, majSemi);
+
+    // G shape in key of C spans roughly frets 4-8, no repeat within 15 frets
+    const gNotes = pentaNotes.filter(([s, f]) => {
+      const shapes = shapeMap.get(posKey(s, f));
+      return shapes && shapes.includes("G");
+    });
+    const clipped = clipFirstRegion(gNotes);
+    expect(clipped).toHaveLength(gNotes.length);
   });
 });
 
