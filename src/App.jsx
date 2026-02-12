@@ -565,7 +565,7 @@ export default function CAGEDExplorer() {
         </div>
 
         {/* Key Selector: Minor Row */}
-        <div style={STYLE.keyRow(12)}>
+        <div style={STYLE.keyRow(20)}>
           <span style={STYLE.rowLabel}>Minor</span>
           {NOTES.map((_, i) => {
             const sel = keyIndex === i;
@@ -579,7 +579,7 @@ export default function CAGEDExplorer() {
         </div>
 
         {/* Shape Tabs */}
-        <div style={{ display: "flex", justifyContent: "center", gap: 6, marginBottom: 10 }}>
+        <div style={{ display: "flex", justifyContent: "center", gap: 6, marginBottom: 20 }}>
           {["all", ...SHAPES].map(s => {
             const on = activeShape === s && triadMode !== "off";
             return (
@@ -596,7 +596,7 @@ export default function CAGEDExplorer() {
         </div>
 
         {/* Options Row 1: Triads + Labels */}
-        <div style={STYLE.optionRow(6)}>
+        <div style={STYLE.optionRow(14)}>
           <span style={STYLE.optionLabel}>Triads</span>
           {["major", "minor", "both"].map(m => (
             <ToggleButton key={m} label={m === "major" ? "Major" : m === "minor" ? "Minor" : "Both"}
@@ -611,7 +611,7 @@ export default function CAGEDExplorer() {
         </div>
 
         {/* Options Row 2: Pentatonic + Overlay */}
-        <div style={STYLE.optionRow(16)}>
+        <div style={STYLE.optionRow(22)}>
           <span style={STYLE.optionLabel}>Pentatonic</span>
           {["off", "major", "minor", "blues"].map(m => (
             <ToggleButton key={m} label={m === "off" ? "Off" : m === "major" ? "Major" : m === "minor" ? "Minor" : "Blues"}
