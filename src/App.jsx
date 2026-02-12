@@ -75,7 +75,7 @@ const PENTA_RADIUS   = 8;
 // Shared layout styles extracted from JSX
 const STYLE = {
   keyRow: (mb) => ({ display: "flex", alignItems: "center", justifyContent: "center", gap: 5, marginBottom: mb, flexWrap: "wrap" }),
-  rowLabel: { fontSize: "0.58rem", color: THEME.text.dim, letterSpacing: "0.2em", textTransform: "uppercase", marginRight: 8, minWidth: 32, textAlign: "right" },
+  rowLabel: { fontSize: "0.58rem", color: THEME.text.dim, letterSpacing: "0.2em", textTransform: "uppercase", marginRight: 8, minWidth: 72, textAlign: "right" },
   optionRow: (mb) => ({ display: "flex", justifyContent: "center", alignItems: "center", gap: 6, marginBottom: mb, flexWrap: "wrap" }),
   optionLabel: { fontSize: "0.56rem", color: THEME.text.dim, letterSpacing: "0.15em", textTransform: "uppercase" },
   divider: { color: "rgba(255,255,255,0.1)", margin: "0 4px", fontSize: "0.8rem" },
@@ -566,7 +566,7 @@ export default function CAGEDExplorer() {
 
         {/* Key Selector: Minor Row */}
         <div style={STYLE.keyRow(20)}>
-          <span style={STYLE.rowLabel}>Minor</span>
+          <span style={STYLE.rowLabel}>Rel. Minor</span>
           {NOTES.map((_, i) => {
             const sel = keyIndex === i;
             return (
