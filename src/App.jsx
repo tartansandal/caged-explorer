@@ -581,21 +581,25 @@ export default function CAGEDExplorer() {
         {/* Shape Tabs */}
         <div style={{ display: "flex", justifyContent: "center", gap: 6, marginBottom: 10 }}>
           {["all", ...SHAPES].map(s => {
-            const on = activeShape === s;
+            const on = activeShape === s && triadMode !== "off";
             return (
-              <button key={s} onClick={() => setActiveShape(s)}
+              <button key={s} onClick={() => { setActiveShape(s); if (triadMode === "off") setTriadMode(isMinorKey ? "minor" : "major"); }}
                 style={STYLE.shapeTab(on, s === "all" ? null : THEME.shape[s])}>
                 {s === "all" ? "All" : `${s} Shape`}
               </button>
             );
           })}
+          <button onClick={() => setTriadMode("off")}
+            style={STYLE.shapeTab(triadMode === "off", null)}>
+            None
+          </button>
         </div>
 
         {/* Options Row 1: Triads + Labels */}
         <div style={STYLE.optionRow(6)}>
           <span style={STYLE.optionLabel}>Triads</span>
-          {["major", "minor", "both", "off"].map(m => (
-            <ToggleButton key={m} label={m === "major" ? "Major" : m === "minor" ? "Minor" : m === "both" ? "Both" : "Off"}
+          {["major", "minor", "both"].map(m => (
+            <ToggleButton key={m} label={m === "major" ? "Major" : m === "minor" ? "Minor" : "Both"}
               active={triadMode === m} onClick={() => setTriadMode(m)} />
           ))}
           <span style={STYLE.divider}>│</span>
