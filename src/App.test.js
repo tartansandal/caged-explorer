@@ -392,6 +392,38 @@ describe("clipFirstRegion", () => {
     const clipped = clipFirstRegion(gNotes);
     expect(clipped).toHaveLength(gNotes.length);
   });
+
+  it("trims boundary notes that extend a shape beyond 5 frets", () => {
+    // Notes spanning 6 frets with no large gap — boundary sharing makes shape too wide
+    const notes = [[1, 9, "3"], [2, 10, "R"], [3, 11, "3"], [4, 12, "5"], [3, 14, "R"], [4, 14, "5"]];
+    const clipped = clipFirstRegion(notes);
+    // Should trim to minFret + 4 = 13
+    expect(clipped.every(([, f]) => f <= 13)).toBe(true);
+    expect(clipped).toHaveLength(4);
+  });
+
+  it("clips C shape triad in key of A to at most 5 frets", () => {
+    const majSemi = SCALE.pentaMaj.map(d => d.semi);
+    const triadNotes = generateScale(9, SCALE.triadMaj);
+    const pentaNotes = generateScale(9, SCALE.pentaMaj);
+    const shapeMap = assignShapes(pentaNotes, 9, majSemi);
+
+    const cNotes = triadNotes.filter(([s, f]) => {
+      const shapes = findShapes(shapeMap, s, f);
+      return shapes && shapes.includes("C");
+    });
+
+    // Without clipping, C shape spans 6+ frets due to boundary sharing
+    const minFret = Math.min(...cNotes.map(([, f]) => f));
+    const maxFret = Math.max(...cNotes.map(([, f]) => f));
+    expect(maxFret - minFret).toBeGreaterThan(4);
+
+    // After clipping, shape spans at most 5 frets
+    const clipped = clipFirstRegion(cNotes);
+    const clippedMin = Math.min(...clipped.map(([, f]) => f));
+    const clippedMax = Math.max(...clipped.map(([, f]) => f));
+    expect(clippedMax - clippedMin).toBeLessThanOrEqual(4);
+  });
 });
 
 // ─── FRYING_PAN geometry ────────────────────────────────────────────────────

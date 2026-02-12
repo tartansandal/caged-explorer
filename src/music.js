@@ -112,15 +112,25 @@ export function assignShapes(pentaNotes, effectiveKey, scaleSemi) {
 }
 
 // Clip a shape's note array to its first contiguous fret region.
-// Each CAGED shape spans ~4-5 frets; a gap >6 indicates an octave repeat.
+// Two passes: (1) a gap >6 between consecutive frets indicates an octave repeat,
+// (2) each CAGED shape spans at most 5 frets — trim boundary notes that extend wider.
 export function clipFirstRegion(notes) {
   if (notes.length === 0) return notes;
-  const frets = [...new Set(notes.map(([, f]) => f))].sort((a, b) => a - b);
+  let frets = [...new Set(notes.map(([, f]) => f))].sort((a, b) => a - b);
+  // Pass 1: a gap >6 between consecutive frets indicates an octave repeat.
   for (let i = 1; i < frets.length; i++) {
     if (frets[i] - frets[i - 1] > 6) {
       const cutoff = frets[i];
-      return notes.filter(([, f]) => f < cutoff);
+      notes = notes.filter(([, f]) => f < cutoff);
+      frets = frets.slice(0, i);
+      break;
     }
+  }
+  // Pass 2: boundary notes shared with adjacent shapes can extend a shape
+  // beyond its natural 4-5 fret span. Trim from the high end.
+  if (frets.length > 0 && frets[frets.length - 1] - frets[0] > 4) {
+    const maxFret = frets[0] + 4;
+    notes = notes.filter(([, f]) => f <= maxFret);
   }
   return notes;
 }
