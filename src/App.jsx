@@ -661,7 +661,7 @@ export default function CAGEDExplorer() {
               <text key={i} x={14} y={strY(6 - i) + 4} textAnchor="middle" fill={THEME.text.dim} fontSize={10} fontFamily="ui-monospace, monospace">{l}</text>
             )}
 
-            {showTriads && activeShape === "all" && SHAPES.map(sh => {
+            {(showTriads || showPenta) && activeShape === "all" && SHAPES.map(sh => {
               const majF = showMajTriad ? majTriads[sh].map(([, f]) => f) : [];
               const minF = showMinTriad ? minTriads[sh].map(([, f]) => f) : [];
               const pF = pentaData ? (pentaData[sh] || []).map(([, f]) => f) : [];
@@ -674,12 +674,12 @@ export default function CAGEDExplorer() {
               return <rect key={sh} x={x1} y={MARGIN_TOP - 13} width={x2 - x1} height={5 * STRING_SPACING + 26} fill={THEME.shape[sh]} opacity={0.04} rx={3} />;
             })}
 
-            {showTriads && visibleShapes.map(sh => {
+            {(showTriads || showPenta) && visibleShapes.map(sh => {
               const { lo, hi } = shapeRanges[sh];
               const avg = (lo + hi) / 2;
               const cx = avg < 0.5 ? MARGIN_LEFT - 16 : MARGIN_LEFT + (avg - 0.5) * FRET_SPACING;
-              const lbl = triadMode === "minor" ? sh + "m" : triadMode === "both" ? `${sh}/${sh}m` : sh;
-              return <text key={sh} x={cx} y={MARGIN_TOP - 20} textAnchor="middle" fill={THEME.shape[sh]} fontSize={triadMode === "both" ? 8 : 10} fontWeight={700}>{lbl}</text>;
+              const lbl = isMinorKey ? sh + "m" : sh;
+              return <text key={sh} x={cx} y={MARGIN_TOP - 20} textAnchor="middle" fill={THEME.shape[sh]} fontSize={10} fontWeight={700}>{lbl}</text>;
             })}
 
             {/* Frying-pan overlay - render behind notes */}
