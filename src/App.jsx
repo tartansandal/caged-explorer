@@ -674,30 +674,13 @@ export default function CAGEDExplorer() {
               return <rect key={sh} x={x1} y={MARGIN_TOP - 13} width={x2 - x1} height={5 * STRING_SPACING + 26} fill={THEME.shape[sh]} opacity={0.04} rx={3} />;
             })}
 
-            {showTriads && activeShape === "all" && SHAPES.map(sh => {
-              const majF = showMajTriad ? majTriads[sh].map(([, f]) => f) : [];
-              const minF = showMinTriad ? minTriads[sh].map(([, f]) => f) : [];
-              const pF = pentaData ? (pentaData[sh] || []).map(([, f]) => f) : [];
-              const allFrets = [...new Set([...majF, ...minF, ...pF])].sort((a, b) => a - b);
-              if (!allFrets.length) return null;
-              // First-cluster centroid: use notes within 7 frets of the lowest to
-              // isolate the first CAGED occurrence and ignore octave repeats.
-              const lo = allFrets[0];
-              const cluster = allFrets.filter(f => f - lo <= 7);
-              const avg = cluster.reduce((a, b) => a + b, 0) / cluster.length;
-              const cx = avg < 0.5 ? MARGIN_LEFT - 16 : MARGIN_LEFT + (avg - 0.5) * FRET_SPACING;
-              const lbl = triadMode === "minor" ? sh + "m" : triadMode === "both" ? `${sh}/${sh}m` : sh;
-              return <text key={sh} x={cx} y={MARGIN_TOP - 20} textAnchor="middle" fill={THEME.shape[sh]} fontSize={triadMode === "both" ? 8 : 10} fontWeight={700}>{lbl}</text>;
-            })}
-
-            {showTriads && activeShape !== "all" && (() => {
-              const sh = activeShape;
+            {showTriads && visibleShapes.map(sh => {
               const { lo, hi } = shapeRanges[sh];
               const avg = (lo + hi) / 2;
               const cx = avg < 0.5 ? MARGIN_LEFT - 16 : MARGIN_LEFT + (avg - 0.5) * FRET_SPACING;
               const lbl = triadMode === "minor" ? sh + "m" : triadMode === "both" ? `${sh}/${sh}m` : sh;
-              return <text x={cx} y={MARGIN_TOP - 20} textAnchor="middle" fill={THEME.shape[sh]} fontSize={triadMode === "both" ? 8 : 10} fontWeight={700}>{lbl}</text>;
-            })()}
+              return <text key={sh} x={cx} y={MARGIN_TOP - 20} textAnchor="middle" fill={THEME.shape[sh]} fontSize={triadMode === "both" ? 8 : 10} fontWeight={700}>{lbl}</text>;
+            })}
 
             {/* Frying-pan overlay - render behind notes */}
             {fryingPanShapes.map((pan, i) => {
