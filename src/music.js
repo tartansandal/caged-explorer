@@ -111,30 +111,6 @@ export function assignShapes(pentaNotes, effectiveKey, scaleSemi) {
   return shapeMap;
 }
 
-// Clip a shape's note array to its first contiguous fret region.
-// Two passes: (1) a gap >6 between consecutive frets indicates an octave repeat,
-// (2) each CAGED shape spans at most 5 frets — trim boundary notes that extend wider.
-export function clipFirstRegion(notes) {
-  if (notes.length === 0) return notes;
-  let frets = [...new Set(notes.map(([, f]) => f))].sort((a, b) => a - b);
-  // Pass 1: a gap >6 between consecutive frets indicates an octave repeat.
-  for (let i = 1; i < frets.length; i++) {
-    if (frets[i] - frets[i - 1] > 6) {
-      const cutoff = frets[i];
-      notes = notes.filter(([, f]) => f < cutoff);
-      frets = frets.slice(0, i);
-      break;
-    }
-  }
-  // Pass 2: boundary notes shared with adjacent shapes can extend a shape
-  // beyond its natural 4-5 fret span. Trim from the high end.
-  if (frets.length > 0 && frets[frets.length - 1] - frets[0] > 4) {
-    const maxFret = frets[0] + 4;
-    notes = notes.filter(([, f]) => f <= maxFret);
-  }
-  return notes;
-}
-
 // Look up shapes for a note position, falling back to nearest pentatonic note on the same string.
 // Handles notes like ♭3 that aren't at pentatonic positions but belong to the same shape
 // as their nearest pentatonic neighbor (e.g., ♭3 is 1 fret below the major 3).

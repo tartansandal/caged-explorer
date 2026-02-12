@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import {
-  generateScale, assignShapes, findShapes, clipFirstRegion, posKey,
+  generateScale, assignShapes, findShapes, posKey,
   NUM_FRETS, SCALE, SHAPE_ORDER, FRYING_PAN, SHAPE_ORIENTATION,
 } from "./music.js";
 
@@ -121,6 +121,8 @@ const CHORD_MAJ = {
   D: { frets: ["x","x",0,2,3,2],   intervals: [null,null,"R","5","R","3"] },
 };
 
+const SHAPE_ROOT_SEMI = { C: 0, D: 2, E: 4, G: 7, A: 9 };
+
 const CHORD_MIN = {
   C: { frets: ["x",3,1,0,1,"x"],   intervals: [null,"R","♭3","5","R",null] },
   A: { frets: ["x",0,2,2,1,0],     intervals: [null,"R","5","R","♭3","5"] },
@@ -168,9 +170,12 @@ const groupByShape = (notes, lookup) => {
   return byShape;
 };
 
-const clipByShape = (byShape) => {
+const filterByRange = (allNotes, ranges) => {
   const result = {};
-  SHAPES.forEach(sh => { result[sh] = clipFirstRegion(byShape[sh] || []); });
+  SHAPES.forEach(sh => {
+    const { lo, hi } = ranges[sh];
+    result[sh] = allNotes.filter(([, f]) => f >= lo && f <= hi);
+  });
   return result;
 };
 
@@ -331,6 +336,17 @@ export default function CAGEDExplorer() {
   const showPenta = pentaMode !== "off";
   const visibleShapes = useMemo(() => activeShape === "all" ? SHAPES : [activeShape], [activeShape]);
 
+  // Compute each CAGED shape's fret range from its chord definition + key offset
+  const shapeRanges = useMemo(() => {
+    const ranges = {};
+    SHAPES.forEach(sh => {
+      const shift = (effectiveKey - SHAPE_ROOT_SEMI[sh] + 12) % 12;
+      const nums = CHORD_MAJ[sh].frets.filter(f => typeof f === "number");
+      ranges[sh] = { lo: Math.min(...nums) + shift, hi: Math.max(...nums) + shift };
+    });
+    return ranges;
+  }, [effectiveKey]);
+
   // Generate all scale notes and assign CAGED shapes via pentatonic positions
   const allMajTriadNotes = useMemo(() => generateScale(effectiveKey, SCALE.triadMaj), [effectiveKey]);
   const allMinTriadNotes = useMemo(() => generateScale(effectiveKey, SCALE.triadMin), [effectiveKey]);
@@ -343,18 +359,32 @@ export default function CAGEDExplorer() {
   const minShapeMap = useMemo(() => assignShapes(allMinPentaNotes, effectiveKey, MIN_SEMI), [allMinPentaNotes, effectiveKey]);
 
   // Per-shape triad data: major triads use major shape map, minor triads use minor shape map.
-  // When a single shape is active, clip to the first fret region to avoid showing octave repeats.
-  const clip = activeShape !== "all";
-  const majTriads = useMemo(() => { const raw = groupByShape(allMajTriadNotes, (s, f) => findShapes(majShapeMap, s, f)); return clip ? clipByShape(raw) : raw; }, [allMajTriadNotes, majShapeMap, clip]);
-  const minTriads = useMemo(() => { const raw = groupByShape(allMinTriadNotes, (s, f) => findShapes(minShapeMap, s, f)); return clip ? clipByShape(raw) : raw; }, [allMinTriadNotes, minShapeMap, clip]);
+  // Single-shape view: filter by chord-defined fret range. All view: group by pentatonic shape map.
+  const majTriads = useMemo(() => {
+    if (activeShape !== "all") return filterByRange(allMajTriadNotes, shapeRanges);
+    return groupByShape(allMajTriadNotes, (s, f) => findShapes(majShapeMap, s, f));
+  }, [activeShape, allMajTriadNotes, majShapeMap, shapeRanges]);
+  const minTriads = useMemo(() => {
+    if (activeShape !== "all") return filterByRange(allMinTriadNotes, shapeRanges);
+    return groupByShape(allMinTriadNotes, (s, f) => findShapes(minShapeMap, s, f));
+  }, [activeShape, allMinTriadNotes, minShapeMap, shapeRanges]);
 
   // Per-shape pentatonic data
-  const majPenta = useMemo(() => { const raw = groupByShape(allMajPentaNotes, (s, f) => majShapeMap.get(posKey(s, f))); return clip ? clipByShape(raw) : raw; }, [allMajPentaNotes, majShapeMap, clip]);
-  const minPenta = useMemo(() => { const raw = groupByShape(allMinPentaNotes, (s, f) => minShapeMap.get(posKey(s, f))); return clip ? clipByShape(raw) : raw; }, [allMinPentaNotes, minShapeMap, clip]);
+  const majPenta = useMemo(() => {
+    if (activeShape !== "all") return filterByRange(allMajPentaNotes, shapeRanges);
+    return groupByShape(allMajPentaNotes, (s, f) => majShapeMap.get(posKey(s, f)));
+  }, [activeShape, allMajPentaNotes, majShapeMap, shapeRanges]);
+  const minPenta = useMemo(() => {
+    if (activeShape !== "all") return filterByRange(allMinPentaNotes, shapeRanges);
+    return groupByShape(allMinPentaNotes, (s, f) => minShapeMap.get(posKey(s, f)));
+  }, [activeShape, allMinPentaNotes, minShapeMap, shapeRanges]);
 
   // ♭5 sits between minor pentatonic 4 and 5 — assign to the shape of the
   // nearest pentatonic note at or below on the same string.
-  const bluesNotes = useMemo(() => { const raw = groupByShape(allBluesNotes, (s, f) => findShapeBelow(minShapeMap, s, f)); return clip ? clipByShape(raw) : raw; }, [allBluesNotes, minShapeMap, clip]);
+  const bluesNotes = useMemo(() => {
+    if (activeShape !== "all") return filterByRange(allBluesNotes, shapeRanges);
+    return groupByShape(allBluesNotes, (s, f) => findShapeBelow(minShapeMap, s, f));
+  }, [activeShape, allBluesNotes, minShapeMap, shapeRanges]);
 
   const pentaData = pentaMode === "major" ? majPenta : (showPenta ? minPenta : null);
 

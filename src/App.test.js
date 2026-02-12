@@ -3,7 +3,6 @@ import {
   generateScale,
   assignShapes,
   findShapes,
-  clipFirstRegion,
   posKey,
   TUNING,
   SCALE,
@@ -338,91 +337,87 @@ describe("shape label centroids", () => {
   });
 });
 
-// ─── clipFirstRegion ─────────────────────────────────────────────────────────
+// ─── shapeRanges (chord-defined fret ranges) ────────────────────────────────
 
-describe("clipFirstRegion", () => {
-  it("returns empty array unchanged", () => {
-    expect(clipFirstRegion([])).toEqual([]);
+// Replicate the shapeRanges computation from App.jsx for testing
+const CHORD_MAJ = {
+  C: { frets: ["x",3,2,0,1,0] },
+  A: { frets: ["x",0,2,2,2,0] },
+  G: { frets: [3,2,0,0,0,3] },
+  E: { frets: [0,2,2,1,0,0] },
+  D: { frets: ["x","x",0,2,3,2] },
+};
+const SHAPE_ROOT_SEMI = { C: 0, D: 2, E: 4, G: 7, A: 9 };
+
+function computeShapeRanges(effectiveKey) {
+  const ranges = {};
+  SHAPE_ORDER.forEach(sh => {
+    const shift = (effectiveKey - SHAPE_ROOT_SEMI[sh] + 12) % 12;
+    const nums = CHORD_MAJ[sh].frets.filter(f => typeof f === "number");
+    ranges[sh] = { lo: Math.min(...nums) + shift, hi: Math.max(...nums) + shift };
+  });
+  return ranges;
+}
+
+describe("shapeRanges", () => {
+  it("C shape in C major (key=0) spans frets 0-3", () => {
+    const ranges = computeShapeRanges(0);
+    expect(ranges.C).toEqual({ lo: 0, hi: 3 });
   });
 
-  it("returns notes unchanged when no octave gap exists", () => {
-    const notes = [[1, 0, "R"], [1, 3, "3"], [2, 2, "5"]];
-    expect(clipFirstRegion(notes)).toEqual(notes);
+  it("C shape in A major (key=9) spans frets 9-12", () => {
+    const ranges = computeShapeRanges(9);
+    expect(ranges.C).toEqual({ lo: 9, hi: 12 });
   });
 
-  it("clips octave-repeat notes when gap > 6 frets", () => {
-    const notes = [[1, 0, "3"], [2, 1, "R"], [1, 3, "5"], [1, 12, "3"], [2, 13, "R"], [1, 15, "5"]];
-    const clipped = clipFirstRegion(notes);
-    expect(clipped.every(([, f]) => f < 12)).toBe(true);
-    expect(clipped).toHaveLength(3);
+  it("E shape in C major (key=0) spans frets 8-10", () => {
+    const ranges = computeShapeRanges(0);
+    // E open chord spans 0-2, shift = (0-4+12)%12 = 8
+    expect(ranges.E).toEqual({ lo: 8, hi: 10 });
   });
 
-  it("clips C shape triad in key of C to first region only", () => {
-    const majSemi = SCALE.pentaMaj.map(d => d.semi);
-    const triadNotes = generateScale(0, SCALE.triadMaj);
-    const pentaNotes = generateScale(0, SCALE.pentaMaj);
-    const shapeMap = assignShapes(pentaNotes, 0, majSemi);
-
-    // Collect C shape triad notes
-    const cNotes = triadNotes.filter(([s, f]) => {
-      const shapes = findShapes(shapeMap, s, f);
-      return shapes && shapes.includes("C");
-    });
-
-    // Without clipping, C shape has notes at both low and high frets
-    const maxFret = Math.max(...cNotes.map(([, f]) => f));
-    expect(maxFret).toBeGreaterThanOrEqual(12);
-
-    // After clipping, all notes should be in the first region
-    const clipped = clipFirstRegion(cNotes);
-    const clippedMax = Math.max(...clipped.map(([, f]) => f));
-    expect(clippedMax).toBeLessThan(12);
+  it("A shape in A major (key=9) spans frets 0-2", () => {
+    const ranges = computeShapeRanges(9);
+    // A open chord spans 0-2, shift = (9-9+12)%12 = 0
+    expect(ranges.A).toEqual({ lo: 0, hi: 2 });
   });
 
-  it("does not clip shapes that have no octave repeat within 15 frets", () => {
-    const majSemi = SCALE.pentaMaj.map(d => d.semi);
-    const pentaNotes = generateScale(0, SCALE.pentaMaj);
-    const shapeMap = assignShapes(pentaNotes, 0, majSemi);
-
-    // G shape in key of C spans roughly frets 4-8, no repeat within 15 frets
-    const gNotes = pentaNotes.filter(([s, f]) => {
-      const shapes = shapeMap.get(posKey(s, f));
-      return shapes && shapes.includes("G");
-    });
-    const clipped = clipFirstRegion(gNotes);
-    expect(clipped).toHaveLength(gNotes.length);
+  it("every shape spans at most 5 frets for all 12 keys", () => {
+    for (let key = 0; key < 12; key++) {
+      const ranges = computeShapeRanges(key);
+      SHAPE_ORDER.forEach(sh => {
+        const span = ranges[sh].hi - ranges[sh].lo;
+        expect(span).toBeLessThanOrEqual(4);
+      });
+    }
   });
 
-  it("trims boundary notes that extend a shape beyond 5 frets", () => {
-    // Notes spanning 6 frets with no large gap — boundary sharing makes shape too wide
-    const notes = [[1, 9, "3"], [2, 10, "R"], [3, 11, "3"], [4, 12, "5"], [3, 14, "R"], [4, 14, "5"]];
-    const clipped = clipFirstRegion(notes);
-    // Should trim to minFret + 4 = 13
-    expect(clipped.every(([, f]) => f <= 13)).toBe(true);
-    expect(clipped).toHaveLength(4);
+  it("filtered triad notes span at most 5 frets per shape for all 12 keys", () => {
+    for (let key = 0; key < 12; key++) {
+      const ranges = computeShapeRanges(key);
+      const triadNotes = generateScale(key, SCALE.triadMaj);
+      SHAPE_ORDER.forEach(sh => {
+        const { lo, hi } = ranges[sh];
+        const filtered = triadNotes.filter(([, f]) => f >= lo && f <= hi);
+        if (filtered.length > 0) {
+          const frets = filtered.map(([, f]) => f);
+          const span = Math.max(...frets) - Math.min(...frets);
+          expect(span).toBeLessThanOrEqual(4);
+        }
+      });
+    }
   });
 
-  it("clips C shape triad in key of A to at most 5 frets", () => {
-    const majSemi = SCALE.pentaMaj.map(d => d.semi);
-    const triadNotes = generateScale(9, SCALE.triadMaj);
-    const pentaNotes = generateScale(9, SCALE.pentaMaj);
-    const shapeMap = assignShapes(pentaNotes, 9, majSemi);
-
-    const cNotes = triadNotes.filter(([s, f]) => {
-      const shapes = findShapes(shapeMap, s, f);
-      return shapes && shapes.includes("C");
-    });
-
-    // Without clipping, C shape spans 6+ frets due to boundary sharing
-    const minFret = Math.min(...cNotes.map(([, f]) => f));
-    const maxFret = Math.max(...cNotes.map(([, f]) => f));
-    expect(maxFret - minFret).toBeGreaterThan(4);
-
-    // After clipping, shape spans at most 5 frets
-    const clipped = clipFirstRegion(cNotes);
-    const clippedMin = Math.min(...clipped.map(([, f]) => f));
-    const clippedMax = Math.max(...clipped.map(([, f]) => f));
-    expect(clippedMax - clippedMin).toBeLessThanOrEqual(4);
+  it("shapes cover distinct fret regions (no two shapes share identical range)", () => {
+    for (let key = 0; key < 12; key++) {
+      const ranges = computeShapeRanges(key);
+      const seen = new Set();
+      SHAPE_ORDER.forEach(sh => {
+        const tag = `${ranges[sh].lo}-${ranges[sh].hi}`;
+        expect(seen.has(tag)).toBe(false);
+        seen.add(tag);
+      });
+    }
   });
 });
 
