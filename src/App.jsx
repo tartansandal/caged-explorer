@@ -556,7 +556,7 @@ export default function CAGEDExplorer() {
           {NOTES.map((n, i) => {
             const sel = keyIndex === i;
             return (
-              <button key={n} onClick={() => { setKeyIndex(i); setIsMinorKey(false); if (triadMode === "minor") setTriadMode("major"); }}
+              <button key={n} onClick={() => { setKeyIndex(i); setIsMinorKey(false); if (triadMode === "minor") setTriadMode("major"); if (pentaMode === "minor") setPentaMode("major"); }}
                 style={STYLE.keyBtn(sel && !isMinorKey, sel)}>
                 {n}
               </button>
@@ -570,7 +570,7 @@ export default function CAGEDExplorer() {
           {NOTES.map((_, i) => {
             const sel = keyIndex === i;
             return (
-              <button key={i} onClick={() => { setKeyIndex(i); setIsMinorKey(true); if (triadMode === "major") setTriadMode("minor"); }}
+              <button key={i} onClick={() => { setKeyIndex(i); setIsMinorKey(true); if (triadMode === "major") setTriadMode("minor"); if (pentaMode === "major") setPentaMode("minor"); }}
                 style={STYLE.minorKeyBtn(sel && isMinorKey, sel)}>
                 {NOTES[(i + 9) % 12] + "m"}
               </button>
