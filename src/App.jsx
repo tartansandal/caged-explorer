@@ -123,6 +123,24 @@ const CHORD_MAJ = {
 
 const SHAPE_ROOT_SEMI = { C: 0, D: 2, E: 4, G: 7, A: 9 };
 
+// Pentatonic box fret ranges for effectiveKey=0 (C major / A minor).
+// Each box gives 2 notes per string. For other keys, add effectiveKey.
+// Major and minor pentatonic have different intervals, so boxes differ slightly.
+const PENTA_BOX_MAJ = {
+  C: { lo: 0, hi: 3 },
+  A: { lo: 2, hi: 5 },
+  G: { lo: 5, hi: 8 },
+  E: { lo: 7, hi: 10 },
+  D: { lo: 9, hi: 13 },
+};
+const PENTA_BOX_MIN = {
+  C: { lo: 0, hi: 4 },
+  A: { lo: 3, hi: 6 },
+  G: { lo: 5, hi: 8 },
+  E: { lo: 8, hi: 11 },
+  D: { lo: 10, hi: 13 },
+};
+
 const CHORD_MIN = {
   C: { frets: ["x",3,1,0,1,"x"],   intervals: [null,"R","♭3","5","R",null] },
   A: { frets: ["x",0,2,2,1,0],     intervals: [null,"R","5","R","♭3","5"] },
@@ -347,6 +365,20 @@ export default function CAGEDExplorer() {
     return ranges;
   }, [effectiveKey]);
 
+  // Pentatonic box ranges: shift base positions by effectiveKey, wrap when beyond fretboard.
+  const pentaRanges = (box, offset) => {
+    const ranges = {};
+    SHAPES.forEach(sh => {
+      let lo = box[sh].lo + offset;
+      let hi = box[sh].hi + offset;
+      if (lo > NUM_FRETS) { lo -= 12; hi -= 12; }
+      ranges[sh] = { lo, hi };
+    });
+    return ranges;
+  };
+  const majPentaRanges = useMemo(() => pentaRanges(PENTA_BOX_MAJ, effectiveKey), [effectiveKey]);
+  const minPentaRanges = useMemo(() => pentaRanges(PENTA_BOX_MIN, effectiveKey), [effectiveKey]);
+
   // Generate all scale notes and assign CAGED shapes via pentatonic positions
   const allMajTriadNotes = useMemo(() => generateScale(effectiveKey, SCALE.triadMaj), [effectiveKey]);
   const allMinTriadNotes = useMemo(() => generateScale(effectiveKey, SCALE.triadMin), [effectiveKey]);
@@ -369,22 +401,22 @@ export default function CAGEDExplorer() {
     return groupByShape(allMinTriadNotes, (s, f) => findShapes(minShapeMap, s, f));
   }, [activeShape, allMinTriadNotes, minShapeMap, shapeRanges]);
 
-  // Per-shape pentatonic data
+  // Per-shape pentatonic data — uses pentatonic box ranges for full 2-notes-per-string boxes
   const majPenta = useMemo(() => {
-    if (activeShape !== "all") return filterByRange(allMajPentaNotes, shapeRanges);
+    if (activeShape !== "all") return filterByRange(allMajPentaNotes, majPentaRanges);
     return groupByShape(allMajPentaNotes, (s, f) => majShapeMap.get(posKey(s, f)));
-  }, [activeShape, allMajPentaNotes, majShapeMap, shapeRanges]);
+  }, [activeShape, allMajPentaNotes, majShapeMap, majPentaRanges]);
   const minPenta = useMemo(() => {
-    if (activeShape !== "all") return filterByRange(allMinPentaNotes, shapeRanges);
+    if (activeShape !== "all") return filterByRange(allMinPentaNotes, minPentaRanges);
     return groupByShape(allMinPentaNotes, (s, f) => minShapeMap.get(posKey(s, f)));
-  }, [activeShape, allMinPentaNotes, minShapeMap, shapeRanges]);
+  }, [activeShape, allMinPentaNotes, minShapeMap, minPentaRanges]);
 
   // ♭5 sits between minor pentatonic 4 and 5 — assign to the shape of the
   // nearest pentatonic note at or below on the same string.
   const bluesNotes = useMemo(() => {
-    if (activeShape !== "all") return filterByRange(allBluesNotes, shapeRanges);
+    if (activeShape !== "all") return filterByRange(allBluesNotes, minPentaRanges);
     return groupByShape(allBluesNotes, (s, f) => findShapeBelow(minShapeMap, s, f));
-  }, [activeShape, allBluesNotes, minShapeMap, shapeRanges]);
+  }, [activeShape, allBluesNotes, minShapeMap, minPentaRanges]);
 
   const pentaData = pentaMode === "major" ? majPenta : (showPenta ? minPenta : null);
 

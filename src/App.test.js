@@ -363,6 +363,68 @@ describe("shapeRanges", () => {
   });
 });
 
+// ─── pentaShapeRanges (pentatonic box fret ranges) ───────────────────────────
+
+const PENTA_BOX_MAJ = {
+  C: { lo: 0, hi: 3 },
+  A: { lo: 2, hi: 5 },
+  G: { lo: 5, hi: 8 },
+  E: { lo: 7, hi: 10 },
+  D: { lo: 9, hi: 13 },
+};
+const PENTA_BOX_MIN = {
+  C: { lo: 0, hi: 4 },
+  A: { lo: 3, hi: 6 },
+  G: { lo: 5, hi: 8 },
+  E: { lo: 8, hi: 11 },
+  D: { lo: 10, hi: 13 },
+};
+
+function computePentaShapeRanges(box, effectiveKey) {
+  const ranges = {};
+  SHAPE_ORDER.forEach(sh => {
+    let lo = box[sh].lo + effectiveKey;
+    let hi = box[sh].hi + effectiveKey;
+    if (lo > NUM_FRETS) { lo -= 12; hi -= 12; }
+    ranges[sh] = { lo, hi };
+  });
+  return ranges;
+}
+
+describe("pentaShapeRanges", () => {
+  it("each pentatonic box captures exactly 2 notes per string when box fits on fretboard (major)", () => {
+    for (let key = 0; key < 12; key++) {
+      const ranges = computePentaShapeRanges(PENTA_BOX_MAJ, key);
+      const pentaNotes = generateScale(key, SCALE.pentaMaj);
+      SHAPE_ORDER.forEach(sh => {
+        const { lo, hi } = ranges[sh];
+        if (hi > NUM_FRETS) return; // box extends beyond fretboard
+        const filtered = pentaNotes.filter(([, f]) => f >= lo && f <= hi);
+        for (let s = 1; s <= 6; s++) {
+          const onString = filtered.filter(([ns]) => ns === s);
+          expect(onString).toHaveLength(2);
+        }
+      });
+    }
+  });
+
+  it("each pentatonic box captures exactly 2 notes per string when box fits on fretboard (minor)", () => {
+    for (let key = 0; key < 12; key++) {
+      const ranges = computePentaShapeRanges(PENTA_BOX_MIN, key);
+      const pentaNotes = generateScale(key, SCALE.pentaMin);
+      SHAPE_ORDER.forEach(sh => {
+        const { lo, hi } = ranges[sh];
+        if (hi > NUM_FRETS) return; // box extends beyond fretboard
+        const filtered = pentaNotes.filter(([, f]) => f >= lo && f <= hi);
+        for (let s = 1; s <= 6; s++) {
+          const onString = filtered.filter(([ns]) => ns === s);
+          expect(onString).toHaveLength(2);
+        }
+      });
+    }
+  });
+});
+
 // ─── FRYING_PAN geometry ────────────────────────────────────────────────────
 
 describe("FRYING_PAN geometry", () => {
