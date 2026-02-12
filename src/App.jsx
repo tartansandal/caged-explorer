@@ -652,7 +652,7 @@ export default function CAGEDExplorer() {
             <circle cx={noteX(12)} cy={MARGIN_TOP + 1.5 * STRING_SPACING} r={3.5} fill="#4a5568" opacity={0.85} />
             <circle cx={noteX(12)} cy={MARGIN_TOP + 3.5 * STRING_SPACING} r={3.5} fill="#4a5568" opacity={0.85} />
 
-            {Array.from({ length: NUM_FRETS }, (_, i) => i).map(f =>
+            {Array.from({ length: NUM_FRETS + 1 }, (_, i) => i).map(f =>
               <text key={f} x={f === 0 ? MARGIN_LEFT : noteX(f)} y={MARGIN_TOP + 5 * STRING_SPACING + 34}
                 textAnchor="middle" fill={THEME.text.dim} fontSize={9} fontFamily="ui-monospace, monospace">{f}</text>
             )}
