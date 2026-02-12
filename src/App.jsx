@@ -690,6 +690,15 @@ export default function CAGEDExplorer() {
               return <text key={sh} x={cx} y={MARGIN_TOP - 20} textAnchor="middle" fill={THEME.shape[sh]} fontSize={triadMode === "both" ? 8 : 10} fontWeight={700}>{lbl}</text>;
             })}
 
+            {showTriads && activeShape !== "all" && (() => {
+              const sh = activeShape;
+              const { lo, hi } = shapeRanges[sh];
+              const avg = (lo + hi) / 2;
+              const cx = avg < 0.5 ? MARGIN_LEFT - 16 : MARGIN_LEFT + (avg - 0.5) * FRET_SPACING;
+              const lbl = triadMode === "minor" ? sh + "m" : triadMode === "both" ? `${sh}/${sh}m` : sh;
+              return <text x={cx} y={MARGIN_TOP - 20} textAnchor="middle" fill={THEME.shape[sh]} fontSize={triadMode === "both" ? 8 : 10} fontWeight={700}>{lbl}</text>;
+            })()}
+
             {/* Frying-pan overlay - render behind notes */}
             {fryingPanShapes.map((pan, i) => {
               const panX1 = noteX(pan.panMinFret) - PENTA_RADIUS - 6;
