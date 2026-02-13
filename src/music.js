@@ -5,18 +5,6 @@
 
 export const NUM_FRETS = 15;
 
-// Guitar tuning: semitones from C for each string (6 to 1)
-export const TUNING = [4, 9, 2, 7, 11, 4]; // E, A, D, G, B, E
-
-// Scale intervals (semitones from root + interval label)
-export const SCALE = {
-  triadMaj: [{ semi: 0, label: "R" }, { semi: 4, label: "3" }, { semi: 7, label: "5" }],
-  triadMin: [{ semi: 0, label: "R" }, { semi: 3, label: "♭3" }, { semi: 7, label: "5" }],
-  pentaMaj: [{ semi: 0, label: "R" }, { semi: 2, label: "2" }, { semi: 4, label: "3" }, { semi: 7, label: "5" }, { semi: 9, label: "6" }],
-  pentaMin: [{ semi: 0, label: "R" }, { semi: 3, label: "♭3" }, { semi: 5, label: "4" }, { semi: 7, label: "5" }, { semi: 10, label: "♭7" }],
-  bluesAdd: [{ semi: 6, label: "♭5" }],
-};
-
 export const SHAPE_ORDER = ["C", "A", "G", "E", "D"];
 
 // Frying pan geometry: defined for effectiveKey=0 (C major / A minor pentatonic).
@@ -48,83 +36,503 @@ export const SHAPE_ORIENTATION = {
   E: "left",  D: "left"                // Left-hand: handle toward nut
 };
 
-export const posKey = (str, fret) => `${str}-${fret}`;
+// Static fretboard position tables for effectiveKey=0.
+// For other keys: add effectiveKey to all fret values.
 
-// Generate scale notes on the fretboard for a given root key and scale degrees.
-// No transposition — notes are placed directly at their correct frets.
-export function generateScale(rootKey, degrees, maxFret = NUM_FRETS) {
-  const notes = [];
-  TUNING.forEach((openSemi, idx) => {
-    const str = 6 - idx;
-    degrees.forEach(({ semi, label }) => {
-      const noteSemi = (rootKey + semi) % 12;
-      const baseFret = (noteSemi - openSemi + 12) % 12;
-      for (let fret = baseFret; fret <= maxFret; fret += 12) {
-        notes.push([str, fret, label]);
+export const PENTA_BOX = {
+  major: {
+    C: [
+      [6, 0, "3"],
+      [6, 3, "5"],
+      [6, 12, "3"],
+      [6, 15, "5"],
+      [5, 0, "6"],
+      [5, 3, "R"],
+      [5, 12, "6"],
+      [5, 15, "R"],
+      [4, 0, "2"],
+      [4, 2, "3"],
+      [4, 12, "2"],
+      [4, 14, "3"],
+      [3, 0, "5"],
+      [3, 2, "6"],
+      [3, 12, "5"],
+      [3, 14, "6"],
+      [2, 1, "R"],
+      [2, 3, "2"],
+      [2, 13, "R"],
+      [2, 15, "2"],
+      [1, 0, "3"],
+      [1, 3, "5"],
+      [1, 12, "3"],
+      [1, 15, "5"],
+    ],
+    A: [
+      [6, 3, "5"],
+      [6, 5, "6"],
+      [6, 15, "5"],
+      [6, 17, "6"],
+      [5, 3, "R"],
+      [5, 5, "2"],
+      [5, 15, "R"],
+      [5, 17, "2"],
+      [4, 2, "3"],
+      [4, 5, "5"],
+      [4, 14, "3"],
+      [4, 17, "5"],
+      [3, 2, "6"],
+      [3, 5, "R"],
+      [3, 14, "6"],
+      [3, 17, "R"],
+      [2, 3, "2"],
+      [2, 5, "3"],
+      [2, 15, "2"],
+      [2, 17, "3"],
+      [1, 3, "5"],
+      [1, 5, "6"],
+      [1, 15, "5"],
+      [1, 17, "6"],
+    ],
+    G: [
+      [6, 5, "6"],
+      [6, 8, "R"],
+      [6, 17, "6"],
+      [6, 20, "R"],
+      [5, 5, "2"],
+      [5, 7, "3"],
+      [5, 17, "2"],
+      [5, 19, "3"],
+      [4, 5, "5"],
+      [4, 7, "6"],
+      [4, 17, "5"],
+      [4, 19, "6"],
+      [3, 5, "R"],
+      [3, 7, "2"],
+      [3, 17, "R"],
+      [3, 19, "2"],
+      [2, 5, "3"],
+      [2, 8, "5"],
+      [2, 17, "3"],
+      [2, 20, "5"],
+      [1, 5, "6"],
+      [1, 8, "R"],
+      [1, 17, "6"],
+      [1, 20, "R"],
+    ],
+    E: [
+      [6, 8, "R"],
+      [6, 10, "2"],
+      [6, 20, "R"],
+      [6, 22, "2"],
+      [5, 7, "3"],
+      [5, 10, "5"],
+      [5, 19, "3"],
+      [5, 22, "5"],
+      [4, 7, "6"],
+      [4, 10, "R"],
+      [4, 19, "6"],
+      [4, 22, "R"],
+      [3, 7, "2"],
+      [3, 9, "3"],
+      [3, 19, "2"],
+      [3, 21, "3"],
+      [2, 8, "5"],
+      [2, 10, "6"],
+      [2, 20, "5"],
+      [2, 22, "6"],
+      [1, 8, "R"],
+      [1, 10, "2"],
+      [1, 20, "R"],
+      [1, 22, "2"],
+    ],
+    D: [
+      [6, 10, "2"],
+      [6, 12, "3"],
+      [6, 22, "2"],
+      [6, 24, "3"],
+      [5, 10, "5"],
+      [5, 12, "6"],
+      [5, 22, "5"],
+      [5, 24, "6"],
+      [4, 10, "R"],
+      [4, 12, "2"],
+      [4, 22, "R"],
+      [4, 24, "2"],
+      [3, 9, "3"],
+      [3, 12, "5"],
+      [3, 21, "3"],
+      [3, 24, "5"],
+      [2, 10, "6"],
+      [2, 13, "R"],
+      [2, 22, "6"],
+      [2, 25, "R"],
+      [1, 10, "2"],
+      [1, 12, "3"],
+      [1, 22, "2"],
+      [1, 24, "3"],
+    ],
+  },
+  minor: {
+    C: [
+      [6, 1, "4"],
+      [6, 3, "5"],
+      [6, 13, "4"],
+      [6, 15, "5"],
+      [5, 1, "\u266d7"],
+      [5, 3, "R"],
+      [5, 13, "\u266d7"],
+      [5, 15, "R"],
+      [4, 1, "\u266d3"],
+      [4, 3, "4"],
+      [4, 13, "\u266d3"],
+      [4, 15, "4"],
+      [3, 0, "5"],
+      [3, 3, "\u266d7"],
+      [3, 12, "5"],
+      [3, 15, "\u266d7"],
+      [2, 1, "R"],
+      [2, 4, "\u266d3"],
+      [2, 13, "R"],
+      [2, 16, "\u266d3"],
+      [1, 1, "4"],
+      [1, 3, "5"],
+      [1, 13, "4"],
+      [1, 15, "5"],
+    ],
+    A: [
+      [6, 3, "5"],
+      [6, 6, "\u266d7"],
+      [6, 15, "5"],
+      [6, 18, "\u266d7"],
+      [5, 3, "R"],
+      [5, 6, "\u266d3"],
+      [5, 15, "R"],
+      [5, 18, "\u266d3"],
+      [4, 3, "4"],
+      [4, 5, "5"],
+      [4, 15, "4"],
+      [4, 17, "5"],
+      [3, 3, "\u266d7"],
+      [3, 5, "R"],
+      [3, 15, "\u266d7"],
+      [3, 17, "R"],
+      [2, 4, "\u266d3"],
+      [2, 6, "4"],
+      [2, 16, "\u266d3"],
+      [2, 18, "4"],
+      [1, 3, "5"],
+      [1, 6, "\u266d7"],
+      [1, 15, "5"],
+      [1, 18, "\u266d7"],
+    ],
+    G: [
+      [6, 6, "\u266d7"],
+      [6, 8, "R"],
+      [6, 18, "\u266d7"],
+      [6, 20, "R"],
+      [5, 6, "\u266d3"],
+      [5, 8, "4"],
+      [5, 18, "\u266d3"],
+      [5, 20, "4"],
+      [4, 5, "5"],
+      [4, 8, "\u266d7"],
+      [4, 17, "5"],
+      [4, 20, "\u266d7"],
+      [3, 5, "R"],
+      [3, 8, "\u266d3"],
+      [3, 17, "R"],
+      [3, 20, "\u266d3"],
+      [2, 6, "4"],
+      [2, 8, "5"],
+      [2, 18, "4"],
+      [2, 20, "5"],
+      [1, 6, "\u266d7"],
+      [1, 8, "R"],
+      [1, 18, "\u266d7"],
+      [1, 20, "R"],
+    ],
+    E: [
+      [6, 8, "R"],
+      [6, 11, "\u266d3"],
+      [6, 20, "R"],
+      [6, 23, "\u266d3"],
+      [5, 8, "4"],
+      [5, 10, "5"],
+      [5, 20, "4"],
+      [5, 22, "5"],
+      [4, 8, "\u266d7"],
+      [4, 10, "R"],
+      [4, 20, "\u266d7"],
+      [4, 22, "R"],
+      [3, 8, "\u266d3"],
+      [3, 10, "4"],
+      [3, 20, "\u266d3"],
+      [3, 22, "4"],
+      [2, 8, "5"],
+      [2, 11, "\u266d7"],
+      [2, 20, "5"],
+      [2, 23, "\u266d7"],
+      [1, 8, "R"],
+      [1, 11, "\u266d3"],
+      [1, 20, "R"],
+      [1, 23, "\u266d3"],
+    ],
+    D: [
+      [6, 11, "\u266d3"],
+      [6, 13, "4"],
+      [6, 23, "\u266d3"],
+      [6, 25, "4"],
+      [5, 10, "5"],
+      [5, 13, "\u266d7"],
+      [5, 22, "5"],
+      [5, 25, "\u266d7"],
+      [4, 10, "R"],
+      [4, 13, "\u266d3"],
+      [4, 22, "R"],
+      [4, 25, "\u266d3"],
+      [3, 10, "4"],
+      [3, 12, "5"],
+      [3, 22, "4"],
+      [3, 24, "5"],
+      [2, 11, "\u266d7"],
+      [2, 13, "R"],
+      [2, 23, "\u266d7"],
+      [2, 25, "R"],
+      [1, 11, "\u266d3"],
+      [1, 13, "4"],
+      [1, 23, "\u266d3"],
+      [1, 25, "4"],
+    ],
+  },
+};
+
+export const TRIAD_SHAPE = {
+  major: {
+    C: [
+      [6, 0, "3"],
+      [6, 3, "5"],
+      [6, 12, "3"],
+      [6, 15, "5"],
+      [5, 3, "R"],
+      [5, 15, "R"],
+      [4, 2, "3"],
+      [4, 14, "3"],
+      [3, 0, "5"],
+      [3, 12, "5"],
+      [2, 1, "R"],
+      [2, 13, "R"],
+      [1, 0, "3"],
+      [1, 3, "5"],
+      [1, 12, "3"],
+      [1, 15, "5"],
+    ],
+    A: [
+      [6, 3, "5"],
+      [6, 15, "5"],
+      [5, 3, "R"],
+      [5, 15, "R"],
+      [4, 5, "5"],
+      [4, 17, "5"],
+      [3, 5, "R"],
+      [3, 17, "R"],
+      [2, 5, "3"],
+      [2, 17, "3"],
+      [1, 3, "5"],
+      [1, 15, "5"],
+    ],
+    G: [
+      [6, 8, "R"],
+      [6, 20, "R"],
+      [5, 7, "3"],
+      [5, 19, "3"],
+      [4, 5, "5"],
+      [4, 17, "5"],
+      [3, 5, "R"],
+      [3, 17, "R"],
+      [2, 5, "3"],
+      [2, 8, "5"],
+      [2, 17, "3"],
+      [2, 20, "5"],
+      [1, 8, "R"],
+      [1, 20, "R"],
+    ],
+    E: [
+      [6, 8, "R"],
+      [6, 20, "R"],
+      [5, 10, "5"],
+      [5, 22, "5"],
+      [4, 10, "R"],
+      [4, 22, "R"],
+      [3, 9, "3"],
+      [3, 21, "3"],
+      [2, 8, "5"],
+      [2, 20, "5"],
+      [1, 8, "R"],
+      [1, 20, "R"],
+    ],
+    D: [
+      [6, 12, "3"],
+      [6, 24, "3"],
+      [5, 10, "5"],
+      [5, 22, "5"],
+      [4, 10, "R"],
+      [4, 22, "R"],
+      [3, 12, "5"],
+      [3, 24, "5"],
+      [2, 13, "R"],
+      [2, 25, "R"],
+      [1, 12, "3"],
+      [1, 24, "3"],
+    ],
+  },
+  minor: {
+    C: [
+      [6, 3, "5"],
+      [6, 15, "5"],
+      [5, 3, "R"],
+      [5, 15, "R"],
+      [4, 1, "\u266d3"],
+      [4, 13, "\u266d3"],
+      [3, 0, "5"],
+      [3, 12, "5"],
+      [2, 1, "R"],
+      [2, 13, "R"],
+      [1, 3, "5"],
+      [1, 15, "5"],
+    ],
+    A: [
+      [6, 3, "5"],
+      [6, 15, "5"],
+      [5, 3, "R"],
+      [5, 15, "R"],
+      [4, 5, "5"],
+      [4, 17, "5"],
+      [3, 5, "R"],
+      [3, 17, "R"],
+      [2, 4, "\u266d3"],
+      [2, 16, "\u266d3"],
+      [1, 3, "5"],
+      [1, 15, "5"],
+    ],
+    G: [
+      [6, 8, "R"],
+      [6, 20, "R"],
+      [5, 6, "\u266d3"],
+      [5, 18, "\u266d3"],
+      [4, 5, "5"],
+      [4, 17, "5"],
+      [3, 5, "R"],
+      [3, 8, "\u266d3"],
+      [3, 17, "R"],
+      [3, 20, "\u266d3"],
+      [2, 8, "5"],
+      [2, 20, "5"],
+      [1, 8, "R"],
+      [1, 20, "R"],
+    ],
+    E: [
+      [6, 8, "R"],
+      [6, 20, "R"],
+      [5, 10, "5"],
+      [5, 22, "5"],
+      [4, 10, "R"],
+      [4, 22, "R"],
+      [3, 8, "\u266d3"],
+      [3, 20, "\u266d3"],
+      [2, 8, "5"],
+      [2, 20, "5"],
+      [1, 8, "R"],
+      [1, 20, "R"],
+    ],
+    D: [
+      [6, 11, "\u266d3"],
+      [6, 23, "\u266d3"],
+      [5, 10, "5"],
+      [5, 22, "5"],
+      [4, 10, "R"],
+      [4, 13, "\u266d3"],
+      [4, 22, "R"],
+      [4, 25, "\u266d3"],
+      [3, 12, "5"],
+      [3, 24, "5"],
+      [2, 13, "R"],
+      [2, 25, "R"],
+      [1, 11, "\u266d3"],
+      [1, 23, "\u266d3"],
+    ],
+  },
+};
+
+export const BLUES_SHAPE = {
+  C: [
+    [6, 2, "\u266d5"],
+    [6, 14, "\u266d5"],
+    [5, 9, "\u266d5"],
+    [4, 4, "\u266d5"],
+    [4, 16, "\u266d5"],
+    [3, 11, "\u266d5"],
+    [2, 7, "\u266d5"],
+    [1, 2, "\u266d5"],
+    [1, 14, "\u266d5"],
+  ],
+  A: [
+    [6, 14, "\u266d5"],
+    [5, 9, "\u266d5"],
+    [4, 4, "\u266d5"],
+    [4, 16, "\u266d5"],
+    [3, 11, "\u266d5"],
+    [2, 7, "\u266d5"],
+    [1, 14, "\u266d5"],
+  ],
+  G: [
+    [6, 14, "\u266d5"],
+    [5, 9, "\u266d5"],
+    [4, 16, "\u266d5"],
+    [3, 11, "\u266d5"],
+    [2, 7, "\u266d5"],
+    [2, 19, "\u266d5"],
+    [1, 14, "\u266d5"],
+  ],
+  E: [
+    [6, 14, "\u266d5"],
+    [5, 9, "\u266d5"],
+    [5, 21, "\u266d5"],
+    [4, 16, "\u266d5"],
+    [3, 11, "\u266d5"],
+    [3, 23, "\u266d5"],
+    [2, 19, "\u266d5"],
+    [1, 14, "\u266d5"],
+  ],
+  D: [
+    [6, 14, "\u266d5"],
+    [5, 21, "\u266d5"],
+    [4, 16, "\u266d5"],
+    [3, 11, "\u266d5"],
+    [3, 23, "\u266d5"],
+    [2, 19, "\u266d5"],
+    [1, 14, "\u266d5"],
+  ],
+};
+
+// Shift note positions by effectiveKey using the FRYING_PAN double-shift
+// pattern: try both +ek and +(ek-12) to cover the full fretboard for any
+// key, dedup by position since two-octave data can produce overlapping notes.
+export function shiftNotes(notes, effectiveKey, maxFret = NUM_FRETS) {
+  const seen = new Set();
+  const result = [];
+  for (const shift of [effectiveKey, effectiveKey - 12]) {
+    for (const [s, f, interval] of notes) {
+      const sf = f + shift;
+      if (sf >= 0 && sf <= maxFret) {
+        const key = `${s}-${sf}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          result.push([s, sf, interval]);
+        }
       }
-    });
-  });
-  return notes;
-}
-
-// Assign CAGED shapes to pentatonic note positions.
-// On each string, pentatonic notes cycle through C, A, G, E, D in fret order.
-// Shape at index i owns notes at positions i and i+1 (2 consecutive notes),
-// so each note (except the first) is shared between two adjacent shapes.
-// The starting shape rotates based on effectiveKey — when the key shifts,
-// some notes wrap around the 12-fret octave, rotating the shape cycle.
-// scaleSemi: the semitone intervals of the scale (e.g. [0,2,4,7,9] for major penta).
-export function assignShapes(pentaNotes, effectiveKey, scaleSemi) {
-  const byString = {};
-  pentaNotes.forEach(([str, fret]) => {
-    if (!byString[str]) byString[str] = [];
-    byString[str].push({ fret });
-  });
-
-  const shapeMap = new Map();
-
-  // Compute offset once using string 6 as reference (TUNING[0] = 4, open E).
-  // All strings share the same offset because CAGED shapes span consistent
-  // fret regions across the neck — the offset depends only on key, not tuning.
-  const canon6 = scaleSemi.map(d => (d - TUNING[0] + 12) % 12).sort((a, b) => a - b);
-  const wrapCount = canon6.filter(f => f >= 12 - effectiveKey).length;
-  const offset = (5 - wrapCount) % 5;
-
-  Object.entries(byString).forEach(([str, notes]) => {
-    notes.sort((a, b) => a.fret - b.fret);
-    const s = Number(str);
-
-    notes.forEach((note, i) => {
-      const key = posKey(s, note.fret);
-      const shapes = shapeMap.get(key) || [];
-      if (!shapeMap.has(key)) shapeMap.set(key, shapes);
-
-      const curShape = SHAPE_ORDER[(i + offset) % 5];
-      if (!shapes.includes(curShape)) shapes.push(curShape);
-      if (i > 0) {
-        const prevShape = SHAPE_ORDER[(i - 1 + offset) % 5];
-        if (!shapes.includes(prevShape)) shapes.push(prevShape);
-      }
-    });
-  });
-
-  return shapeMap;
-}
-
-// Look up shapes for a note position, falling back to nearest pentatonic note on the same string.
-// Handles notes like ♭3 that aren't at pentatonic positions but belong to the same shape
-// as their nearest pentatonic neighbor (e.g., ♭3 is 1 fret below the major 3).
-export function findShapes(shapeMap, string, fret) {
-  const direct = shapeMap.get(posKey(string, fret));
-  if (direct) return direct;
-  let best = null;
-  let bestDist = Infinity;
-  shapeMap.forEach((shapes, key) => {
-    const [ks, kf] = key.split("-").map(Number);
-    if (ks === string) {
-      const dist = Math.abs(kf - fret);
-      if (dist < bestDist) { bestDist = dist; best = shapes; }
     }
-  });
-  return best;
+  }
+  return result;
 }
+
+export const posKey = (str, fret) => `${str}-${fret}`;
