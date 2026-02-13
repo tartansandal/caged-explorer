@@ -23,19 +23,24 @@ npx vitest run src/App.test.js  # Run a single test file
 
 Music theory logic lives in `src/music.js` (pure functions + data constants), kept separate from `src/App.jsx` (React components + UI) to preserve React Fast Refresh. The `src/main.jsx` entry point just mounts the root component.
 
-**`src/music.js`** — Pure functions and data:
-- `generateScale(rootKey, degrees)` — Places scale notes on the fretboard using guitar tuning math
-- `assignShapes(pentaNotes, effectiveKey, scaleSemi)` — Maps pentatonic note positions to CAGED shapes; each note can belong to 1-2 adjacent shapes (boundary sharing)
-- `findShapes(shapeMap, string, fret)` — Looks up shapes for a position with nearest-neighbor fallback for notes not directly in the pentatonic map
-- Constants: `TUNING`, `SCALE` (interval definitions for triads/pentatonics/blues), `FRYING_PAN` (overlay geometry), `SHAPE_ORDER`, `SHAPE_ORIENTATION`
+**`src/music.js`** — Static data tables and one utility function:
+- `PENTA_BOX[scale][shape]` — Pentatonic box note positions as `[string, fret, interval]` tuples for `effectiveKey=0`, two octaves. Scale is `"major"`/`"minor"`, shape is C/A/G/E/D.
+- `TRIAD_SHAPE[scale][shape]` — Triad note positions per CAGED shape, same format.
+- `BLUES_SHAPE[shape]` — Blues flat-5 note positions per shape.
+- `shiftNotes(notes, effectiveKey)` — Shifts note positions by `effectiveKey` using double-shift (`+ek` and `+(ek-12)`) with dedup, same pattern as `FRYING_PAN` overlay.
+- Constants: `FRYING_PAN` (overlay geometry), `SHAPE_ORDER`, `SHAPE_ORIENTATION`, `NUM_FRETS`, `posKey`
 
-**`src/App.jsx`** — Single `CAGEDExplorer` component (~850 lines) with subcomponents:
+**`src/App.jsx`** — Single `CAGEDExplorer` component with subcomponents:
 - `ToggleButton`, `FretDot`, `LegendSection`, `ChordDiagram`
 - UI constants: `THEME` (complete color palette), `CHORD_MAJ/MIN` (open chord fingerings), `LEGEND` (context-sensitive legend entries), `INTERVAL_SEMITONES` (interval-to-semitone mapping)
 
 ### Key Concept: effectiveKey
 
-The `effectiveKey` variable transforms between the displayed key and the underlying music theory. For major keys it equals `keyIndex` directly; for minor keys it's `(keyIndex + 9) % 12` (relative major). All scale generation and shape assignment use `effectiveKey`.
+The `effectiveKey` variable transforms between the displayed key and the underlying music theory. For major keys it equals `keyIndex` directly; for minor keys it's `(keyIndex + 9) % 12` (relative major). All note data is shifted by `effectiveKey` via `shiftNotes`.
+
+### Static Data Pattern
+
+All fretboard note positions follow the same pattern as `FRYING_PAN`: defined for `effectiveKey=0` with two octaves of coverage (frets 0-27), shifted at runtime by adding `effectiveKey`. The `shiftNotes` function handles the double-shift (try both `+ek` and `+(ek-12)`) to cover the full 15-fret window for any key, with deduplication. Boundary notes between adjacent CAGED shapes appear in both shape arrays, ensuring single-shape and all-shapes views are provably consistent.
 
 ### State Management
 
@@ -53,10 +58,10 @@ The `THEME` object defines all colors. Shape colors: C (#d8908c), A (#d4b880), G
 
 ## Testing
 
-Tests use Vitest (`src/App.test.js`) and cover the pure music theory functions in `src/music.js`:
-- `generateScale` — fret position correctness, octave equivalence, string coverage
-- `assignShapes` — shape cycle order per key, boundary note sharing between adjacent shapes
-- `findShapes` — direct hit and nearest-neighbor fallback
+Tests use Vitest (`src/App.test.js`) and cover the static data tables and overlay geometry:
+- `PENTA_BOX` data integrity — 2 notes per string per octave, valid intervals, boundary sharing between adjacent shapes
+- Major/minor pentatonic equivalence — verifies relative major/minor produce same fret positions across all 12 keys
+- `shiftNotes` — range bounds, deduplication, full string coverage for all keys
 - `FRYING_PAN` geometry — visibility across all keys, shape mapping consistency
 
 Tests are property-based where possible, iterating all 12 keys × major/minor scales to verify invariants.
