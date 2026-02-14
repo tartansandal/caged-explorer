@@ -5,6 +5,7 @@ import {
   NUM_FRETS,
   SHAPE_ORIENTATION,
   PENTA_BOX,
+  TRIAD_SHAPE,
   shiftNotes,
 } from "./music.js";
 
@@ -134,6 +135,35 @@ describe("PENTA_BOX data integrity", () => {
     for (const sh of SHAPE_ORDER) {
       PENTA_BOX.major[sh].forEach(([,, iv]) => expect(validMaj.has(iv)).toBe(true));
       PENTA_BOX.minor[sh].forEach(([,, iv]) => expect(validMin.has(iv)).toBe(true));
+    }
+  });
+});
+
+// ─── TRIAD_SHAPE data integrity ──────────────────────────────────────────────
+
+describe("TRIAD_SHAPE data integrity", () => {
+  it("each shape has at most 1 triad note per string per octave region after shifting", () => {
+    for (const scale of ["major", "minor"]) {
+      for (const sh of SHAPE_ORDER) {
+        for (let ek = 0; ek < 12; ek++) {
+          const notes = shiftNotes(TRIAD_SHAPE[scale][sh], ek);
+          // Group by string
+          const byString = {};
+          notes.forEach(([s, f, iv]) => {
+            if (!byString[s]) byString[s] = [];
+            byString[s].push({ fret: f, interval: iv });
+          });
+          for (const [s, strNotes] of Object.entries(byString)) {
+            if (strNotes.length <= 1) continue;
+            // 2 notes on the same string is only okay if they're 12 frets apart
+            expect(strNotes.length).toBeLessThanOrEqual(2);
+            if (strNotes.length === 2) {
+              const [a, b] = strNotes.sort((x, y) => x.fret - y.fret);
+              expect(Math.abs(a.fret - b.fret)).toBe(12);
+            }
+          }
+        }
+      }
     }
   });
 });
