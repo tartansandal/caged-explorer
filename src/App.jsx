@@ -685,9 +685,15 @@ export default function CAGEDExplorer() {
                 height={5 * STRING_SPACING + 26 + 38 - 13}
                 fill="transparent"
                 cursor="pointer"
+                tabIndex={0}
+                role="button"
+                aria-label={`${isMinorKey ? shape + "m" : shape} shape region`}
                 onMouseEnter={() => setHoveredShape(shape)}
                 onMouseLeave={() => setHoveredShape(null)}
+                onFocus={() => setHoveredShape(shape)}
+                onBlur={() => setHoveredShape(null)}
                 onClick={() => toggleShapePin(shape)}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleShapePin(shape); } }}
               />;
             })}
 
