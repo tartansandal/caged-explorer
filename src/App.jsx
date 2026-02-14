@@ -62,7 +62,8 @@ const THEME = {
     medium: "rgba(255,255,255,0.3)",
   },
   overlay: {
-    fryingPan: "#d4b070",
+    fryingPanLeft: "#d4b070",
+    fryingPanRight: "#c0a0d0",
   },
 };
 
@@ -717,15 +718,19 @@ export default function CAGEDExplorer() {
                 handleX2 = noteX(pan.handleFret) + PENTA_RADIUS + 4;
               }
 
+              const panColor = pan.handleDirection === "left"
+                ? THEME.overlay.fryingPanLeft
+                : THEME.overlay.fryingPanRight;
+
               return (
                 <g key={`fp-${i}`}>
                   <rect
                     x={panX1} y={panY1}
                     width={panX2 - panX1} height={panY2 - panY1}
                     rx={7}
-                    fill={THEME.overlay.fryingPan}
+                    fill={panColor}
                     opacity={0.25}
-                    stroke={THEME.overlay.fryingPan}
+                    stroke={panColor}
                     strokeWidth={0.8}
                     strokeOpacity={0.35}
                   />
@@ -733,9 +738,9 @@ export default function CAGEDExplorer() {
                     x={handleX1} y={handleY - 4}
                     width={handleX2 - handleX1} height={8}
                     rx={4}
-                    fill={THEME.overlay.fryingPan}
+                    fill={panColor}
                     opacity={0.20}
-                    stroke={THEME.overlay.fryingPan}
+                    stroke={panColor}
                     strokeWidth={0.6}
                     strokeOpacity={0.25}
                   />
@@ -814,10 +819,17 @@ export default function CAGEDExplorer() {
                 <div style={{ display: "flex", gap: 14, flexWrap: "wrap", alignItems: "center" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
                     <svg width={36} height={20} viewBox="0 0 36 20">
-                      <rect x={10} y={2} width={16} height={16} rx={4} fill={THEME.overlay.fryingPan} opacity={0.35} stroke={THEME.overlay.fryingPan} strokeWidth={0.8} strokeOpacity={0.5} />
-                      <rect x={26} y={7} width={8} height={6} rx={3} fill={THEME.overlay.fryingPan} opacity={0.25} stroke={THEME.overlay.fryingPan} strokeWidth={0.6} strokeOpacity={0.4} />
+                      <rect x={10} y={2} width={16} height={16} rx={4} fill={THEME.overlay.fryingPanLeft} opacity={0.35} stroke={THEME.overlay.fryingPanLeft} strokeWidth={0.8} strokeOpacity={0.5} />
+                      <rect x={2} y={7} width={8} height={6} rx={3} fill={THEME.overlay.fryingPanLeft} opacity={0.25} stroke={THEME.overlay.fryingPanLeft} strokeWidth={0.6} strokeOpacity={0.4} />
                     </svg>
-                    <span style={{ fontSize: "0.74rem", color: THEME.text.secondary }}>5-note group across 2 strings</span>
+                    <span style={{ fontSize: "0.74rem", color: THEME.text.secondary }}>Left-hand pan</span>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                    <svg width={36} height={20} viewBox="0 0 36 20">
+                      <rect x={10} y={2} width={16} height={16} rx={4} fill={THEME.overlay.fryingPanRight} opacity={0.35} stroke={THEME.overlay.fryingPanRight} strokeWidth={0.8} strokeOpacity={0.5} />
+                      <rect x={26} y={7} width={8} height={6} rx={3} fill={THEME.overlay.fryingPanRight} opacity={0.25} stroke={THEME.overlay.fryingPanRight} strokeWidth={0.6} strokeOpacity={0.4} />
+                    </svg>
+                    <span style={{ fontSize: "0.74rem", color: THEME.text.secondary }}>Right-hand pan</span>
                   </div>
                 </div>
               </>
