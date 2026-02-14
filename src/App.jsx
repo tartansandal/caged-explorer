@@ -799,9 +799,14 @@ export default function CAGEDExplorer() {
               </>
             )}
 
-            {pentaScale !== "off" && pentaQuality === "minor" && (
+            {pentaScale === "pentatonic" && pentaQuality === "minor" && (
               <p style={{ fontSize: "0.68rem", color: THEME.text.muted, marginTop: 14, maxWidth: 300, lineHeight: 1.55, fontStyle: "italic" }}>
                 The ♭3 sits beside the major 3rd — the tension at the heart of the blues.
+              </p>
+            )}
+            {pentaScale === "blues" && pentaQuality === "minor" && (
+              <p style={{ fontSize: "0.68rem", color: THEME.text.muted, marginTop: 14, maxWidth: 300, lineHeight: 1.55, fontStyle: "italic" }}>
+                The ♭5 squeezes between the 4th and 5th — a chromatic passing tone that gives the blues its grit.
               </p>
             )}
             {pentaScale === "blues" && pentaQuality === "major" && (
