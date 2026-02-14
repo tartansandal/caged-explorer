@@ -1,8 +1,8 @@
-# Pentatonic Overlays
+# Pentatonic Overlay
 
-The pentatonic scale on guitar can be understood through two complementary framings. Both use the same underlying 5-note patterns on adjacent string pairs, but emphasize different things.
+The frying-pan overlay visualizes how the pentatonic scale tiles across the fretboard as repeating 5-note groups on adjacent string pairs.
 
-## Shared foundation
+## Foundation
 
 A pentatonic scale played across two adjacent strings always produces 3 notes on one string and 2 on the other. This 5-note group repeats across the three string pairs (6-5, 4-3, 2-1). To move from one copy to the next:
 
@@ -84,20 +84,6 @@ The frying-pan overlay helps a player see the **repeating unit** across the neck
 
 ---
 
-## 3:2 System
-
-The 3:2 framing thinks in terms of **notes per string** — a fingering guide.
-
-### The idea
-
-Instead of seeing a 5-note group, you think string by string: "this string has 3 notes, the next has 2" (or vice versa: 2 then 3). The label comes from the note counts: **3:2** or **2:3**.
-
-### Purpose
-
-The 3:2 overlay helps a player plan **fingerings and picking patterns**. Knowing whether you have 3 or 2 notes on the current string tells you how to set up your fretting hand and pick strokes before you play.
-
----
-
 ## Relationship to CAGED shapes
 
 Each CAGED shape's fret region aligns with one orientation:
@@ -107,4 +93,4 @@ Each CAGED shape's fret region aligns with one orientation:
 | Left-hand   | E, D        |
 | Right-hand  | C, A, G     |
 
-When a CAGED shape is selected in the explorer, the corresponding orientation is highlighted for both overlays.
+When a CAGED shape is selected in the explorer, the corresponding orientation is highlighted.

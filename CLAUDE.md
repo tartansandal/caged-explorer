@@ -23,11 +23,14 @@ npx vitest run src/App.test.js  # Run a single test file
 
 Music theory logic lives in `src/music.js` (pure functions + data constants), kept separate from `src/App.jsx` (React components + UI) to preserve React Fast Refresh. The `src/main.jsx` entry point just mounts the root component.
 
-**`src/music.js`** — Static data tables and one utility function:
+**`src/music.js`** — Static data tables and pure functions:
 - `PENTA_BOX[scale][shape]` — Pentatonic box note positions as `[string, fret, interval]` tuples for `effectiveKey=0`, two octaves. Scale is `"major"`/`"minor"`, shape is C/A/G/E/D.
 - `TRIAD_SHAPE[scale][shape]` — Triad note positions per CAGED shape, same format.
-- `BLUES_SHAPE[shape]` — Blues flat-5 note positions per shape.
-- `shiftNotes(notes, effectiveKey)` — Shifts note positions by `effectiveKey` using double-shift (`+ek` and `+(ek-12)`) with dedup, same pattern as `FRYING_PAN` overlay.
+- `BLUES_SHAPE[quality][shape]` — Blues note positions (minor: `♭5`, major: `♭3`) per shape.
+- `SHAPE_FRET_RANGES[quality][shape]` — Precomputed fret clusters at `effectiveKey=0` from triads + pentatonics (blues excluded to avoid merging octave clusters).
+- `shiftNotes(notes, effectiveKey)` — Shifts note positions by `effectiveKey` using double-shift (`+ek` and `+(ek-12)`) with dedup.
+- `clusterFrets(frets, gapThreshold)` — Groups sorted frets into `{lo, hi}` clusters separated by gaps > threshold.
+- `computeHoverRanges(shapeRanges, shapes)` — Computes non-overlapping hover regions from shape clusters, splitting at midpoints between adjacent cluster centers. Excludes partial clusters.
 - Constants: `FRYING_PAN` (overlay geometry), `SHAPE_ORDER`, `SHAPE_ORIENTATION`, `NUM_FRETS`, `posKey`
 
 **`src/App.jsx`** — Single `CAGEDExplorer` component with subcomponents:
@@ -44,11 +47,15 @@ All fretboard note positions follow the same pattern as `FRYING_PAN`: defined fo
 
 ### State Management
 
-React hooks only (`useState`, `useMemo`). Main state: `keyIndex` (0-11), `isMinorKey`, `activeShape` (C/A/G/E/D or 'all'), `pentaMode` (off/major/minor/blues), `triadMode` (off/major/minor), `labelMode` (intervals/notes/both), `showFryingPan` (boolean).
+React hooks only (`useState`, `useMemo`). Main state: `keyIndex` (0-11), `isMinorKey`, `activeShape` (C/A/G/E/D/all/off), `showTriads`, `pentaScale` (off/pentatonic/blues), `triadQuality` (major/minor), `pentaQuality` (major/minor), `labelMode` (intervals/notes/both), `showFryingPan` (boolean), `hoveredShape`, `pinnedShapes` (Set).
 
 ### Overlay System
 
 The **Frying Pan** overlay highlights 5-note groups across string pairs with pan+handle shapes, defined in `FRYING_PAN` geometry (shifted by `effectiveKey`). Toggled via `showFryingPan` state.
+
+### Shape Hover System
+
+In "All" shapes view, each shape's fretboard column has an invisible hit rect for hover highlighting and click-to-pin. `shapeRanges` clusters each shape's notes into `{lo, hi, partial}` ranges. Partial clusters (span < 70% of canonical) at fretboard edges are dimmed and excluded from interaction. `computeHoverRanges` splits adjacent clusters at midpoints to produce non-overlapping hover regions.
 
 ### Theme System
 
@@ -61,6 +68,8 @@ Tests use Vitest (`src/App.test.js`) and cover the static data tables and overla
 - Major/minor pentatonic equivalence — verifies relative major/minor produce same fret positions across all 12 keys
 - `shiftNotes` — range bounds, deduplication, full string coverage for all keys
 - `FRYING_PAN` geometry — visibility across all keys, shape mapping consistency
+- Partial cluster detection — every shape has at least one full cluster across all 12 keys × major/minor
+- `computeHoverRanges` — no overlaps, full coverage, no partial leaks, tiling without gaps
 
 Tests are property-based where possible, iterating all 12 keys × major/minor scales to verify invariants.
 
