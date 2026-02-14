@@ -417,13 +417,8 @@ export default function CAGEDExplorer() {
       if (pentaScale === "blues") {
         // Bound blues notes to within 1 fret of the shape's pentatonic clusters
         const clusterSource = pentaQuality === "major" ? majPenta : minPenta;
-        const pentaFrets = (clusterSource[sh] || []).map(([, f]) => f).sort((a, b) => a - b);
-        const clusters = [];
-        pentaFrets.forEach(f => {
-          const last = clusters[clusters.length - 1];
-          if (last && f - last.hi <= 6) last.hi = f;
-          else clusters.push({ lo: f, hi: f });
-        });
+        const pentaFrets = (clusterSource[sh] || []).map(([, f]) => f);
+        const clusters = clusterFrets(pentaFrets);
         (bluesNotes[sh] || []).forEach(([s, f, interval]) => {
           const key = posKey(s, f);
           const inRange = clusters.some(c => f >= c.lo - 1 && f <= c.hi + 1);
