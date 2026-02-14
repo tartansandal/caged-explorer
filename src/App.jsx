@@ -761,8 +761,8 @@ export default function CAGEDExplorer() {
             })}
 
 
-            {displayPentaNotes.map(([s, f, interval], i) => (
-              <FretDot key={`p${i}`} cx={noteX(f)} cy={strY(s)} radius={PENTA_RADIUS} interval={interval}
+            {displayPentaNotes.map(([s, f, interval]) => (
+              <FretDot key={posKey(s, f)} cx={noteX(f)} cy={strY(s)} radius={PENTA_RADIUS} interval={interval}
                 keyIdx={effectiveKey} labelMode={labelMode} showNoteName={labelMode === "both" && f !== 0} />
             ))}
 
