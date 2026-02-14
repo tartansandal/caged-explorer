@@ -333,12 +333,23 @@ export default function CAGEDExplorer() {
   }, [activeShape, effectiveKey]);
 
   // Shape fret ranges for labels and background highlights — derived from triad data
+  // Returns array of clusters: [{lo, hi}] — usually 1, but 2 when octave repeat is visible
   const shapeRanges = useMemo(() => {
     const ranges = {};
     SHAPES.forEach(sh => {
       const notes = shiftNotes(TRIAD_SHAPE.major[sh], effectiveKey);
-      const frets = notes.map(([, f]) => f);
-      ranges[sh] = frets.length ? { lo: Math.min(...frets), hi: Math.max(...frets) } : { lo: 0, hi: 0 };
+      const frets = notes.map(([, f]) => f).sort((a, b) => a - b);
+      if (!frets.length) { ranges[sh] = [{ lo: 0, hi: 0 }]; return; }
+      // Split into clusters when gap between consecutive frets exceeds a threshold
+      const clusters = [{ lo: frets[0], hi: frets[0] }];
+      for (let i = 1; i < frets.length; i++) {
+        if (frets[i] - clusters[clusters.length - 1].hi > 6) {
+          clusters.push({ lo: frets[i], hi: frets[i] });
+        } else {
+          clusters[clusters.length - 1].hi = frets[i];
+        }
+      }
+      ranges[sh] = clusters;
     });
     return ranges;
   }, [effectiveKey]);
@@ -625,12 +636,13 @@ export default function CAGEDExplorer() {
               return <rect key={sh} x={x1} y={MARGIN_TOP - 13} width={x2 - x1} height={5 * STRING_SPACING + 26} fill={THEME.shape[sh]} opacity={0.04} rx={3} />;
             })}
 
-            {(showTriads || showPenta) && visibleShapes.map(sh => {
-              const { lo, hi } = shapeRanges[sh];
-              const avg = (lo + hi) / 2;
-              const cx = avg < 0.5 ? MARGIN_LEFT - 16 : MARGIN_LEFT + (avg - 0.5) * FRET_SPACING;
+            {(showTriads || showPenta) && visibleShapes.flatMap(sh => {
               const lbl = isMinorKey ? sh + "m" : sh;
-              return <text key={sh} x={cx} y={MARGIN_TOP - 20} textAnchor="middle" fill={THEME.shape[sh]} fontSize={10} fontWeight={700}>{lbl}</text>;
+              return shapeRanges[sh].map(({ lo, hi }, ci) => {
+                const avg = (lo + hi) / 2;
+                const cx = avg < 0.5 ? MARGIN_LEFT - 16 : MARGIN_LEFT + (avg - 0.5) * FRET_SPACING;
+                return <text key={`${sh}-${ci}`} x={cx} y={MARGIN_TOP - 20} textAnchor="middle" fill={THEME.shape[sh]} fontSize={10} fontWeight={700}>{lbl}</text>;
+              });
             })}
 
             {/* Frying-pan overlay - render behind notes */}
