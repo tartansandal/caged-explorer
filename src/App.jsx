@@ -569,7 +569,7 @@ export default function CAGEDExplorer() {
           })}
         </div>
 
-        {/* Shape Selector */}
+        {/* Shapes + Labels */}
         <div style={STYLE.optionRow(14)}>
           <span style={STYLE.optionLabel}>Shapes</span>
           {["off", ...SHAPES, "all"].map(s => {
@@ -791,47 +791,39 @@ export default function CAGEDExplorer() {
         </div>
 
         {/* Bottom Section: Legend + Chord Diagrams */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginTop: 20, gap: 20, flexWrap: "wrap" }}>
-          <div>
-            {showTriads && <LegendSection title={triadQuality === "minor" ? "Minor Triad" : "Triad"}
-              items={triadLegend} dotSize={20} keyIdx={effectiveKey} labelMode={labelMode} />}
+        <div style={{ display: "flex", alignItems: "flex-start", marginTop: 20, gap: 16, flexWrap: "wrap" }}>
+          {showTriads && activeShape === "all" && (
+            <div style={{ minWidth: 120, padding: "8px 12px", border: `1px solid ${THEME.border.subtle}`, borderRadius: 8 }}>
+              <div style={{ fontSize: "0.55rem", color: THEME.text.dim, textTransform: "uppercase", letterSpacing: "0.2em", marginBottom: 8 }}>Shape borders</div>
+              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                {SHAPES.map(s =>
+                  <div key={s} style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                    <div style={{ width: 12, height: 12, borderRadius: 3, background: THEME.shape[s] + "20", border: `2px solid ${THEME.shape[s]}` }} />
+                    <span style={{ fontSize: "0.72rem", color: THEME.text.secondary }}>{s}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
-            {pentaLegend.length > 0 && <LegendSection title={scaleName(pentaScale, pentaQuality)} items={pentaLegend} dotSize={16}
-              mt={showTriads ? 14 : 0} keyIdx={effectiveKey} labelMode={labelMode} />}
+          {showTriads && (
+            <div style={{ minWidth: 140, padding: "8px 12px", border: `1px solid ${THEME.border.subtle}`, borderRadius: 8 }}>
+              <LegendSection title={triadQuality === "minor" ? "Minor Triad" : "Triad"}
+                items={triadLegend} dotSize={20} keyIdx={effectiveKey} labelMode={labelMode} />
+            </div>
+          )}
 
-            {showTriads && activeShape === "all" && (
-              <>
-                <div style={{ fontSize: "0.55rem", color: THEME.text.dim, textTransform: "uppercase", letterSpacing: "0.2em", margin: "14px 0 8px" }}>Shape borders</div>
-                <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                  {SHAPES.map(s =>
-                    <div key={s} style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                      <div style={{ width: 12, height: 12, borderRadius: 3, background: THEME.shape[s] + "20", border: `2px solid ${THEME.shape[s]}` }} />
-                      <span style={{ fontSize: "0.72rem", color: THEME.text.secondary }}>{s}</span>
-                    </div>
-                  )}
-                </div>
-              </>
-            )}
-
-            {pentaScale === "pentatonic" && pentaQuality === "minor" && (
-              <p style={{ fontSize: "0.68rem", color: THEME.text.muted, marginTop: 14, maxWidth: 300, lineHeight: 1.55, fontStyle: "italic" }}>
-                The ♭3 sits beside the major 3rd — the tension at the heart of the blues.
-              </p>
-            )}
-            {pentaScale === "blues" && pentaQuality === "minor" && (
-              <p style={{ fontSize: "0.68rem", color: THEME.text.muted, marginTop: 14, maxWidth: 300, lineHeight: 1.55, fontStyle: "italic" }}>
-                The ♭5 squeezes between the 4th and 5th — a chromatic passing tone that gives the blues its grit.
-              </p>
-            )}
-            {pentaScale === "blues" && pentaQuality === "major" && (
-              <p style={{ fontSize: "0.68rem", color: THEME.text.muted, marginTop: 14, maxWidth: 300, lineHeight: 1.55, fontStyle: "italic" }}>
-                The ♭3 bends into the major 3rd — adding soul to a major key.
-              </p>
+          <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+            {pentaLegend.length > 0 && (
+              <div style={{ minWidth: 140, padding: "8px 12px", border: `1px solid ${THEME.border.subtle}`, borderRadius: 8 }}>
+                <LegendSection title={scaleName(pentaScale, pentaQuality)} items={pentaLegend} dotSize={16}
+                  keyIdx={effectiveKey} labelMode={labelMode} />
+              </div>
             )}
 
             {showFryingPan && (
-              <>
-                <div style={{ fontSize: "0.55rem", color: THEME.text.dim, textTransform: "uppercase", letterSpacing: "0.2em", margin: "14px 0 8px" }}>
+              <div style={{ minWidth: 140, padding: "8px 12px", border: `1px solid ${THEME.border.subtle}`, borderRadius: 8 }}>
+                <div style={{ fontSize: "0.55rem", color: THEME.text.dim, textTransform: "uppercase", letterSpacing: "0.2em", marginBottom: 8 }}>
                   Frying Pan
                 </div>
                 <div style={{ display: "flex", gap: 14, flexWrap: "wrap", alignItems: "center" }}>
@@ -850,13 +842,28 @@ export default function CAGEDExplorer() {
                     <span style={{ fontSize: "0.74rem", color: THEME.text.secondary }}>Right-hand pan</span>
                   </div>
                 </div>
-              </>
+              </div>
             )}
-
           </div>
 
+          {pentaScale === "pentatonic" && pentaQuality === "minor" && (
+            <p style={{ flexBasis: "100%", fontSize: "0.68rem", color: THEME.text.muted, lineHeight: 1.55, fontStyle: "italic", margin: 0, alignSelf: "center" }}>
+              The ♭3 sits beside the major 3rd — the tension at the heart of the blues.
+            </p>
+          )}
+          {pentaScale === "blues" && pentaQuality === "minor" && (
+            <p style={{ flexBasis: "100%", fontSize: "0.68rem", color: THEME.text.muted, lineHeight: 1.55, fontStyle: "italic", margin: 0, alignSelf: "center" }}>
+              The ♭5 squeezes between the 4th and 5th — a chromatic passing tone that gives the blues its grit.
+            </p>
+          )}
+          {pentaScale === "blues" && pentaQuality === "major" && (
+            <p style={{ flexBasis: "100%", fontSize: "0.68rem", color: THEME.text.muted, lineHeight: 1.55, fontStyle: "italic", margin: 0, alignSelf: "center" }}>
+              The ♭3 bends into the major 3rd — adding soul to a major key.
+            </p>
+          )}
+
           {showTriads && (
-            <div>
+            <div style={{ flexBasis: "100%", minWidth: 0 }}>
               {showMajTriad && (
                 <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: showMinTriad ? 10 : 0 }}>
                   {((activeShape === "all" || activeShape === "off") ? SHAPES : [activeShape]).map(sh =>
