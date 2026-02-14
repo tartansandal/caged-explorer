@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import {
   posKey, shiftNotes, clusterFrets, computeHoverRanges, noteName,
   NUM_FRETS, SHAPE_ORDER, FRYING_PAN, NOTES, INTERVAL_SEMITONES,
@@ -364,7 +364,36 @@ export default function CAGEDExplorer() {
   const [pinnedShapes, setPinnedShapes] = useState(new Set());
   const [hoveredShape, setHoveredShape] = useState(null);
 
-  const theme = THEME_DARK;
+  const [themeMode, setThemeMode] = useState(() => {
+    const saved = typeof window !== "undefined" ? localStorage.getItem("theme") : null;
+    if (saved === "light" || saved === "dark") return saved;
+    if (typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: light)").matches) return "light";
+    return "dark";
+  });
+
+  const theme = themeMode === "light" ? THEME_LIGHT : THEME_DARK;
+
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-color-scheme: light)");
+    const handler = (e) => {
+      if (!localStorage.getItem("theme")) {
+        setThemeMode(e.matches ? "light" : "dark");
+      }
+    };
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.style.colorScheme = themeMode;
+    document.documentElement.dataset.theme = themeMode;
+  }, [themeMode]);
+
+  const toggleTheme = () => {
+    const next = themeMode === "dark" ? "light" : "dark";
+    setThemeMode(next);
+    localStorage.setItem("theme", next);
+  };
   const STYLE = useMemo(() => makeStyles(theme), [theme]);
 
   const toggleShapePin = (sh) => {
@@ -596,6 +625,11 @@ export default function CAGEDExplorer() {
           letterSpacing: "0.25em", color: theme.text.heading, fontFamily: "Georgia, 'Times New Roman', serif" }}>
           CAGED Explorer
         </h1>
+        <button onClick={toggleTheme} title={themeMode === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+          style={{ position: "absolute", top: 8, right: 44, background: "none", border: "none", cursor: "pointer",
+            fontSize: "1.2rem", color: theme.text.dim, transition: "color 0.15s", opacity: 0.7 }}>
+          {themeMode === "dark" ? "☀" : "☾"}
+        </button>
         <button onClick={toggleAdvanced} title={advancedMode ? "Hide quality overrides" : "Show quality overrides"}
           style={{ position: "absolute", top: 8, right: 8, background: "none", border: "none", cursor: "pointer",
             fontSize: "1.3rem", color: advancedMode ? theme.accent.blue : theme.text.dim, transition: "color 0.15s",
