@@ -80,6 +80,7 @@ const THEME_DARK = {
     markerDot: "#4a5568",
     shadow: "inset 0 0 40px rgba(0,0,0,0.5), 0 4px 24px rgba(0,0,0,0.3)",
     fretLine: "#334155",
+    shapeHighlight: 0.08,
   },
   btn: {
     activeBg: "#f1f5f9",
@@ -142,6 +143,7 @@ const THEME_LIGHT = {
     markerDot: "#b8a890",
     shadow: "inset 0 0 30px rgba(0,0,0,0.08), 0 2px 12px rgba(0,0,0,0.1)",
     fretLine: "#a09080",
+    shapeHighlight: 0.2,
   },
   btn: {
     activeBg: "#2a2018",
@@ -768,7 +770,7 @@ export default function CAGEDExplorer() {
                 shapeRanges[sh].map(({ lo, hi }, ci) => {
                   const x1 = noteX(lo) - FRET_SPACING * 0.48;
                   const x2 = noteX(hi) + FRET_SPACING * 0.48;
-                  return <rect key={`bg-${sh}-${ci}`} x={x1} y={MARGIN_TOP - 13} width={x2 - x1} height={5 * STRING_SPACING + 26} fill={theme.shape[sh]} opacity={0.08} rx={3} />;
+                  return <rect key={`bg-${sh}-${ci}`} x={x1} y={MARGIN_TOP - 13} width={x2 - x1} height={5 * STRING_SPACING + 26} fill={theme.shape[sh]} opacity={theme.fretboard.shapeHighlight} rx={3} />;
                 })
               );
             })()}
