@@ -363,7 +363,7 @@ export default function CAGEDExplorer() {
   const [advancedMode, setAdvancedMode] = useState(false);
   const [labelMode, setLabelMode] = useState("intervals");
   const [showFryingPan, setShowFryingPan] = useState(false);
-  const [pinnedShapes, setPinnedShapes] = useState(new Set());
+
   const [hoveredShape, setHoveredShape] = useState(null);
 
   const [themeMode, setThemeMode] = useState(() => {
@@ -398,18 +398,8 @@ export default function CAGEDExplorer() {
   };
   const STYLE = useMemo(() => makeStyles(theme), [theme]);
 
-  const toggleShapePin = (sh) => {
-    setPinnedShapes(prev => {
-      const next = new Set(prev);
-      if (next.has(sh)) next.delete(sh);
-      else next.add(sh);
-      return next;
-    });
-  };
-
   const changeShape = (s) => {
     setActiveShape(s);
-    if (s !== "all") setPinnedShapes(new Set());
   };
 
   const effectiveKey = isMinorKey ? (keyIndex + 9) % 12 : keyIndex;
@@ -765,8 +755,8 @@ export default function CAGEDExplorer() {
             )}
 
             {(showTriads || showPenta) && activeShape === "all" && (() => {
-              const highlighted = new Set([...pinnedShapes, ...(hoveredShape ? [hoveredShape] : [])]);
-              return SHAPE_ORDER.filter(sh => highlighted.has(sh)).flatMap(sh =>
+              if (!hoveredShape) return null;
+              return SHAPE_ORDER.filter(sh => sh === hoveredShape).flatMap(sh =>
                 shapeRanges[sh].map(({ lo, hi }, ci) => {
                   const x1 = noteX(lo) - FRET_SPACING * 0.48;
                   const x2 = noteX(hi) + FRET_SPACING * 0.48;
@@ -790,17 +780,15 @@ export default function CAGEDExplorer() {
                 width={x2 - x1}
                 height={5 * STRING_SPACING + 26 + 38 - 13}
                 fill="transparent"
-                cursor="pointer"
                 onMouseEnter={() => setHoveredShape(shape)}
                 onMouseLeave={() => setHoveredShape(null)}
-                onClick={() => toggleShapePin(shape)}
               />;
             })}
 
             {/* Shape labels */}
             {(showTriads || showPenta) && showShapeDistinctions && visibleShapes.flatMap(sh => {
               const lbl = isMinorKey ? sh + "m" : sh;
-              const isActive = pinnedShapes.has(sh) || hoveredShape === sh;
+              const isActive = hoveredShape === sh;
               const isAllView = activeShape === "all";
               return shapeRanges[sh].map(({ lo, hi, partial }, ci) => {
                 const avg = (lo + hi) / 2;
@@ -815,7 +803,6 @@ export default function CAGEDExplorer() {
                   fontSize={10}
                   fontWeight={700}
                   opacity={partial ? 0.25 : (isAllView ? (isActive ? 1 : 0.6) : 1)}
-                  style={!partial && isAllView ? { cursor: "pointer", textDecoration: pinnedShapes.has(sh) ? "underline" : "none" } : undefined}
                 >{lbl}</text>;
               });
             })}

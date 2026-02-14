@@ -48,7 +48,7 @@ All fretboard note positions follow the same pattern as `FRYING_PAN`: defined fo
 
 ### State Management
 
-React hooks only (`useState`, `useMemo`). Main state: `themeMode` (dark/light), `keyIndex` (0-11), `isMinorKey`, `activeShape` (C/A/G/E/D/all/off), `showTriads`, `pentaScale` (off/pentatonic/blues), `triadQuality` (major/minor), `pentaQuality` (major/minor), `labelMode` (intervals/notes/both), `showFryingPan` (boolean), `hoveredShape`, `pinnedShapes` (Set).
+React hooks only (`useState`, `useMemo`). Main state: `themeMode` (dark/light), `keyIndex` (0-11), `isMinorKey`, `activeShape` (C/A/G/E/D/all/off), `showTriads`, `pentaScale` (off/pentatonic/blues), `triadQuality` (major/minor), `pentaQuality` (major/minor), `labelMode` (intervals/notes/both), `showFryingPan` (boolean), `hoveredShape`.
 
 ### Overlay System
 
@@ -56,7 +56,7 @@ The **Frying Pan** overlay highlights 5-note groups across string pairs with pan
 
 ### Shape Hover System
 
-In "All" shapes view, each shape's fretboard column has an invisible hit rect for hover highlighting and click-to-pin. `shapeRanges` clusters each shape's notes into `{lo, hi, partial}` ranges. Partial clusters (span < 70% of canonical) at fretboard edges are dimmed and excluded from interaction. `computeHoverRanges` splits adjacent clusters at midpoints to produce non-overlapping hover regions.
+In "All" shapes view, each shape's fretboard column has an invisible hit rect for hover highlighting. `shapeRanges` clusters each shape's notes into `{lo, hi, partial}` ranges. Partial clusters (span < 70% of canonical) at fretboard edges are dimmed and excluded from interaction. `computeHoverRanges` splits adjacent clusters at midpoints to produce non-overlapping hover regions.
 
 ### Theme System
 
