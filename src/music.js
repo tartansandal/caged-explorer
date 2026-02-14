@@ -595,3 +595,35 @@ export function computeHoverRanges(shapeRanges, shapes) {
 }
 
 export const posKey = (str, fret) => `${str}-${fret}`;
+
+export const NOTES = ["C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"];
+
+export const INTERVAL_SEMITONES = {
+  R:    0,
+  "2":  2,
+  "♭3": 3,
+  "3":  4,
+  "4":  5,
+  "♭5": 6,
+  "5":  7,
+  "6":  9,
+  "♭7": 10,
+};
+
+export const noteName = (interval, keyIdx) => NOTES[(keyIdx + INTERVAL_SEMITONES[interval]) % 12];
+
+export const CHORD_MAJ = {
+  C: { frets: ["x",3,2,0,1,0],     intervals: [null,"R","3","5","R","3"] },
+  A: { frets: ["x",0,2,2,2,0],     intervals: [null,"R","5","R","3","5"] },
+  G: { frets: [3,2,0,0,0,3],       intervals: ["R","3","5","R","3","R"] },
+  E: { frets: [0,2,2,1,0,0],       intervals: ["R","5","R","3","5","R"] },
+  D: { frets: ["x","x",0,2,3,2],   intervals: [null,null,"R","5","R","3"] },
+};
+
+export const CHORD_MIN = {
+  C: { frets: ["x",3,1,0,1,"x"],   intervals: [null,"R","♭3","5","R",null] },
+  A: { frets: ["x",0,2,2,1,0],     intervals: [null,"R","5","R","♭3","5"] },
+  G: { frets: [3,1,0,0,3,3],       intervals: ["R","♭3","5","R","5","R"] },
+  E: { frets: [0,2,2,0,0,0],       intervals: ["R","5","R","♭3","5","R"] },
+  D: { frets: ["x","x",0,2,3,1],   intervals: [null,null,"R","5","R","♭3"] },
+};

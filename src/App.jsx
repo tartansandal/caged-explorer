@@ -1,8 +1,9 @@
 import { useState, useMemo, useCallback } from "react";
 import {
-  posKey, shiftNotes, clusterFrets, computeHoverRanges,
-  NUM_FRETS, SHAPE_ORDER, FRYING_PAN,
+  posKey, shiftNotes, clusterFrets, computeHoverRanges, noteName,
+  NUM_FRETS, SHAPE_ORDER, FRYING_PAN, NOTES, INTERVAL_SEMITONES,
   PENTA_BOX, TRIAD_SHAPE, BLUES_SHAPE, SHAPE_FRET_RANGES,
+  CHORD_MAJ, CHORD_MIN,
 } from "./music.js";
 
 /**
@@ -10,7 +11,6 @@ import {
  * An interactive fretboard visualization tool for learning the CAGED system on guitar.
  */
 
-const NOTES = ["C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"];
 const STR_NAMES = ["E", "A", "D", "G", "B", "e"];
 
 const THEME = {
@@ -96,33 +96,6 @@ const STYLE = {
   }),
 };
 
-const INTERVAL_SEMITONES = {
-  R:    0,
-  "2":  2,
-  "♭3": 3,
-  "3":  4,
-  "4":  5,
-  "♭5": 6,
-  "5":  7,
-  "6":  9,
-  "♭7": 10,
-};
-
-const CHORD_MAJ = {
-  C: { frets: ["x",3,2,0,1,0],     intervals: [null,"R","3","5","R","3"] },
-  A: { frets: ["x",0,2,2,2,0],     intervals: [null,"R","5","R","3","5"] },
-  G: { frets: [3,2,0,0,0,3],       intervals: ["R","3","5","R","3","R"] },
-  E: { frets: [0,2,2,1,0,0],       intervals: ["R","5","R","3","5","R"] },
-  D: { frets: ["x","x",0,2,3,2],   intervals: [null,null,"R","5","R","3"] },
-};
-
-const CHORD_MIN = {
-  C: { frets: ["x",3,1,0,1,"x"],   intervals: [null,"R","♭3","5","R",null] },
-  A: { frets: ["x",0,2,2,1,0],     intervals: [null,"R","5","R","♭3","5"] },
-  G: { frets: [3,1,0,0,3,3],       intervals: ["R","♭3","5","R","5","R"] },
-  E: { frets: [0,2,2,0,0,0],       intervals: ["R","5","R","♭3","5","R"] },
-  D: { frets: ["x","x",0,2,3,1],   intervals: [null,null,"R","5","R","♭3"] },
-};
 
 const LEGEND = {
   triadMaj:  [["R","Root"], ["3","Major 3rd"], ["5","Perfect 5th"]],
@@ -148,8 +121,6 @@ const PENTA_LEGEND = {
   "blues-minor":   { off: LEGEND.bluesFull,    major: LEGEND.blues,    minor: LEGEND.bluesWithMaj },
   "blues-major":   { off: LEGEND.bluesMajFull, major: LEGEND.bluesMaj, minor: LEGEND.bluesMajWithMin },
 };
-
-const noteName = (interval, keyIdx) => NOTES[(keyIdx + INTERVAL_SEMITONES[interval]) % 12];
 
 const scaleName = (pentaScale, pentaQuality) => {
   if (pentaScale === "off") return "";
