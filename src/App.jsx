@@ -636,6 +636,10 @@ export default function CAGEDExplorer() {
               return <rect key={sh} x={x1} y={MARGIN_TOP - 13} width={x2 - x1} height={5 * STRING_SPACING + 26} fill={THEME.shape[sh]} opacity={0.04} rx={3} />;
             })}
 
+            {(showTriads || showPenta) && visibleShapes.length > 0 && (
+              <text x={MARGIN_LEFT - 4} y={MARGIN_TOP - 20} textAnchor="end" fill={THEME.text.dim} fontSize={9} fontWeight={700}>Shape:</text>
+            )}
+
             {(showTriads || showPenta) && visibleShapes.flatMap(sh => {
               const lbl = isMinorKey ? sh + "m" : sh;
               return shapeRanges[sh].map(({ lo, hi }, ci) => {
