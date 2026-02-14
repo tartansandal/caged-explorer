@@ -685,7 +685,8 @@ export default function CAGEDExplorer() {
               const lbl = isMinorKey ? sh + "m" : sh;
               return shapeRanges[sh].map(({ lo, hi }, ci) => {
                 const avg = (lo + hi) / 2;
-                const cx = avg < 0.5 ? MARGIN_LEFT - 16 : MARGIN_LEFT + (avg - 0.5) * FRET_SPACING;
+                const raw = avg < 0.5 ? MARGIN_LEFT - 16 : MARGIN_LEFT + (avg - 0.5) * FRET_SPACING;
+                const cx = Math.max(raw, MARGIN_LEFT + 4);
                 return <text key={`${sh}-${ci}`} x={cx} y={MARGIN_TOP - 27} textAnchor="middle" fill={THEME.shape[sh]} fontSize={10} fontWeight={700}>{lbl}</text>;
               });
             })}
