@@ -142,6 +142,14 @@ const LEGEND = {
   bluesMajWithMin: [["2","Major 2nd"], ["3","Major 3rd"], ["6","Major 6th"]],
 };
 
+const PENTA_LEGEND = {
+  off:             { off: [], major: [], minor: [] },
+  major:           { off: LEGEND.pentaMajFull, major: LEGEND.pentaMaj, minor: LEGEND.pentaMajWithMin },
+  minor:           { off: LEGEND.pentaMinFull, major: LEGEND.pentaMin, minor: LEGEND.pentaMinWithMaj },
+  "blues-minor":   { off: LEGEND.bluesFull,    major: LEGEND.blues,    minor: LEGEND.bluesWithMaj },
+  "blues-major":   { off: LEGEND.bluesMajFull, major: LEGEND.bluesMaj, minor: LEGEND.bluesMajWithMin },
+};
+
 const noteName = (interval, keyIdx) => NOTES[(keyIdx + INTERVAL_SEMITONES[interval]) % 12];
 
 const scaleName = (pentaScale, pentaQuality) => {
@@ -495,13 +503,6 @@ export default function CAGEDExplorer() {
     : pentaScale === "blues" ? `blues-${pentaQuality}`
     : pentaQuality;
   const triadLegendKey = showTriads ? triadQuality : "off";
-  const PENTA_LEGEND = {
-    off:             { off: [], major: [], minor: [] },
-    major:           { off: LEGEND.pentaMajFull, major: LEGEND.pentaMaj, minor: LEGEND.pentaMajWithMin },
-    minor:           { off: LEGEND.pentaMinFull, major: LEGEND.pentaMin, minor: LEGEND.pentaMinWithMaj },
-    "blues-minor":   { off: LEGEND.bluesFull,    major: LEGEND.blues,    minor: LEGEND.bluesWithMaj },
-    "blues-major":   { off: LEGEND.bluesMajFull, major: LEGEND.bluesMaj, minor: LEGEND.bluesMajWithMin },
-  };
   const pentaLegend = PENTA_LEGEND[pentaLegendKey][triadLegendKey];
 
   const keyName = NOTES[effectiveKey];
