@@ -94,12 +94,6 @@ const STYLE = {
     color: active ? "#d8ac90" : sel ? "#8a7060" : "#4a5568",
     border: `1px solid ${active ? "rgba(210,170,140,0.4)" : sel ? "rgba(210,170,140,0.15)" : THEME.border.light}`,
   }),
-  shapeTab: (on, c) => ({
-    background: on ? (c ? c + "20" : "rgba(255,255,255,0.1)") : "transparent",
-    color: on ? (c ? c : THEME.text.primary) : THEME.text.dim,
-    border: `1px solid ${on ? (c ? c + "55" : "rgba(255,255,255,0.15)") : THEME.border.subtle}`,
-    borderRadius: 6, padding: "5px 14px", fontSize: "0.8rem", fontWeight: on ? 600 : 400, cursor: "pointer", transition: "all 0.15s",
-  }),
 };
 
 const INTERVAL_SEMITONES = {
@@ -292,19 +286,20 @@ export default function CAGEDExplorer() {
   const showMinTriad = triadMode === "minor";
   const showTriads = triadMode !== "off";
   const showPenta = pentaMode !== "off";
-  const visibleShapes = useMemo(() => activeShape === "all" ? SHAPES : [activeShape], [activeShape]);
+  const showShapeDistinctions = activeShape !== "off";
+  const visibleShapes = useMemo(() => (activeShape === "all" || activeShape === "off") ? SHAPES : [activeShape], [activeShape]);
 
   // Per-shape triad notes — shift static data by effectiveKey
   const majTriads = useMemo(() => {
     const byShape = {};
-    const shapes = activeShape === "all" ? SHAPES : [activeShape];
+    const shapes = (activeShape === "all" || activeShape === "off") ? SHAPES : [activeShape];
     shapes.forEach(sh => { byShape[sh] = shiftNotes(TRIAD_SHAPE.major[sh], effectiveKey); });
     return byShape;
   }, [activeShape, effectiveKey]);
 
   const minTriads = useMemo(() => {
     const byShape = {};
-    const shapes = activeShape === "all" ? SHAPES : [activeShape];
+    const shapes = (activeShape === "all" || activeShape === "off") ? SHAPES : [activeShape];
     shapes.forEach(sh => { byShape[sh] = shiftNotes(TRIAD_SHAPE.minor[sh], effectiveKey); });
     return byShape;
   }, [activeShape, effectiveKey]);
@@ -312,14 +307,14 @@ export default function CAGEDExplorer() {
   // Per-shape pentatonic notes
   const majPenta = useMemo(() => {
     const byShape = {};
-    const shapes = activeShape === "all" ? SHAPES : [activeShape];
+    const shapes = (activeShape === "all" || activeShape === "off") ? SHAPES : [activeShape];
     shapes.forEach(sh => { byShape[sh] = shiftNotes(PENTA_BOX.major[sh], effectiveKey); });
     return byShape;
   }, [activeShape, effectiveKey]);
 
   const minPenta = useMemo(() => {
     const byShape = {};
-    const shapes = activeShape === "all" ? SHAPES : [activeShape];
+    const shapes = (activeShape === "all" || activeShape === "off") ? SHAPES : [activeShape];
     shapes.forEach(sh => { byShape[sh] = shiftNotes(PENTA_BOX.minor[sh], effectiveKey); });
     return byShape;
   }, [activeShape, effectiveKey]);
@@ -327,7 +322,7 @@ export default function CAGEDExplorer() {
   // Per-shape blues flat-5 notes
   const bluesNotes = useMemo(() => {
     const byShape = {};
-    const shapes = activeShape === "all" ? SHAPES : [activeShape];
+    const shapes = (activeShape === "all" || activeShape === "off") ? SHAPES : [activeShape];
     shapes.forEach(sh => { byShape[sh] = shiftNotes(BLUES_SHAPE[sh], effectiveKey); });
     return byShape;
   }, [activeShape, effectiveKey]);
@@ -540,15 +535,15 @@ export default function CAGEDExplorer() {
           })}
         </div>
 
-        {/* Shape Tabs */}
-        <div style={{ display: "flex", justifyContent: "center", gap: 6, marginBottom: 20 }}>
-          {["all", ...SHAPES].map(s => {
-            const on = activeShape === s;
+        {/* Shape Selector */}
+        <div style={STYLE.optionRow(14)}>
+          <span style={STYLE.optionLabel}>Shapes</span>
+          {["off", ...SHAPES, "all"].map(s => {
+            const label = s === "off" ? "Off" : s === "all" ? "All"
+              : isMinorKey ? s + "m" : s;
             return (
-              <button key={s} onClick={() => setActiveShape(s)}
-                style={STYLE.shapeTab(on, s === "all" ? null : THEME.shape[s])}>
-                {s === "all" ? "All" : `${s} Shape`}
-              </button>
+              <ToggleButton key={s} label={label}
+                active={activeShape === s} onClick={() => setActiveShape(s)} />
             );
           })}
         </div>
@@ -636,11 +631,11 @@ export default function CAGEDExplorer() {
               return <rect key={sh} x={x1} y={MARGIN_TOP - 13} width={x2 - x1} height={5 * STRING_SPACING + 26} fill={THEME.shape[sh]} opacity={0.04} rx={3} />;
             })}
 
-            {(showTriads || showPenta) && visibleShapes.length > 0 && (
+            {(showTriads || showPenta) && showShapeDistinctions && visibleShapes.length > 0 && (
               <text x={MARGIN_LEFT - 4} y={MARGIN_TOP - 20} textAnchor="end" fill={THEME.text.dim} fontSize={9} fontWeight={700}>Shape:</text>
             )}
 
-            {(showTriads || showPenta) && visibleShapes.flatMap(sh => {
+            {(showTriads || showPenta) && showShapeDistinctions && visibleShapes.flatMap(sh => {
               const lbl = isMinorKey ? sh + "m" : sh;
               return shapeRanges[sh].map(({ lo, hi }, ci) => {
                 const avg = (lo + hi) / 2;
@@ -778,7 +773,7 @@ export default function CAGEDExplorer() {
                     <span style={{ fontSize: "0.74rem", color: THEME.text.secondary }}>5-note group across 2 strings</span>
                   </div>
                 </div>
-                {activeShape !== "all" && (
+                {!["all", "off"].includes(activeShape) && (
                   <div style={{ fontSize: "0.62rem", color: THEME.text.muted, marginTop: 6, fontStyle: "italic" }}>
                     {SHAPE_ORIENTATION[activeShape] === "left" ? "Left-hand" : "Right-hand"} orientation ({activeShape} shape)
                   </div>
@@ -809,14 +804,14 @@ export default function CAGEDExplorer() {
             <div>
               {showMajTriad && (
                 <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: showMinTriad ? 10 : 0 }}>
-                  {(activeShape === "all" ? SHAPES : [activeShape]).map(sh =>
+                  {((activeShape === "all" || activeShape === "off") ? SHAPES : [activeShape]).map(sh =>
                     <ChordDiagram key={sh} chord={CHORD_MAJ[sh]} shape={sh} accent={THEME.shape[sh]} keyIdx={effectiveKey} labelMode={labelMode} />
                   )}
                 </div>
               )}
               {showMinTriad && (
                 <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                  {(activeShape === "all" ? SHAPES : [activeShape]).map(sh =>
+                  {((activeShape === "all" || activeShape === "off") ? SHAPES : [activeShape]).map(sh =>
                     <ChordDiagram key={`m-${sh}`} chord={CHORD_MIN[sh]} shape={sh + "m"} accent={THEME.shape[sh]} keyIdx={effectiveKey} labelMode={labelMode} italic />
                   )}
                 </div>
@@ -829,7 +824,7 @@ export default function CAGEDExplorer() {
         <div style={{ textAlign: "center", marginTop: 24, paddingTop: 16, borderTop: `1px solid ${THEME.border.subtle}` }}>
           <span style={{ fontSize: "0.82rem", color: THEME.text.muted, fontWeight: 500 }}>{footerKey}</span>
           <span style={{ fontSize: "0.72rem", color: "#334155", marginLeft: 12 }}>
-            {activeShape === "all" ? "Five shapes connected across the fretboard" : `${activeShape} shape voicing`}
+            {activeShape === "off" ? "Full fretboard view" : activeShape === "all" ? "Five shapes connected across the fretboard" : `${activeShape} shape voicing`}
           </span>
         </div>
       </div>
