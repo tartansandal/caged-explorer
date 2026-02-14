@@ -6,7 +6,16 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
 body {
   margin: 0;
   min-width: 320px;
+  background: #0c1222;
+}
+
+[data-theme="light"] body {
+  background: #f5ebe0;
 }
