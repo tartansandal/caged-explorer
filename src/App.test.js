@@ -171,32 +171,31 @@ describe("TRIAD_SHAPE data integrity", () => {
 
 // ─── BLUES_SHAPE bounding ────────────────────────────────────────────────────
 
-describe("BLUES_SHAPE notes bounded to pentatonic box", () => {
-  // Helper: split sorted frets into clusters (gap > 6 starts a new cluster)
-  const fretClusters = (frets) => {
-    const sorted = [...frets].sort((a, b) => a - b);
-    if (!sorted.length) return [];
-    const clusters = [{ lo: sorted[0], hi: sorted[0] }];
-    for (let i = 1; i < sorted.length; i++) {
-      if (sorted[i] - clusters[clusters.length - 1].hi > 6) {
-        clusters.push({ lo: sorted[i], hi: sorted[i] });
-      } else {
-        clusters[clusters.length - 1].hi = sorted[i];
-      }
+// Shared helpers for blues bounding tests
+const fretClusters = (frets) => {
+  const sorted = [...frets].sort((a, b) => a - b);
+  if (!sorted.length) return [];
+  const clusters = [{ lo: sorted[0], hi: sorted[0] }];
+  for (let i = 1; i < sorted.length; i++) {
+    if (sorted[i] - clusters[clusters.length - 1].hi > 6) {
+      clusters.push({ lo: sorted[i], hi: sorted[i] });
+    } else {
+      clusters[clusters.length - 1].hi = sorted[i];
     }
-    return clusters;
-  };
+  }
+  return clusters;
+};
 
-  // Filter blues notes to within ±1 fret of pentatonic clusters (mirrors App.jsx runtime logic)
-  const filterBlues = (bluesNotes, clusters) =>
-    bluesNotes.filter(([, f]) => clusters.some(c => f >= c.lo - 1 && f <= c.hi + 1));
+const filterBlues = (bluesNotes, clusters) =>
+  bluesNotes.filter(([, f]) => clusters.some(c => f >= c.lo - 1 && f <= c.hi + 1));
 
+describe("BLUES_SHAPE.minor notes bounded to minor pentatonic box", () => {
   it("after cluster filtering, all blues notes are within 1 fret of their shape's minor pentatonic cluster", () => {
     for (const sh of SHAPE_ORDER) {
       for (let ek = 0; ek < 12; ek++) {
         const pentaFrets = shiftNotes(PENTA_BOX.minor[sh], ek).map(([, f]) => f);
         const clusters = fretClusters(pentaFrets);
-        const shifted = shiftNotes(BLUES_SHAPE[sh], ek);
+        const shifted = shiftNotes(BLUES_SHAPE.minor[sh], ek);
         const filtered = filterBlues(shifted, clusters);
 
         filtered.forEach(([s, f]) => {
@@ -213,7 +212,7 @@ describe("BLUES_SHAPE notes bounded to pentatonic box", () => {
         const pentaNotes = shiftNotes(PENTA_BOX.minor[sh], ek);
         const pentaFrets = pentaNotes.map(([, f]) => f);
         const clusters = fretClusters(pentaFrets);
-        const blues = filterBlues(shiftNotes(BLUES_SHAPE[sh], ek), clusters);
+        const blues = filterBlues(shiftNotes(BLUES_SHAPE.minor[sh], ek), clusters);
         const allNotes = [...pentaNotes, ...blues];
 
         for (const cluster of clusters) {
@@ -229,13 +228,65 @@ describe("BLUES_SHAPE notes bounded to pentatonic box", () => {
   });
 
   it("unfiltered blues notes have out-of-range entries that filtering removes", () => {
-    // Verify the filter is actually doing something — at least one shape/key combo has notes removed
     let totalRemoved = 0;
     for (const sh of SHAPE_ORDER) {
       for (let ek = 0; ek < 12; ek++) {
         const pentaFrets = shiftNotes(PENTA_BOX.minor[sh], ek).map(([, f]) => f);
         const clusters = fretClusters(pentaFrets);
-        const shifted = shiftNotes(BLUES_SHAPE[sh], ek);
+        const shifted = shiftNotes(BLUES_SHAPE.minor[sh], ek);
+        const filtered = filterBlues(shifted, clusters);
+        totalRemoved += shifted.length - filtered.length;
+      }
+    }
+    expect(totalRemoved).toBeGreaterThan(0);
+  });
+});
+
+describe("BLUES_SHAPE.major notes bounded to major pentatonic box", () => {
+  it("after cluster filtering, all major blues notes are within 1 fret of their shape's major pentatonic cluster", () => {
+    for (const sh of SHAPE_ORDER) {
+      for (let ek = 0; ek < 12; ek++) {
+        const pentaFrets = shiftNotes(PENTA_BOX.major[sh], ek).map(([, f]) => f);
+        const clusters = fretClusters(pentaFrets);
+        const shifted = shiftNotes(BLUES_SHAPE.major[sh], ek);
+        const filtered = filterBlues(shifted, clusters);
+
+        filtered.forEach(([s, f]) => {
+          const inRange = clusters.some(c => f >= c.lo - 1 && f <= c.hi + 1);
+          expect(inRange, `shape=${sh} ek=${ek} string=${s} fret=${f} clusters=${JSON.stringify(clusters)}`).toBe(true);
+        });
+      }
+    }
+  });
+
+  it("at most 3 notes per string per cluster with major blues scale (2 penta + 1 blue)", () => {
+    for (const sh of SHAPE_ORDER) {
+      for (let ek = 0; ek < 12; ek++) {
+        const pentaNotes = shiftNotes(PENTA_BOX.major[sh], ek);
+        const pentaFrets = pentaNotes.map(([, f]) => f);
+        const clusters = fretClusters(pentaFrets);
+        const blues = filterBlues(shiftNotes(BLUES_SHAPE.major[sh], ek), clusters);
+        const allNotes = [...pentaNotes, ...blues];
+
+        for (const cluster of clusters) {
+          for (let s = 1; s <= 6; s++) {
+            const count = allNotes.filter(([ns, f]) =>
+              ns === s && f >= cluster.lo - 1 && f <= cluster.hi + 1
+            ).length;
+            expect(count, `shape=${sh} ek=${ek} str=${s} cluster=${JSON.stringify(cluster)}`).toBeLessThanOrEqual(3);
+          }
+        }
+      }
+    }
+  });
+
+  it("unfiltered major blues notes have out-of-range entries that filtering removes", () => {
+    let totalRemoved = 0;
+    for (const sh of SHAPE_ORDER) {
+      for (let ek = 0; ek < 12; ek++) {
+        const pentaFrets = shiftNotes(PENTA_BOX.major[sh], ek).map(([, f]) => f);
+        const clusters = fretClusters(pentaFrets);
+        const shifted = shiftNotes(BLUES_SHAPE.major[sh], ek);
         const filtered = filterBlues(shifted, clusters);
         totalRemoved += shifted.length - filtered.length;
       }
