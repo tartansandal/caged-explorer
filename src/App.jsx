@@ -313,18 +313,20 @@ export default function CAGEDExplorer() {
     return byShape;
   }, [visibleShapes, effectiveKey, showTriads, triadQuality]);
 
-  // Per-shape pentatonic notes
+  // Per-shape pentatonic notes (used by pentatonic display and frying pan filtering)
   const majPenta = useMemo(() => {
+    if (pentaScale === "off" && !showFryingPan) return {};
     const byShape = {};
     visibleShapes.forEach(sh => { byShape[sh] = shiftNotes(PENTA_BOX.major[sh], effectiveKey); });
     return byShape;
-  }, [visibleShapes, effectiveKey]);
+  }, [visibleShapes, effectiveKey, pentaScale, showFryingPan]);
 
   const minPenta = useMemo(() => {
+    if (pentaScale === "off" && !showFryingPan) return {};
     const byShape = {};
     visibleShapes.forEach(sh => { byShape[sh] = shiftNotes(PENTA_BOX.minor[sh], effectiveKey); });
     return byShape;
-  }, [visibleShapes, effectiveKey]);
+  }, [visibleShapes, effectiveKey, pentaScale, showFryingPan]);
 
   // Per-shape blues notes (minor: ♭5, major: ♭3)
   const bluesNotes = useMemo(() => {
