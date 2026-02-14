@@ -792,20 +792,6 @@ export default function CAGEDExplorer() {
 
         {/* Bottom Section: Legend + Chord Diagrams */}
         <div style={{ display: "flex", alignItems: "flex-start", marginTop: 20, gap: 16, flexWrap: "wrap" }}>
-          {showTriads && activeShape === "all" && (
-            <div style={{ minWidth: 120, padding: "8px 12px", border: `1px solid ${THEME.border.subtle}`, borderRadius: 8 }}>
-              <div style={{ fontSize: "0.55rem", color: THEME.text.dim, textTransform: "uppercase", letterSpacing: "0.2em", marginBottom: 8 }}>Shapes</div>
-              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                {SHAPES.map(s =>
-                  <div key={s} style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                    <div style={{ width: 12, height: 12, borderRadius: 3, background: THEME.shape[s] + "20", border: `2px solid ${THEME.shape[s]}` }} />
-                    <span style={{ fontSize: "0.72rem", color: THEME.text.secondary }}>{s}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
           {showTriads && (
             <div style={{ minWidth: 140, padding: "8px 12px", border: `1px solid ${THEME.border.subtle}`, borderRadius: 8 }}>
               <LegendSection title={triadQuality === "minor" ? "Minor Triad" : "Triad"}
