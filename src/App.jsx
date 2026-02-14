@@ -791,7 +791,7 @@ export default function CAGEDExplorer() {
         </div>
 
         {/* Bottom Section: Legend + Chord Diagrams */}
-        <div style={{ display: "flex", alignItems: "stretch", marginTop: 20, gap: 16, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", alignItems: "stretch", justifyContent: "center", marginTop: 20, gap: 16, flexWrap: "wrap" }}>
           {showTriads && (
             <div style={{ minWidth: 140, padding: "8px 12px", border: `1px solid ${THEME.border.subtle}`, borderRadius: 8 }}>
               <LegendSection title={triadQuality === "minor" ? "Minor Triad" : "Triad"}
@@ -833,17 +833,17 @@ export default function CAGEDExplorer() {
           </div>
 
           {pentaScale === "pentatonic" && pentaQuality === "minor" && (
-            <p style={{ flexBasis: "100%", fontSize: "0.68rem", color: THEME.text.muted, lineHeight: 1.55, fontStyle: "italic", margin: 0, alignSelf: "center" }}>
+            <p style={{ fontSize: "0.68rem", color: THEME.text.muted, lineHeight: 1.55, fontStyle: "italic", margin: 0, alignSelf: "center" }}>
               The ♭3 sits beside the major 3rd — the tension at the heart of the blues.
             </p>
           )}
           {pentaScale === "blues" && pentaQuality === "minor" && (
-            <p style={{ flexBasis: "100%", fontSize: "0.68rem", color: THEME.text.muted, lineHeight: 1.55, fontStyle: "italic", margin: 0, alignSelf: "center" }}>
+            <p style={{ fontSize: "0.68rem", color: THEME.text.muted, lineHeight: 1.55, fontStyle: "italic", margin: 0, alignSelf: "center" }}>
               The ♭5 squeezes between the 4th and 5th — a chromatic passing tone that gives the blues its grit.
             </p>
           )}
           {pentaScale === "blues" && pentaQuality === "major" && (
-            <p style={{ flexBasis: "100%", fontSize: "0.68rem", color: THEME.text.muted, lineHeight: 1.55, fontStyle: "italic", margin: 0, alignSelf: "center" }}>
+            <p style={{ fontSize: "0.68rem", color: THEME.text.muted, lineHeight: 1.55, fontStyle: "italic", margin: 0, alignSelf: "center" }}>
               The ♭3 bends into the major 3rd — adding soul to a major key.
             </p>
           )}
@@ -851,14 +851,14 @@ export default function CAGEDExplorer() {
           {showTriads && (
             <div style={{ flexBasis: "100%", minWidth: 0 }}>
               {showMajTriad && (
-                <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: showMinTriad ? 10 : 0 }}>
+                <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center", marginBottom: showMinTriad ? 10 : 0 }}>
                   {((activeShape === "all" || activeShape === "off") ? SHAPES : [activeShape]).map(sh =>
                     <ChordDiagram key={sh} chord={CHORD_MAJ[sh]} shape={sh} accent={THEME.shape[sh]} keyIdx={effectiveKey} labelMode={labelMode} />
                   )}
                 </div>
               )}
               {showMinTriad && (
-                <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center" }}>
                   {((activeShape === "all" || activeShape === "off") ? SHAPES : [activeShape]).map(sh =>
                     <ChordDiagram key={`m-${sh}`} chord={CHORD_MIN[sh]} shape={sh + "m"} accent={THEME.shape[sh]} keyIdx={effectiveKey} labelMode={labelMode} italic />
                   )}
