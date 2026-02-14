@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-CAGED Explorer is an interactive React + Vite web application for visualizing the CAGED guitar chord system. It provides SVG-based fretboard visualization with controls for exploring chord shapes, triads, pentatonic scales, and overlay systems (frying pan, 3:2) across all 12 keys.
+CAGED Explorer is an interactive React + Vite web application for visualizing the CAGED guitar chord system. It provides SVG-based fretboard visualization with controls for exploring chord shapes, triads, pentatonic scales, and the frying pan overlay system across all 12 keys.
 
 ## Development Commands
 
@@ -44,13 +44,11 @@ All fretboard note positions follow the same pattern as `FRYING_PAN`: defined fo
 
 ### State Management
 
-React hooks only (`useState`, `useMemo`). Main state: `keyIndex` (0-11), `isMinorKey`, `activeShape` (C/A/G/E/D or 'all'), `pentaMode` (off/major/minor/blues), `triadMode` (off/major/minor), `labelMode` (intervals/notes/both), `overlayMode` (off/fryingPan/threeTwo).
+React hooks only (`useState`, `useMemo`). Main state: `keyIndex` (0-11), `isMinorKey`, `activeShape` (C/A/G/E/D or 'all'), `pentaMode` (off/major/minor/blues), `triadMode` (off/major/minor), `labelMode` (intervals/notes/both), `showFryingPan` (boolean).
 
 ### Overlay System
 
-Two overlay modes visualize pentatonic grouping patterns:
-- **Frying Pan** — Highlights 5-note groups across string pairs with pan+handle shapes, defined in `FRYING_PAN` geometry (shifted by `effectiveKey`)
-- **3:2 System** — Derived from frying pan data; shows 3-note and 2-note per-string bars
+The **Frying Pan** overlay highlights 5-note groups across string pairs with pan+handle shapes, defined in `FRYING_PAN` geometry (shifted by `effectiveKey`). Toggled via `showFryingPan` state.
 
 ### Theme System
 
