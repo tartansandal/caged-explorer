@@ -662,7 +662,7 @@ export default function CAGEDExplorer() {
                 shapeRanges[sh].map(({ lo, hi }, ci) => {
                   const x1 = noteX(lo) - FRET_SPACING * 0.48;
                   const x2 = noteX(hi) + FRET_SPACING * 0.48;
-                  return <rect key={`${sh}-${ci}`} x={x1} y={MARGIN_TOP - 13} width={x2 - x1} height={5 * STRING_SPACING + 26} fill={THEME.shape[sh]} opacity={0.08} rx={3} />;
+                  return <rect key={`bg-${sh}-${ci}`} x={x1} y={MARGIN_TOP - 13} width={x2 - x1} height={5 * STRING_SPACING + 26} fill={THEME.shape[sh]} opacity={0.08} rx={3} />;
                 })
               );
             })()}
