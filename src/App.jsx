@@ -322,40 +322,35 @@ export default function CAGEDExplorer() {
   // Per-shape triad notes — shift static data by effectiveKey
   const majTriads = useMemo(() => {
     const byShape = {};
-    const shapes = (activeShape === "all" || activeShape === "off") ? SHAPES : [activeShape];
-    shapes.forEach(sh => { byShape[sh] = shiftNotes(TRIAD_SHAPE.major[sh], effectiveKey); });
+    visibleShapes.forEach(sh => { byShape[sh] = shiftNotes(TRIAD_SHAPE.major[sh], effectiveKey); });
     return byShape;
-  }, [activeShape, effectiveKey]);
+  }, [visibleShapes, effectiveKey]);
 
   const minTriads = useMemo(() => {
     const byShape = {};
-    const shapes = (activeShape === "all" || activeShape === "off") ? SHAPES : [activeShape];
-    shapes.forEach(sh => { byShape[sh] = shiftNotes(TRIAD_SHAPE.minor[sh], effectiveKey); });
+    visibleShapes.forEach(sh => { byShape[sh] = shiftNotes(TRIAD_SHAPE.minor[sh], effectiveKey); });
     return byShape;
-  }, [activeShape, effectiveKey]);
+  }, [visibleShapes, effectiveKey]);
 
   // Per-shape pentatonic notes
   const majPenta = useMemo(() => {
     const byShape = {};
-    const shapes = (activeShape === "all" || activeShape === "off") ? SHAPES : [activeShape];
-    shapes.forEach(sh => { byShape[sh] = shiftNotes(PENTA_BOX.major[sh], effectiveKey); });
+    visibleShapes.forEach(sh => { byShape[sh] = shiftNotes(PENTA_BOX.major[sh], effectiveKey); });
     return byShape;
-  }, [activeShape, effectiveKey]);
+  }, [visibleShapes, effectiveKey]);
 
   const minPenta = useMemo(() => {
     const byShape = {};
-    const shapes = (activeShape === "all" || activeShape === "off") ? SHAPES : [activeShape];
-    shapes.forEach(sh => { byShape[sh] = shiftNotes(PENTA_BOX.minor[sh], effectiveKey); });
+    visibleShapes.forEach(sh => { byShape[sh] = shiftNotes(PENTA_BOX.minor[sh], effectiveKey); });
     return byShape;
-  }, [activeShape, effectiveKey]);
+  }, [visibleShapes, effectiveKey]);
 
   // Per-shape blues notes (minor: ♭5, major: ♭3)
   const bluesNotes = useMemo(() => {
     const byShape = {};
-    const shapes = (activeShape === "all" || activeShape === "off") ? SHAPES : [activeShape];
-    shapes.forEach(sh => { byShape[sh] = shiftNotes(BLUES_SHAPE[pentaQuality][sh], effectiveKey); });
+    visibleShapes.forEach(sh => { byShape[sh] = shiftNotes(BLUES_SHAPE[pentaQuality][sh], effectiveKey); });
     return byShape;
-  }, [activeShape, effectiveKey, pentaQuality]);
+  }, [visibleShapes, effectiveKey, pentaQuality]);
 
   // Shape fret ranges for labels and background highlights — quality-dependent.
   // Uses only the active quality's triads + pentatonics so ranges tightly bound the
