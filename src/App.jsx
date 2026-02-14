@@ -632,7 +632,7 @@ export default function CAGEDExplorer() {
             })}
 
             {(showTriads || showPenta) && showShapeDistinctions && visibleShapes.length > 0 && (
-              <text x={MARGIN_LEFT - 4} y={MARGIN_TOP - 20} textAnchor="end" fill={THEME.text.dim} fontSize={9} fontWeight={700}>Shape:</text>
+              <text x={9} y={MARGIN_TOP - 20} textAnchor="start" fill={THEME.text.dim} fontSize={9} fontWeight={700}>Shape:</text>
             )}
 
             {(showTriads || showPenta) && showShapeDistinctions && visibleShapes.flatMap(sh => {
