@@ -233,7 +233,8 @@ function LegendSection({ title, items, dotSize, mt = 0, keyIdx, labelMode }) {
 
 function ChordDiagram({ chord, shape, accent, keyIdx, labelMode, italic = false }) {
   const STR_GAP = 16, FRET_GAP = 18, LEFT = 20, TOP = 26;
-  const maxF = Math.max(...chord.frets.filter(x => typeof x === "number"), 3);
+  const numericFrets = chord.frets.filter(x => typeof x === "number");
+  const maxF = numericFrets.length ? Math.max(...numericFrets, 3) : 3;
   const nf = Math.max(4, maxF + 1);
   const W = LEFT + 5 * STR_GAP + 18;
   const H = TOP + nf * FRET_GAP + 10;
