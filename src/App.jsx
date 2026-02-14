@@ -632,7 +632,7 @@ export default function CAGEDExplorer() {
             })}
 
             {(showTriads || showPenta) && showShapeDistinctions && visibleShapes.length > 0 && (
-              <text x={9} y={MARGIN_TOP - 20} textAnchor="start" fill={THEME.text.dim} fontSize={9} fontWeight={700}>Shape:</text>
+              <text x={9} y={MARGIN_TOP - 27} textAnchor="start" fill={THEME.text.dim} fontSize={9} fontWeight={700}>Shape:</text>
             )}
 
             {(showTriads || showPenta) && showShapeDistinctions && visibleShapes.flatMap(sh => {
@@ -640,7 +640,7 @@ export default function CAGEDExplorer() {
               return shapeRanges[sh].map(({ lo, hi }, ci) => {
                 const avg = (lo + hi) / 2;
                 const cx = avg < 0.5 ? MARGIN_LEFT - 16 : MARGIN_LEFT + (avg - 0.5) * FRET_SPACING;
-                return <text key={`${sh}-${ci}`} x={cx} y={MARGIN_TOP - 20} textAnchor="middle" fill={THEME.shape[sh]} fontSize={10} fontWeight={700}>{lbl}</text>;
+                return <text key={`${sh}-${ci}`} x={cx} y={MARGIN_TOP - 27} textAnchor="middle" fill={THEME.shape[sh]} fontSize={10} fontWeight={700}>{lbl}</text>;
               });
             })}
 
