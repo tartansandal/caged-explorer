@@ -1,4 +1,5 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, test } from "vitest";
+import { THEME_DARK, THEME_LIGHT } from "./App.jsx";
 import {
   SHAPE_ORDER,
   FRYING_PAN,
@@ -727,5 +728,38 @@ describe("shape-filtered pans use note-based overlap", () => {
         }
       }
     }
+  });
+});
+
+// ─── Theme structure ────────────────────────────────────────────────────────
+
+function collectKeys(obj, prefix = "") {
+  const keys = [];
+  for (const [k, v] of Object.entries(obj)) {
+    const path = prefix ? `${prefix}.${k}` : k;
+    if (v && typeof v === "object" && !Array.isArray(v)) {
+      keys.push(...collectKeys(v, path));
+    } else {
+      keys.push(path);
+    }
+  }
+  return keys.sort();
+}
+
+describe("Theme structure", () => {
+  test("THEME_DARK and THEME_LIGHT have identical keys", () => {
+    expect(collectKeys(THEME_DARK)).toEqual(collectKeys(THEME_LIGHT));
+  });
+
+  test("no theme value is undefined", () => {
+    const check = (obj, path = "") => {
+      for (const [k, v] of Object.entries(obj)) {
+        const p = path ? `${path}.${k}` : k;
+        expect(v).not.toBeUndefined();
+        if (v && typeof v === "object" && !Array.isArray(v)) check(v, p);
+      }
+    };
+    check(THEME_DARK);
+    check(THEME_LIGHT);
   });
 });

@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import {
   posKey, shiftNotes, clusterFrets, computeHoverRanges, noteName,
   NUM_FRETS, SHAPE_ORDER, FRYING_PAN, NOTES, INTERVAL_SEMITONES,
@@ -13,7 +13,7 @@ import {
 
 const STR_NAMES = ["E", "A", "D", "G", "B", "e"];
 
-const THEME = {
+const THEME_COMMON = {
   shape: {
     C: "#d8908c",
     A: "#d4b880",
@@ -32,7 +32,16 @@ const THEME = {
     "♭5": "#8cacd8",
     "♭7": "#c4a0cc",
   },
+  overlay: {
+    fryingPanLeft: "#d4b070",
+    fryingPanRight: "#c0a0d0",
+  },
+};
+
+const THEME_DARK = {
+  ...THEME_COMMON,
   bg: {
+    page:      "linear-gradient(160deg, #0c1222 0%, #1a1040 50%, #0c1222 100%)",
     panel:     "rgba(10,15,30,0.5)",
     card:      "rgba(10,15,30,0.4)",
     btnOff:    "rgba(255,255,255,0.04)",
@@ -51,6 +60,8 @@ const THEME = {
     muted:     "#64748b",
     dim:       "#475569",
     dark:      "#1a1030",
+    heading:   "#f1f5f9",
+    footer:    "#334155",
   },
   glow: {
     soft:   "rgba(255,255,255,0.08)",
@@ -60,10 +71,97 @@ const THEME = {
     light:  "rgba(255,255,255,0.25)",
     medium: "rgba(255,255,255,0.3)",
   },
-  overlay: {
-    fryingPanLeft: "#d4b070",
-    fryingPanRight: "#c0a0d0",
+  accent: {
+    blue: "#93c5fd",
   },
+  fretboard: {
+    gradientTop: "#3b2507",
+    gradientBottom: "#261803",
+    markerDot: "#4a5568",
+    shadow: "inset 0 0 40px rgba(0,0,0,0.5), 0 4px 24px rgba(0,0,0,0.3)",
+    fretLine: "#334155",
+    shapeHighlight: 0.08,
+  },
+  btn: {
+    activeBg: "#f1f5f9",
+    activeText: "#0f172a",
+    activeBorder: "#f1f5f9",
+    selectedBg: "rgba(241,245,249,0.15)",
+    selectedBorder: "rgba(241,245,249,0.25)",
+  },
+  minorBtn: {
+    activeBg: "rgba(210,170,140,0.25)",
+    activeText: "#d8ac90",
+    activeBorder: "rgba(210,170,140,0.4)",
+    selectedBg: "rgba(210,170,140,0.1)",
+    selectedText: "#8a7060",
+    selectedBorder: "rgba(210,170,140,0.15)",
+    defaultText: "#4a5568",
+  },
+  divider: "rgba(255,255,255,0.1)",
+};
+
+const THEME_LIGHT = {
+  ...THEME_COMMON,
+  bg: {
+    panel: "rgba(180,160,130,0.15)",
+    card: "rgba(245,235,220,0.6)",
+    btnOff: "rgba(0,0,0,0.04)",
+    btnOn: "rgba(0,0,0,0.08)",
+    btnAccent: "rgba(59,130,246,0.12)",
+    page: "linear-gradient(160deg, #f5ebe0 0%, #ede0d0 50%, #f5ebe0 100%)",
+  },
+  border: {
+    subtle: "rgba(120,90,60,0.1)",
+    light: "rgba(120,90,60,0.15)",
+    medium: "rgba(120,90,60,0.2)",
+    accent: "rgba(59,130,246,0.3)",
+  },
+  text: {
+    primary: "#2a2018",
+    secondary: "#6a5f50",
+    muted: "#8a7f70",
+    dim: "#a09585",
+    dark: "#1a1030",
+    heading: "#2a2018",
+    footer: "#a09585",
+  },
+  glow: {
+    soft: "rgba(0,0,0,0.06)",
+    medium: "rgba(0,0,0,0.08)",
+  },
+  stroke: {
+    light: "rgba(0,0,0,0.15)",
+    medium: "rgba(0,0,0,0.2)",
+  },
+  accent: {
+    blue: "#2563eb",
+  },
+  fretboard: {
+    gradientTop: "#d4b896",
+    gradientBottom: "#c4a880",
+    markerDot: "#b8a890",
+    shadow: "inset 0 0 30px rgba(0,0,0,0.08), 0 2px 12px rgba(0,0,0,0.1)",
+    fretLine: "#a09080",
+    shapeHighlight: 0.2,
+  },
+  btn: {
+    activeBg: "#2a2018",
+    activeText: "#f5ebe0",
+    activeBorder: "#2a2018",
+    selectedBg: "rgba(42,32,24,0.1)",
+    selectedBorder: "rgba(42,32,24,0.2)",
+  },
+  minorBtn: {
+    activeBg: "rgba(180,130,90,0.2)",
+    activeText: "#8a6030",
+    activeBorder: "rgba(180,130,90,0.4)",
+    selectedBg: "rgba(180,130,90,0.08)",
+    selectedText: "#8a7060",
+    selectedBorder: "rgba(180,130,90,0.15)",
+    defaultText: "#8a7f70",
+  },
+  divider: "rgba(0,0,0,0.12)",
 };
 
 const FRET_SPACING   = 56;
@@ -74,27 +172,27 @@ const TRIAD_RADIUS   = 10;
 const PENTA_RADIUS   = 8;
 
 // Shared layout styles extracted from JSX
-const STYLE = {
+const makeStyles = (theme) => ({
   keyRow: (mb) => ({ display: "flex", alignItems: "center", justifyContent: "center", gap: 5, marginBottom: mb, flexWrap: "wrap" }),
-  rowLabel: { fontSize: "0.58rem", color: THEME.text.dim, letterSpacing: "0.2em", textTransform: "uppercase", marginRight: 8, minWidth: 72, textAlign: "right" },
+  rowLabel: { fontSize: "0.58rem", color: theme.text.dim, letterSpacing: "0.2em", textTransform: "uppercase", marginRight: 8, minWidth: 72, textAlign: "right" },
   optionRow: (mb) => ({ display: "flex", justifyContent: "center", alignItems: "center", gap: 6, marginBottom: mb, flexWrap: "wrap" }),
-  optionLabel: { fontSize: "0.56rem", color: THEME.text.dim, letterSpacing: "0.15em", textTransform: "uppercase" },
-  divider: { color: "rgba(255,255,255,0.1)", margin: "0 4px", fontSize: "0.8rem" },
+  optionLabel: { fontSize: "0.56rem", color: theme.text.dim, letterSpacing: "0.15em", textTransform: "uppercase" },
+  divider: { color: theme.divider, margin: "0 4px", fontSize: "0.8rem" },
   keyBtn: (active, sel) => ({
     borderRadius: 5, padding: "4px 10px", fontSize: "0.75rem", fontWeight: sel ? 700 : 400,
     cursor: "pointer", transition: "all 0.15s", minWidth: 38, textAlign: "center",
-    background: active ? "#f1f5f9" : sel ? "rgba(241,245,249,0.15)" : THEME.bg.btnOff,
-    color: active ? "#0f172a" : sel ? THEME.text.secondary : THEME.text.muted,
-    border: `1px solid ${active ? "#f1f5f9" : sel ? "rgba(241,245,249,0.25)" : THEME.border.light}`,
+    background: active ? theme.btn.activeBg : sel ? theme.btn.selectedBg : theme.bg.btnOff,
+    color: active ? theme.btn.activeText : sel ? theme.text.secondary : theme.text.muted,
+    border: `1px solid ${active ? theme.btn.activeBorder : sel ? theme.btn.selectedBorder : theme.border.light}`,
   }),
   minorKeyBtn: (active, sel) => ({
     borderRadius: 5, padding: "4px 6px", fontSize: "0.68rem", fontWeight: sel ? 700 : 400,
     cursor: "pointer", transition: "all 0.15s", minWidth: 38, textAlign: "center",
-    background: active ? "rgba(210,170,140,0.25)" : sel ? "rgba(210,170,140,0.1)" : THEME.bg.btnOff,
-    color: active ? "#d8ac90" : sel ? "#8a7060" : "#4a5568",
-    border: `1px solid ${active ? "rgba(210,170,140,0.4)" : sel ? "rgba(210,170,140,0.15)" : THEME.border.light}`,
+    background: active ? theme.minorBtn.activeBg : sel ? theme.minorBtn.selectedBg : theme.bg.btnOff,
+    color: active ? theme.minorBtn.activeText : sel ? theme.minorBtn.selectedText : theme.minorBtn.defaultText,
+    border: `1px solid ${active ? theme.minorBtn.activeBorder : sel ? theme.minorBtn.selectedBorder : theme.border.light}`,
   }),
-};
+});
 
 
 const LEGEND = {
@@ -131,10 +229,10 @@ const scaleName = (pentaScale, pentaQuality) => {
 const fretX = (fret) => MARGIN_LEFT + fret * FRET_SPACING;
 const noteX = (fret) => fret === 0 ? MARGIN_LEFT - 16 : MARGIN_LEFT + (fret - 0.5) * FRET_SPACING;
 const strY = (str) => MARGIN_TOP + (str - 1) * STRING_SPACING;
-function ToggleButton({ label, active, onClick, style = {} }) {
-  const bg = active ? THEME.bg.btnAccent : THEME.bg.btnOff;
-  const color = active ? "#93c5fd" : THEME.text.dim;
-  const border = active ? THEME.border.accent : THEME.border.subtle;
+function ToggleButton({ label, active, onClick, style = {}, theme }) {
+  const bg = active ? theme.bg.btnAccent : theme.bg.btnOff;
+  const color = active ? theme.accent.blue : theme.text.dim;
+  const border = active ? theme.border.accent : theme.border.subtle;
 
   return (
     <button onClick={onClick} aria-pressed={active} style={{
@@ -147,8 +245,8 @@ function ToggleButton({ label, active, onClick, style = {} }) {
   );
 }
 
-function FretDot({ cx, cy, radius, interval, keyIdx, labelMode, shapeBorder, showNoteName = false }) {
-  const color = THEME.interval[interval];
+function FretDot({ cx, cy, radius, interval, keyIdx, labelMode, shapeBorder, showNoteName = false, theme }) {
+  const color = theme.interval[interval];
   const note = noteName(interval, keyIdx);
   const primary = labelMode === "notes" ? note : interval;
   const isLong = primary.length > 1;
@@ -156,15 +254,15 @@ function FretDot({ cx, cy, radius, interval, keyIdx, labelMode, shapeBorder, sho
 
   return (
     <g>
-      <circle cx={cx} cy={cy} r={radius + (isTriad ? 4 : 3)} fill={THEME.glow[isTriad ? "medium" : "soft"]} />
-      <circle cx={cx} cy={cy} r={radius} fill={color} stroke={shapeBorder || THEME.stroke.medium}
+      <circle cx={cx} cy={cy} r={radius + (isTriad ? 4 : 3)} fill={theme.glow[isTriad ? "medium" : "soft"]} />
+      <circle cx={cx} cy={cy} r={radius} fill={color} stroke={shapeBorder || theme.stroke.medium}
         strokeWidth={shapeBorder ? 2.5 : (isTriad ? 1 : 0.7)} strokeDasharray="none" />
-      <text x={cx} y={cy + (isTriad ? 3.5 : 3)} textAnchor="middle" fill={THEME.text.dark}
+      <text x={cx} y={cy + (isTriad ? 3.5 : 3)} textAnchor="middle" fill={theme.text.dark}
         fontSize={isLong ? (isTriad ? 8 : 6) : (isTriad ? 10 : 8)} fontWeight={isTriad ? 700 : 600}>
         {primary}
       </text>
       {showNoteName && (
-        <text x={cx + radius + 2} y={cy + radius + 2} textAnchor="start" fill={THEME.text.secondary}
+        <text x={cx + radius + 2} y={cy + radius + 2} textAnchor="start" fill={theme.text.secondary}
           fontSize={isTriad ? 7 : 6.5} fontWeight={500}>
           {note}
         </text>
@@ -173,10 +271,10 @@ function FretDot({ cx, cy, radius, interval, keyIdx, labelMode, shapeBorder, sho
   );
 }
 
-function LegendSection({ title, items, dotSize, mt = 0, keyIdx, labelMode }) {
+function LegendSection({ title, items, dotSize, mt = 0, keyIdx, labelMode, theme }) {
   return (
     <>
-      <div style={{ fontSize: "0.55rem", color: THEME.text.dim, textTransform: "uppercase",
+      <div style={{ fontSize: "0.55rem", color: theme.text.dim, textTransform: "uppercase",
         letterSpacing: "0.2em", marginBottom: 8, marginTop: mt }}>
         {title}
       </div>
@@ -187,12 +285,12 @@ function LegendSection({ title, items, dotSize, mt = 0, keyIdx, labelMode }) {
           const textLabel = labelMode === "notes" ? `${note} (${label})` : labelMode === "both" ? `${label} · ${note}` : label;
           return (
             <div key={interval} style={{ display: "flex", alignItems: "center", gap: 5 }}>
-              <div style={{ width: dotSize, height: dotSize, borderRadius: "50%", background: THEME.interval[interval],
+              <div style={{ width: dotSize, height: dotSize, borderRadius: "50%", background: theme.interval[interval],
                 display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: dotSize < 18 ? 6 : (dotLabel.length > 1 ? 7 : 9), fontWeight: 700, color: THEME.text.dark }}>
+                fontSize: dotSize < 18 ? 6 : (dotLabel.length > 1 ? 7 : 9), fontWeight: 700, color: theme.text.dark }}>
                 {dotLabel}
               </div>
-              <span style={{ fontSize: "0.74rem", color: THEME.text.secondary }}>{textLabel}</span>
+              <span style={{ fontSize: "0.74rem", color: theme.text.secondary }}>{textLabel}</span>
             </div>
           );
         })}
@@ -201,7 +299,7 @@ function LegendSection({ title, items, dotSize, mt = 0, keyIdx, labelMode }) {
   );
 }
 
-function ChordDiagram({ chord, shape, accent, keyIdx, labelMode, italic = false }) {
+function ChordDiagram({ chord, shape, accent, keyIdx, labelMode, italic = false, theme }) {
   const STR_GAP = 16, FRET_GAP = 18, LEFT = 20, TOP = 26;
   const numericFrets = chord.frets.filter(x => typeof x === "number");
   const maxF = numericFrets.length ? Math.max(...numericFrets, 3) : 3;
@@ -211,27 +309,27 @@ function ChordDiagram({ chord, shape, accent, keyIdx, labelMode, italic = false 
   const getLabel = (interval) => interval ? (labelMode === "notes" ? noteName(interval, keyIdx) : interval) : null;
 
   return (
-    <div style={{ background: THEME.bg.card, borderRadius: 8, padding: "8px 5px 4px", border: `1px solid ${accent}25` }}>
+    <div style={{ background: theme.bg.card, borderRadius: 8, padding: "8px 5px 4px", border: `1px solid ${accent}25` }}>
       <div style={{ textAlign: "center", fontSize: "0.64rem", fontWeight: 700, color: accent,
         letterSpacing: "0.06em", marginBottom: 3, fontStyle: italic ? "italic" : "normal" }}>
         {shape}
       </div>
       <svg viewBox={`0 0 ${W} ${H}`} width={W * 1.15} height={H * 1.15}>
-        <rect x={LEFT - 1} y={TOP} width={5 * STR_GAP + 2} height={2.5} rx={1} fill={THEME.text.secondary} />
+        <rect x={LEFT - 1} y={TOP} width={5 * STR_GAP + 2} height={2.5} rx={1} fill={theme.text.secondary} />
         {Array.from({ length: nf }, (_, i) => i + 1).map(f =>
-          <line key={f} x1={LEFT} y1={TOP + f * FRET_GAP} x2={LEFT + 5 * STR_GAP} y2={TOP + f * FRET_GAP} stroke="#334155" strokeWidth={0.7} />
+          <line key={f} x1={LEFT} y1={TOP + f * FRET_GAP} x2={LEFT + 5 * STR_GAP} y2={TOP + f * FRET_GAP} stroke={theme.fretboard.fretLine} strokeWidth={0.7} />
         )}
         {[0, 1, 2, 3, 4, 5].map(i =>
-          <line key={i} x1={LEFT + i * STR_GAP} y1={TOP} x2={LEFT + i * STR_GAP} y2={TOP + nf * FRET_GAP} stroke={THEME.text.dim} strokeWidth={0.6} />
+          <line key={i} x1={LEFT + i * STR_GAP} y1={TOP} x2={LEFT + i * STR_GAP} y2={TOP + nf * FRET_GAP} stroke={theme.text.dim} strokeWidth={0.6} />
         )}
         {chord.frets.map((fret, i) => {
           const x = LEFT + i * STR_GAP;
           const interval = chord.intervals[i];
-          const c = interval ? THEME.interval[interval] : THEME.text.secondary;
+          const c = interval ? theme.interval[interval] : theme.text.secondary;
           const label = getLabel(interval);
           const lSize = label && label.length > 1 ? 5 : 6;
           if (fret === "x") {
-            return <text key={i} x={x} y={TOP - 7} textAnchor="middle" fill={THEME.text.dim} fontSize={9} fontWeight={700}>✕</text>;
+            return <text key={i} x={x} y={TOP - 7} textAnchor="middle" fill={theme.text.dim} fontSize={9} fontWeight={700}>✕</text>;
           }
           if (fret === 0) {
             return (
@@ -244,8 +342,8 @@ function ChordDiagram({ chord, shape, accent, keyIdx, labelMode, italic = false 
           const cy = TOP + (fret - 0.5) * FRET_GAP;
           return (
             <g key={i}>
-              <circle cx={x} cy={cy} r={6.5} fill={c} stroke={THEME.stroke.light} strokeWidth={0.6} />
-              <text x={x} y={cy + 2.8} textAnchor="middle" fill={THEME.text.dark} fontSize={lSize} fontWeight={700}>{label}</text>
+              <circle cx={x} cy={cy} r={6.5} fill={c} stroke={theme.stroke.light} strokeWidth={0.6} />
+              <text x={x} y={cy + 2.8} textAnchor="middle" fill={theme.text.dark} fontSize={lSize} fontWeight={700}>{label}</text>
             </g>
           );
         })}
@@ -267,6 +365,38 @@ export default function CAGEDExplorer() {
   const [showFryingPan, setShowFryingPan] = useState(false);
   const [pinnedShapes, setPinnedShapes] = useState(new Set());
   const [hoveredShape, setHoveredShape] = useState(null);
+
+  const [themeMode, setThemeMode] = useState(() => {
+    const saved = typeof window !== "undefined" ? localStorage.getItem("theme") : null;
+    if (saved === "light" || saved === "dark") return saved;
+    if (typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: light)").matches) return "light";
+    return "dark";
+  });
+
+  const theme = themeMode === "light" ? THEME_LIGHT : THEME_DARK;
+
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-color-scheme: light)");
+    const handler = (e) => {
+      if (!localStorage.getItem("theme")) {
+        setThemeMode(e.matches ? "light" : "dark");
+      }
+    };
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.style.colorScheme = themeMode;
+    document.documentElement.dataset.theme = themeMode;
+  }, [themeMode]);
+
+  const toggleTheme = () => {
+    const next = themeMode === "dark" ? "light" : "dark";
+    setThemeMode(next);
+    localStorage.setItem("theme", next);
+  };
+  const STYLE = useMemo(() => makeStyles(theme), [theme]);
 
   const toggleShapePin = (sh) => {
     setPinnedShapes(prev => {
@@ -489,21 +619,26 @@ export default function CAGEDExplorer() {
   })();
 
   return (
-    <div style={{ background: "linear-gradient(160deg, #0c1222 0%, #1a1040 50%, #0c1222 100%)",
-      minHeight: "100vh", padding: "24px 16px", boxSizing: "border-box", fontFamily: "system-ui, -apple-system, 'Segoe UI', sans-serif", color: THEME.text.primary }}>
+    <div style={{ background: theme.bg.page,
+      minHeight: "100vh", padding: "24px 16px", boxSizing: "border-box", fontFamily: "system-ui, -apple-system, 'Segoe UI', sans-serif", color: theme.text.primary }}>
       <div style={{ maxWidth: 1000, margin: "0 auto", position: "relative" }}>
 
         <h1 style={{ textAlign: "center", fontSize: "2.5rem", fontWeight: 300, margin: "0 0 2px",
-          letterSpacing: "0.25em", color: "#f1f5f9", fontFamily: "Georgia, 'Times New Roman', serif" }}>
+          letterSpacing: "0.25em", color: theme.text.heading, fontFamily: "Georgia, 'Times New Roman', serif" }}>
           CAGED Explorer
         </h1>
+        <button onClick={toggleTheme} title={themeMode === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+          style={{ position: "absolute", top: 8, right: 44, background: "none", border: "none", cursor: "pointer",
+            fontSize: "1.2rem", color: theme.text.dim, transition: "color 0.15s", opacity: 0.7 }}>
+          {themeMode === "dark" ? "☀" : "☾"}
+        </button>
         <button onClick={toggleAdvanced} title={advancedMode ? "Hide quality overrides" : "Show quality overrides"}
           style={{ position: "absolute", top: 8, right: 8, background: "none", border: "none", cursor: "pointer",
-            fontSize: "1.3rem", color: advancedMode ? "#93c5fd" : THEME.text.dim, transition: "color 0.15s",
+            fontSize: "1.3rem", color: advancedMode ? theme.accent.blue : theme.text.dim, transition: "color 0.15s",
             opacity: advancedMode ? 1 : 0.6 }}>
           ⚙
         </button>
-        <p style={{ textAlign: "center", fontSize: "0.62rem", color: THEME.text.muted, margin: "0 0 22px",
+        <p style={{ textAlign: "center", fontSize: "0.62rem", color: theme.text.muted, margin: "0 0 22px",
           letterSpacing: "0.28em", textTransform: "uppercase" }}>
           {subtitle}
         </p>
@@ -544,59 +679,59 @@ export default function CAGEDExplorer() {
               : isMinorKey ? s + "m" : s;
             return (
               <ToggleButton key={s} label={label}
-                active={activeShape === s} onClick={() => changeShape(s)} />
+                active={activeShape === s} onClick={() => changeShape(s)} theme={theme} />
             );
           })}
           <span style={STYLE.divider}>│</span>
           <span style={STYLE.optionLabel}>Labels</span>
           {["intervals", "notes", "both"].map(m => (
             <ToggleButton key={m} label={m === "intervals" ? "Intervals" : m === "notes" ? "Notes" : "Both"}
-              active={labelMode === m} onClick={() => setLabelMode(m)} />
+              active={labelMode === m} onClick={() => setLabelMode(m)} theme={theme} />
           ))}
         </div>
 
         {/* Options Row: Triads + Pentatonic + Frying Pan */}
         <div style={STYLE.optionRow(22)}>
           <span style={STYLE.optionLabel}>Triads</span>
-          <ToggleButton label="Off" active={!showTriads} onClick={() => setShowTriads(false)} />
-          <ToggleButton label="On" active={showTriads} onClick={() => setShowTriads(true)} />
+          <ToggleButton label="Off" active={!showTriads} onClick={() => setShowTriads(false)} theme={theme} />
+          <ToggleButton label="On" active={showTriads} onClick={() => setShowTriads(true)} theme={theme} />
           {advancedMode && showTriads && (
             <>
               {["major", "minor"].map(q => (
                 <ToggleButton key={q} label={q === "major" ? "Maj" : "Min"}
                   active={triadQuality === q} onClick={() => setTriadQuality(q)}
-                  style={{ fontSize: "0.6rem", padding: "2px 7px" }} />
+                  style={{ fontSize: "0.6rem", padding: "2px 7px" }} theme={theme} />
               ))}
             </>
           )}
           <span style={STYLE.divider}>│</span>
           <span style={STYLE.optionLabel}>Pentatonic</span>
-          <ToggleButton label="Off" active={pentaScale === "off"} onClick={() => setPentaScale("off")} />
-          <ToggleButton label="On" active={pentaScale === "pentatonic"} onClick={() => setPentaScale("pentatonic")} />
-          <ToggleButton label="Blues" active={pentaScale === "blues"} onClick={() => setPentaScale("blues")} />
+          <ToggleButton label="Off" active={pentaScale === "off"} onClick={() => setPentaScale("off")} theme={theme} />
+          <ToggleButton label="On" active={pentaScale === "pentatonic"} onClick={() => setPentaScale("pentatonic")} theme={theme} />
+          <ToggleButton label="Blues" active={pentaScale === "blues"} onClick={() => setPentaScale("blues")} theme={theme} />
           {advancedMode && pentaScale !== "off" && (
             <>
               {["major", "minor"].map(q => (
                 <ToggleButton key={q} label={q === "major" ? "Maj" : "Min"}
                   active={pentaQuality === q} onClick={() => setPentaQuality(q)}
-                  style={{ fontSize: "0.6rem", padding: "2px 7px" }} />
+                  style={{ fontSize: "0.6rem", padding: "2px 7px" }} theme={theme} />
               ))}
             </>
           )}
           <span style={STYLE.divider}>│</span>
           <span style={STYLE.optionLabel}>Frying Pan</span>
-          <ToggleButton label="Off" active={!showFryingPan} onClick={() => setShowFryingPan(false)} />
-          <ToggleButton label="On" active={showFryingPan} onClick={() => setShowFryingPan(true)} />
+          <ToggleButton label="Off" active={!showFryingPan} onClick={() => setShowFryingPan(false)} theme={theme} />
+          <ToggleButton label="On" active={showFryingPan} onClick={() => setShowFryingPan(true)} theme={theme} />
         </div>
 
         {/* Fretboard */}
-        <div style={{ background: THEME.bg.panel, borderRadius: 12, padding: "10px 0", border: `1px solid ${THEME.border.subtle}`,
-          overflowX: "auto", boxShadow: "inset 0 0 40px rgba(0,0,0,0.5), 0 4px 24px rgba(0,0,0,0.3)" }}>
+        <div style={{ background: theme.bg.panel, borderRadius: 12, padding: "10px 0", border: `1px solid ${theme.border.subtle}`,
+          overflowX: "auto", boxShadow: theme.fretboard.shadow }}>
           <svg viewBox={`0 0 ${svgW} ${svgH}`} style={{ width: "100%", minWidth: 700, display: "block" }}>
             <defs>
               <linearGradient id="fb" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#3b2507" stopOpacity="0.22" />
-                <stop offset="100%" stopColor="#261803" stopOpacity="0.22" />
+                <stop offset="0%" stopColor={theme.fretboard.gradientTop} stopOpacity="0.22" />
+                <stop offset="100%" stopColor={theme.fretboard.gradientBottom} stopOpacity="0.22" />
               </linearGradient>
             </defs>
 
@@ -604,29 +739,29 @@ export default function CAGEDExplorer() {
 
             {[6, 5, 4, 3, 2, 1].map(s =>
               <line key={s} x1={MARGIN_LEFT - 20} y1={strY(s)} x2={MARGIN_LEFT + NUM_FRETS * FRET_SPACING} y2={strY(s)}
-                stroke={THEME.text.secondary} strokeWidth={0.3 + (s - 1) * 0.16} opacity={0.45} />
+                stroke={theme.text.secondary} strokeWidth={0.3 + (s - 1) * 0.16} opacity={0.45} />
             )}
 
-            <rect x={MARGIN_LEFT - 2} y={MARGIN_TOP - 13} width={4} height={5 * STRING_SPACING + 26} rx={1} fill={THEME.text.secondary} opacity={0.8} />
+            <rect x={MARGIN_LEFT - 2} y={MARGIN_TOP - 13} width={4} height={5 * STRING_SPACING + 26} rx={1} fill={theme.text.secondary} opacity={0.8} />
 
             {Array.from({ length: NUM_FRETS }, (_, i) => i + 1).map(f =>
               <line key={f} x1={fretX(f)} y1={MARGIN_TOP - 11} x2={fretX(f)} y2={MARGIN_TOP + 5 * STRING_SPACING + 11}
-                stroke={THEME.text.dim} strokeWidth={0.8} opacity={0.5} />
+                stroke={theme.text.dim} strokeWidth={0.8} opacity={0.5} />
             )}
 
             {[3, 5, 7, 9].map(f =>
-              <circle key={f} cx={noteX(f)} cy={MARGIN_TOP + 2.5 * STRING_SPACING} r={3.5} fill="#4a5568" opacity={0.85} />
+              <circle key={f} cx={noteX(f)} cy={MARGIN_TOP + 2.5 * STRING_SPACING} r={3.5} fill={theme.fretboard.markerDot} opacity={0.85} />
             )}
-            <circle cx={noteX(12)} cy={MARGIN_TOP + 1.5 * STRING_SPACING} r={3.5} fill="#4a5568" opacity={0.85} />
-            <circle cx={noteX(12)} cy={MARGIN_TOP + 3.5 * STRING_SPACING} r={3.5} fill="#4a5568" opacity={0.85} />
+            <circle cx={noteX(12)} cy={MARGIN_TOP + 1.5 * STRING_SPACING} r={3.5} fill={theme.fretboard.markerDot} opacity={0.85} />
+            <circle cx={noteX(12)} cy={MARGIN_TOP + 3.5 * STRING_SPACING} r={3.5} fill={theme.fretboard.markerDot} opacity={0.85} />
 
             {Array.from({ length: NUM_FRETS + 1 }, (_, i) => i).map(f =>
               <text key={f} x={f === 0 ? MARGIN_LEFT : noteX(f)} y={MARGIN_TOP + 5 * STRING_SPACING + 34}
-                textAnchor="middle" fill={THEME.text.dim} fontSize={9} fontFamily="ui-monospace, monospace">{f}</text>
+                textAnchor="middle" fill={theme.text.dim} fontSize={9} fontFamily="ui-monospace, monospace">{f}</text>
             )}
 
             {STR_NAMES.map((l, i) =>
-              <text key={i} x={14} y={strY(6 - i) + 4} textAnchor="middle" fill={THEME.text.dim} fontSize={10} fontFamily="ui-monospace, monospace">{l}</text>
+              <text key={i} x={14} y={strY(6 - i) + 4} textAnchor="middle" fill={theme.text.dim} fontSize={10} fontFamily="ui-monospace, monospace">{l}</text>
             )}
 
             {(showTriads || showPenta) && activeShape === "all" && (() => {
@@ -635,13 +770,13 @@ export default function CAGEDExplorer() {
                 shapeRanges[sh].map(({ lo, hi }, ci) => {
                   const x1 = noteX(lo) - FRET_SPACING * 0.48;
                   const x2 = noteX(hi) + FRET_SPACING * 0.48;
-                  return <rect key={`bg-${sh}-${ci}`} x={x1} y={MARGIN_TOP - 13} width={x2 - x1} height={5 * STRING_SPACING + 26} fill={THEME.shape[sh]} opacity={0.08} rx={3} />;
+                  return <rect key={`bg-${sh}-${ci}`} x={x1} y={MARGIN_TOP - 13} width={x2 - x1} height={5 * STRING_SPACING + 26} fill={theme.shape[sh]} opacity={theme.fretboard.shapeHighlight} rx={3} />;
                 })
               );
             })()}
 
             {(showTriads || showPenta) && showShapeDistinctions && visibleShapes.length > 0 && (
-              <text x={9} y={MARGIN_TOP - 27} textAnchor="start" fill={THEME.text.dim} fontSize={9} fontWeight={700}>Shape:</text>
+              <text x={9} y={MARGIN_TOP - 27} textAnchor="start" fill={theme.text.dim} fontSize={9} fontWeight={700}>Shape:</text>
             )}
 
             {/* Hit rects for shape hover/click in all-view */}
@@ -676,7 +811,7 @@ export default function CAGEDExplorer() {
                   x={cx}
                   y={MARGIN_TOP - 27}
                   textAnchor="middle"
-                  fill={THEME.shape[sh]}
+                  fill={theme.shape[sh]}
                   fontSize={10}
                   fontWeight={700}
                   opacity={partial ? 0.25 : (isAllView ? (isActive ? 1 : 0.6) : 1)}
@@ -704,8 +839,8 @@ export default function CAGEDExplorer() {
               }
 
               const panColor = pan.handleDirection === "left"
-                ? THEME.overlay.fryingPanLeft
-                : THEME.overlay.fryingPanRight;
+                ? theme.overlay.fryingPanLeft
+                : theme.overlay.fryingPanRight;
 
               return (
                 <g key={`fp-${i}`}>
@@ -736,22 +871,22 @@ export default function CAGEDExplorer() {
 
             {displayPentaNotes.map(([s, f, interval]) => (
               <FretDot key={posKey(s, f)} cx={noteX(f)} cy={strY(s)} radius={PENTA_RADIUS} interval={interval}
-                keyIdx={effectiveKey} labelMode={labelMode} showNoteName={labelMode === "both" && f !== 0} />
+                keyIdx={effectiveKey} labelMode={labelMode} showNoteName={labelMode === "both" && f !== 0} theme={theme} />
             ))}
 
             {showMinTriad && visibleShapes.map(sh =>
               minTriads[sh].filter(([s, f]) => !isSingleShapePan || panCovers(s, f)).map(([s, f, interval], idx) => (
                   <FretDot key={`m-${sh}-${idx}`} cx={noteX(f)} cy={strY(s)} radius={TRIAD_RADIUS} interval={interval}
-                    keyIdx={effectiveKey} labelMode={labelMode} shapeBorder={activeShape === "all" ? THEME.shape[sh] : null}
-                    showNoteName={labelMode === "both" && f !== 0} />
+                    keyIdx={effectiveKey} labelMode={labelMode} shapeBorder={activeShape === "all" ? theme.shape[sh] : null}
+                    showNoteName={labelMode === "both" && f !== 0} theme={theme} />
                 ))
             )}
 
             {showMajTriad && visibleShapes.map(sh =>
               majTriads[sh].filter(([s, f]) => !isSingleShapePan || panCovers(s, f)).map(([s, f, interval], idx) => (
                 <FretDot key={`t-${sh}-${idx}`} cx={noteX(f)} cy={strY(s)} radius={TRIAD_RADIUS} interval={interval}
-                  keyIdx={effectiveKey} labelMode={labelMode} shapeBorder={activeShape === "all" ? THEME.shape[sh] : null}
-                  showNoteName={labelMode === "both" && f !== 0} />
+                  keyIdx={effectiveKey} labelMode={labelMode} shapeBorder={activeShape === "all" ? theme.shape[sh] : null}
+                  showNoteName={labelMode === "both" && f !== 0} theme={theme} />
               ))
             )}
           </svg>
@@ -760,39 +895,39 @@ export default function CAGEDExplorer() {
         {/* Bottom Section: Legend + Chord Diagrams */}
         <div style={{ display: "flex", alignItems: "stretch", justifyContent: "center", marginTop: 20, gap: 16, flexWrap: "wrap" }}>
           {showTriads && (
-            <div style={{ minWidth: 140, padding: "8px 12px", border: `1px solid ${THEME.border.subtle}`, borderRadius: 8 }}>
+            <div style={{ minWidth: 140, padding: "8px 12px", border: `1px solid ${theme.border.subtle}`, borderRadius: 8 }}>
               <LegendSection title={triadQuality === "minor" ? "Minor Triad" : "Triad"}
-                items={triadLegend} dotSize={20} keyIdx={effectiveKey} labelMode={labelMode} />
+                items={triadLegend} dotSize={20} keyIdx={effectiveKey} labelMode={labelMode} theme={theme} />
             </div>
           )}
 
           <div style={{ display: "flex", gap: 16, flexWrap: "wrap", alignItems: "stretch" }}>
             {pentaLegend.length > 0 && (
-              <div style={{ minWidth: 140, padding: "8px 12px", border: `1px solid ${THEME.border.subtle}`, borderRadius: 8 }}>
+              <div style={{ minWidth: 140, padding: "8px 12px", border: `1px solid ${theme.border.subtle}`, borderRadius: 8 }}>
                 <LegendSection title={scaleName(pentaScale, pentaQuality)} items={pentaLegend} dotSize={16}
-                  keyIdx={effectiveKey} labelMode={labelMode} />
+                  keyIdx={effectiveKey} labelMode={labelMode} theme={theme} />
               </div>
             )}
 
             {showFryingPan && (
-              <div style={{ minWidth: 140, padding: "8px 12px", border: `1px solid ${THEME.border.subtle}`, borderRadius: 8 }}>
-                <div style={{ fontSize: "0.55rem", color: THEME.text.dim, textTransform: "uppercase", letterSpacing: "0.2em", marginBottom: 8 }}>
+              <div style={{ minWidth: 140, padding: "8px 12px", border: `1px solid ${theme.border.subtle}`, borderRadius: 8 }}>
+                <div style={{ fontSize: "0.55rem", color: theme.text.dim, textTransform: "uppercase", letterSpacing: "0.2em", marginBottom: 8 }}>
                   Frying Pan
                 </div>
                 <div style={{ display: "flex", gap: 14, flexWrap: "wrap", alignItems: "center" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
                     <svg width={36} height={20} viewBox="0 0 36 20">
-                      <rect x={10} y={2} width={16} height={16} rx={4} fill={THEME.overlay.fryingPanLeft} opacity={0.35} stroke={THEME.overlay.fryingPanLeft} strokeWidth={0.8} strokeOpacity={0.5} />
-                      <rect x={2} y={7} width={8} height={6} rx={3} fill={THEME.overlay.fryingPanLeft} opacity={0.25} stroke={THEME.overlay.fryingPanLeft} strokeWidth={0.6} strokeOpacity={0.4} />
+                      <rect x={10} y={2} width={16} height={16} rx={4} fill={theme.overlay.fryingPanLeft} opacity={0.35} stroke={theme.overlay.fryingPanLeft} strokeWidth={0.8} strokeOpacity={0.5} />
+                      <rect x={2} y={7} width={8} height={6} rx={3} fill={theme.overlay.fryingPanLeft} opacity={0.25} stroke={theme.overlay.fryingPanLeft} strokeWidth={0.6} strokeOpacity={0.4} />
                     </svg>
-                    <span style={{ fontSize: "0.74rem", color: THEME.text.secondary }}>Left-hand pan</span>
+                    <span style={{ fontSize: "0.74rem", color: theme.text.secondary }}>Left-hand pan</span>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
                     <svg width={36} height={20} viewBox="0 0 36 20">
-                      <rect x={10} y={2} width={16} height={16} rx={4} fill={THEME.overlay.fryingPanRight} opacity={0.35} stroke={THEME.overlay.fryingPanRight} strokeWidth={0.8} strokeOpacity={0.5} />
-                      <rect x={26} y={7} width={8} height={6} rx={3} fill={THEME.overlay.fryingPanRight} opacity={0.25} stroke={THEME.overlay.fryingPanRight} strokeWidth={0.6} strokeOpacity={0.4} />
+                      <rect x={10} y={2} width={16} height={16} rx={4} fill={theme.overlay.fryingPanRight} opacity={0.35} stroke={theme.overlay.fryingPanRight} strokeWidth={0.8} strokeOpacity={0.5} />
+                      <rect x={26} y={7} width={8} height={6} rx={3} fill={theme.overlay.fryingPanRight} opacity={0.25} stroke={theme.overlay.fryingPanRight} strokeWidth={0.6} strokeOpacity={0.4} />
                     </svg>
-                    <span style={{ fontSize: "0.74rem", color: THEME.text.secondary }}>Right-hand pan</span>
+                    <span style={{ fontSize: "0.74rem", color: theme.text.secondary }}>Right-hand pan</span>
                   </div>
                 </div>
               </div>
@@ -800,17 +935,17 @@ export default function CAGEDExplorer() {
           </div>
 
           {pentaScale === "pentatonic" && pentaQuality === "minor" && (
-            <p style={{ fontSize: "0.68rem", color: THEME.text.muted, lineHeight: 1.55, fontStyle: "italic", margin: 0, alignSelf: "center" }}>
+            <p style={{ fontSize: "0.68rem", color: theme.text.muted, lineHeight: 1.55, fontStyle: "italic", margin: 0, alignSelf: "center" }}>
               The ♭3 sits beside the major 3rd — the tension at the heart of the blues.
             </p>
           )}
           {pentaScale === "blues" && pentaQuality === "minor" && (
-            <p style={{ fontSize: "0.68rem", color: THEME.text.muted, lineHeight: 1.55, fontStyle: "italic", margin: 0, alignSelf: "center" }}>
+            <p style={{ fontSize: "0.68rem", color: theme.text.muted, lineHeight: 1.55, fontStyle: "italic", margin: 0, alignSelf: "center" }}>
               The ♭5 squeezes between the 4th and 5th — a chromatic passing tone that gives the blues its grit.
             </p>
           )}
           {pentaScale === "blues" && pentaQuality === "major" && (
-            <p style={{ fontSize: "0.68rem", color: THEME.text.muted, lineHeight: 1.55, fontStyle: "italic", margin: 0, alignSelf: "center" }}>
+            <p style={{ fontSize: "0.68rem", color: theme.text.muted, lineHeight: 1.55, fontStyle: "italic", margin: 0, alignSelf: "center" }}>
               The ♭3 bends into the major 3rd — adding soul to a major key.
             </p>
           )}
@@ -820,14 +955,14 @@ export default function CAGEDExplorer() {
               {showMajTriad && (
                 <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center", marginBottom: showMinTriad ? 10 : 0 }}>
                   {visibleShapes.map(sh =>
-                    <ChordDiagram key={sh} chord={CHORD_MAJ[sh]} shape={sh} accent={THEME.shape[sh]} keyIdx={effectiveKey} labelMode={labelMode} />
+                    <ChordDiagram key={sh} chord={CHORD_MAJ[sh]} shape={sh} accent={theme.shape[sh]} keyIdx={effectiveKey} labelMode={labelMode} theme={theme} />
                   )}
                 </div>
               )}
               {showMinTriad && (
                 <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center" }}>
                   {visibleShapes.map(sh =>
-                    <ChordDiagram key={`m-${sh}`} chord={CHORD_MIN[sh]} shape={sh + "m"} accent={THEME.shape[sh]} keyIdx={effectiveKey} labelMode={labelMode} italic />
+                    <ChordDiagram key={`m-${sh}`} chord={CHORD_MIN[sh]} shape={sh + "m"} accent={theme.shape[sh]} keyIdx={effectiveKey} labelMode={labelMode} italic theme={theme} />
                   )}
                 </div>
               )}
@@ -836,9 +971,9 @@ export default function CAGEDExplorer() {
         </div>
 
         {/* Footer */}
-        <div style={{ textAlign: "center", marginTop: 24, paddingTop: 16, borderTop: `1px solid ${THEME.border.subtle}` }}>
-          <span style={{ fontSize: "0.82rem", color: THEME.text.muted, fontWeight: 500 }}>{footerKey}</span>
-          <span style={{ fontSize: "0.72rem", color: "#334155", marginLeft: 12 }}>
+        <div style={{ textAlign: "center", marginTop: 24, paddingTop: 16, borderTop: `1px solid ${theme.border.subtle}` }}>
+          <span style={{ fontSize: "0.82rem", color: theme.text.muted, fontWeight: 500 }}>{footerKey}</span>
+          <span style={{ fontSize: "0.72rem", color: theme.text.footer, marginLeft: 12 }}>
             {activeShape === "off" ? "Full fretboard view" : activeShape === "all" ? "Five shapes connected across the fretboard" : `${activeShape} shape voicing`}
           </span>
         </div>
@@ -846,3 +981,5 @@ export default function CAGEDExplorer() {
     </div>
   );
 }
+
+export { THEME_DARK, THEME_LIGHT, THEME_COMMON };
