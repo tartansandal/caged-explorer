@@ -579,4 +579,19 @@ export const SHAPE_FRET_RANGES = { major: {}, minor: {} };
   });
 });
 
+export function computeHoverRanges(shapeRanges, shapes) {
+  const full = [];
+  shapes.forEach(sh => {
+    shapeRanges[sh].forEach((c, ci) => {
+      if (!c.partial) full.push({ shape: sh, ci, lo: c.lo, hi: c.hi, center: (c.lo + c.hi) / 2 });
+    });
+  });
+  full.sort((a, b) => a.center - b.center);
+  return full.map((entry, i) => {
+    const prevMid = i > 0 ? (full[i - 1].center + entry.center) / 2 : entry.lo;
+    const nextMid = i < full.length - 1 ? (entry.center + full[i + 1].center) / 2 : entry.hi;
+    return { ...entry, hoverLo: prevMid, hoverHi: nextMid };
+  });
+}
+
 export const posKey = (str, fret) => `${str}-${fret}`;

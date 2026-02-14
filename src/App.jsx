@@ -1,8 +1,8 @@
 import { useState, useMemo } from "react";
 import {
-  posKey, shiftNotes, clusterFrets,
+  posKey, shiftNotes, clusterFrets, computeHoverRanges,
   NUM_FRETS, SHAPE_ORDER, FRYING_PAN, SHAPE_ORIENTATION,
-  PENTA_BOX, TRIAD_SHAPE, BLUES_SHAPE,
+  PENTA_BOX, TRIAD_SHAPE, BLUES_SHAPE, SHAPE_FRET_RANGES,
 } from "./music.js";
 
 /**
@@ -374,10 +374,20 @@ export default function CAGEDExplorer() {
       ]);
       const shifted = shiftNotes(allNotes, effectiveKey);
       const frets = shifted.map(([, f]) => f);
-      ranges[sh] = clusterFrets(frets);
+      const canSpan = SHAPE_FRET_RANGES[rangeQualities[0]][sh][0].hi
+                    - SHAPE_FRET_RANGES[rangeQualities[0]][sh][0].lo;
+      ranges[sh] = clusterFrets(frets).map(c => ({
+        ...c,
+        partial: (c.hi - c.lo) < canSpan * 0.7,
+      }));
     });
     return ranges;
   }, [effectiveKey, rangeQualities]);
+
+  const hoverRanges = useMemo(
+    () => computeHoverRanges(shapeRanges, SHAPES),
+    [shapeRanges]
+  );
 
   const pentaData = pentaScale === "off" ? null : (pentaQuality === "major" ? majPenta : minPenta);
 
@@ -696,11 +706,30 @@ export default function CAGEDExplorer() {
               <text x={9} y={MARGIN_TOP - 27} textAnchor="start" fill={THEME.text.dim} fontSize={9} fontWeight={700}>Shape:</text>
             )}
 
+            {/* Hit rects for shape hover/click in all-view */}
+            {(showTriads || showPenta) && activeShape === "all" && hoverRanges.map(({ shape, ci, hoverLo, hoverHi }) => {
+              const x1 = noteX(hoverLo) - FRET_SPACING * 0.48;
+              const x2 = noteX(hoverHi) + FRET_SPACING * 0.48;
+              return <rect
+                key={`hit-${shape}-${ci}`}
+                x={x1}
+                y={MARGIN_TOP - 38}
+                width={x2 - x1}
+                height={5 * STRING_SPACING + 26 + 38 - 13}
+                fill="transparent"
+                cursor="pointer"
+                onMouseEnter={() => setHoveredShape(shape)}
+                onMouseLeave={() => setHoveredShape(null)}
+                onClick={() => toggleShapePin(shape)}
+              />;
+            })}
+
+            {/* Shape labels */}
             {(showTriads || showPenta) && showShapeDistinctions && visibleShapes.flatMap(sh => {
               const lbl = isMinorKey ? sh + "m" : sh;
               const isActive = pinnedShapes.has(sh) || hoveredShape === sh;
               const isAllView = activeShape === "all";
-              return shapeRanges[sh].map(({ lo, hi }, ci) => {
+              return shapeRanges[sh].map(({ lo, hi, partial }, ci) => {
                 const avg = (lo + hi) / 2;
                 const raw = avg < 0.5 ? MARGIN_LEFT - 16 : MARGIN_LEFT + (avg - 0.5) * FRET_SPACING;
                 const cx = Math.max(raw, MARGIN_LEFT + 4);
@@ -712,11 +741,8 @@ export default function CAGEDExplorer() {
                   fill={THEME.shape[sh]}
                   fontSize={10}
                   fontWeight={700}
-                  opacity={isAllView ? (isActive ? 1 : 0.6) : 1}
-                  style={isAllView ? { cursor: "pointer", textDecoration: pinnedShapes.has(sh) ? "underline" : "none" } : undefined}
-                  onClick={isAllView ? () => toggleShapePin(sh) : undefined}
-                  onMouseEnter={isAllView ? () => setHoveredShape(sh) : undefined}
-                  onMouseLeave={isAllView ? () => setHoveredShape(null) : undefined}
+                  opacity={partial ? 0.25 : (isAllView ? (isActive ? 1 : 0.6) : 1)}
+                  style={!partial && isAllView ? { cursor: "pointer", textDecoration: pinnedShapes.has(sh) ? "underline" : "none" } : undefined}
                 >{lbl}</text>;
               });
             })}

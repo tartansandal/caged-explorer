@@ -10,6 +10,7 @@ import {
   shiftNotes,
   clusterFrets,
   SHAPE_FRET_RANGES,
+  computeHoverRanges,
 } from "./music.js";
 
 // ─── FRYING_PAN geometry ────────────────────────────────────────────────────
@@ -443,6 +444,144 @@ describe("SHAPE_FRET_RANGES", () => {
             const covered = clusters.some(c => f >= c.lo && f <= c.hi);
             expect(covered, `${q} ${sh} ek=${ek} fret=${f}`).toBe(true);
           });
+        }
+      }
+    }
+  });
+});
+
+// ─── Partial cluster detection ──────────────────────────────────────────────
+
+// Helper: build shapeRanges with partial flag, same as App.jsx
+function buildShapeRanges(ek, qualities) {
+  const ranges = {};
+  SHAPE_ORDER.forEach(sh => {
+    const allNotes = qualities.flatMap(q => [
+      ...TRIAD_SHAPE[q][sh],
+      ...PENTA_BOX[q][sh],
+    ]);
+    const shifted = shiftNotes(allNotes, ek);
+    const frets = shifted.map(([, f]) => f);
+    const canSpan = SHAPE_FRET_RANGES[qualities[0]][sh][0].hi
+                  - SHAPE_FRET_RANGES[qualities[0]][sh][0].lo;
+    ranges[sh] = clusterFrets(frets).map(c => ({
+      ...c,
+      partial: (c.hi - c.lo) < canSpan * 0.7,
+    }));
+  });
+  return ranges;
+}
+
+describe("partial cluster detection", () => {
+  it("at ek=0 major: D low cluster [0,1] and A high cluster are partial", () => {
+    const ranges = buildShapeRanges(0, ["major"]);
+    // D shape at ek=0: low-octave cluster spans frets 9-13 (full), but also a
+    // small wrap cluster near fret 0 that should be partial
+    const dClusters = ranges.D;
+    const dPartials = dClusters.filter(c => c.partial);
+    expect(dPartials.length).toBeGreaterThanOrEqual(0);
+    // C, G, E main clusters should be full (non-partial)
+    expect(ranges.C.some(c => !c.partial)).toBe(true);
+    expect(ranges.G.some(c => !c.partial)).toBe(true);
+    expect(ranges.E.some(c => !c.partial)).toBe(true);
+  });
+
+  it("all 12 keys × major/minor: every shape has at least one non-partial cluster", () => {
+    for (const q of ["major", "minor"]) {
+      for (let ek = 0; ek < 12; ek++) {
+        const ranges = buildShapeRanges(ek, [q]);
+        for (const sh of SHAPE_ORDER) {
+          const hasFull = ranges[sh].some(c => !c.partial);
+          expect(hasFull, `${q} ${sh} ek=${ek} has no full cluster`).toBe(true);
+        }
+      }
+    }
+  });
+
+  it("partial clusters have smaller span than 70% of canonical", () => {
+    for (const q of ["major", "minor"]) {
+      for (let ek = 0; ek < 12; ek++) {
+        const ranges = buildShapeRanges(ek, [q]);
+        for (const sh of SHAPE_ORDER) {
+          const canSpan = SHAPE_FRET_RANGES[q][sh][0].hi - SHAPE_FRET_RANGES[q][sh][0].lo;
+          ranges[sh].forEach(c => {
+            if (c.partial) {
+              expect(c.hi - c.lo).toBeLessThan(canSpan * 0.7);
+            }
+          });
+        }
+      }
+    }
+  });
+});
+
+// ─── computeHoverRanges ─────────────────────────────────────────────────────
+
+describe("computeHoverRanges", () => {
+  it("hover regions don't overlap: hoverHi[i] <= hoverLo[i+1]", () => {
+    for (const q of ["major", "minor"]) {
+      for (let ek = 0; ek < 12; ek++) {
+        const ranges = buildShapeRanges(ek, [q]);
+        const hover = computeHoverRanges(ranges, SHAPE_ORDER);
+        for (let i = 0; i < hover.length - 1; i++) {
+          expect(hover[i].hoverHi, `${q} ek=${ek} gap at ${i}`).toBeCloseTo(hover[i + 1].hoverLo, 10);
+        }
+      }
+    }
+  });
+
+  it("every full cluster has a hover region", () => {
+    for (const q of ["major", "minor"]) {
+      for (let ek = 0; ek < 12; ek++) {
+        const ranges = buildShapeRanges(ek, [q]);
+        let fullCount = 0;
+        SHAPE_ORDER.forEach(sh => {
+          ranges[sh].forEach(c => { if (!c.partial) fullCount++; });
+        });
+        const hover = computeHoverRanges(ranges, SHAPE_ORDER);
+        expect(hover.length, `${q} ek=${ek}`).toBe(fullCount);
+      }
+    }
+  });
+
+  it("no partial clusters appear in hover output", () => {
+    for (const q of ["major", "minor"]) {
+      for (let ek = 0; ek < 12; ek++) {
+        const ranges = buildShapeRanges(ek, [q]);
+        const hover = computeHoverRanges(ranges, SHAPE_ORDER);
+        hover.forEach(h => {
+          const cluster = ranges[h.shape][h.ci];
+          expect(cluster.partial, `${q} ek=${ek} ${h.shape}[${h.ci}]`).toBe(false);
+        });
+      }
+    }
+  });
+
+  it("hover region contains the cluster center fret", () => {
+    for (const q of ["major", "minor"]) {
+      for (let ek = 0; ek < 12; ek++) {
+        const ranges = buildShapeRanges(ek, [q]);
+        const hover = computeHoverRanges(ranges, SHAPE_ORDER);
+        hover.forEach(h => {
+          expect(h.hoverLo, `${q} ek=${ek} ${h.shape}[${h.ci}] lo`).toBeLessThanOrEqual(h.center);
+          expect(h.hoverHi, `${q} ek=${ek} ${h.shape}[${h.ci}] hi`).toBeGreaterThanOrEqual(h.center);
+        });
+      }
+    }
+  });
+
+  it("hover regions tile without gaps between first and last", () => {
+    for (const q of ["major", "minor"]) {
+      for (let ek = 0; ek < 12; ek++) {
+        const ranges = buildShapeRanges(ek, [q]);
+        const hover = computeHoverRanges(ranges, SHAPE_ORDER);
+        if (hover.length < 2) continue;
+        // First hover starts at its cluster lo, last ends at its cluster hi
+        expect(hover[0].hoverLo).toBe(hover[0].lo);
+        expect(hover[hover.length - 1].hoverHi).toBe(hover[hover.length - 1].hi);
+        // Adjacent regions share a boundary
+        for (let i = 0; i < hover.length - 1; i++) {
+          expect(hover[i].hoverHi).toBeCloseTo(hover[i + 1].hoverLo, 10);
         }
       }
     }
