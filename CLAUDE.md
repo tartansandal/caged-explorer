@@ -52,7 +52,7 @@ React hooks only (`useState`, `useMemo`). Main state: `themeMode` (dark/light), 
 
 ### Overlay System
 
-The **Frying Pan** overlay highlights 5-note groups across string pairs with pan+handle shapes, defined in `FRYING_PAN` geometry (shifted by `effectiveKey`). Toggled via `showFryingPan` state.
+The **Frying Pan** overlay highlights 5-note groups across string pairs with pan+handle shapes, defined in `FRYING_PAN` geometry (shifted by `effectiveKey`). Only available in "All" shapes mode (toggle hidden otherwise, auto-disabled when leaving "All"). Toggled via `showFryingPan` state.
 
 ### Shape Hover System
 

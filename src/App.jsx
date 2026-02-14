@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   posKey, shiftNotes, clusterFrets, computeHoverRanges, noteName,
   NUM_FRETS, SHAPE_ORDER, FRYING_PAN, NOTES, INTERVAL_SEMITONES,
@@ -400,6 +400,7 @@ export default function CAGEDExplorer() {
 
   const changeShape = (s) => {
     setActiveShape(s);
+    if (s !== "all") setShowFryingPan(false);
   };
 
   const effectiveKey = isMinorKey ? (keyIndex + 9) % 12 : keyIndex;
@@ -525,8 +526,9 @@ export default function CAGEDExplorer() {
 
   // Frying pan geometry: shift static geometry by keyIndex (not effectiveKey,
   // since minor pentatonic clusters are offset 3 semitones from relative major).
+  // Only available in "all" shapes mode.
   const fryingPanShapes = useMemo(() => {
-    if (!showFryingPan) return [];
+    if (!showFryingPan || activeShape !== "all") return [];
 
     const shapes = [];
     const addShifted = (templates, shift) => {
@@ -553,38 +555,8 @@ export default function CAGEDExplorer() {
       addShifted(FRYING_PAN.right, shift);
     }
 
-    // When a single shape is selected, keep only pans that overlap the
-    // shape's actual pentatonic notes (both qualities, to cover all toggles)
-    if (activeShape !== "all" && activeShape !== "off") {
-      const notes = [
-        ...(majPenta[activeShape] || []),
-        ...(minPenta[activeShape] || []),
-      ];
-      return shapes.filter(pan =>
-        notes.some(([s, f]) =>
-          (s === pan.lowerStr || s === pan.upperStr) &&
-          f >= pan.panMinFret && f <= pan.panMaxFret
-        )
-      );
-    }
-
     return shapes;
-  }, [showFryingPan, activeShape, keyIndex, majPenta, minPenta]);
-
-
-  // When frying pan is on in single-shape view, filter notes to only those
-  // covered by a surviving pan (prevents orphan dots in partial clusters)
-  const isSingleShapePan = showFryingPan && activeShape !== "all" && activeShape !== "off";
-  const panCovers = useCallback((s, f) =>
-    fryingPanShapes.some(pan =>
-      (s === pan.lowerStr || s === pan.upperStr) &&
-      f >= pan.panMinFret && f <= pan.panMaxFret
-    ),
-  [fryingPanShapes]);
-
-  const displayPentaNotes = useMemo(() =>
-    isSingleShapePan ? pentaNotes.filter(([s, f]) => panCovers(s, f)) : pentaNotes,
-  [pentaNotes, isSingleShapePan, panCovers]);
+  }, [showFryingPan, activeShape, keyIndex]);
 
   const svgW = MARGIN_LEFT + NUM_FRETS * FRET_SPACING + 25;
   const svgH = MARGIN_TOP + 5 * STRING_SPACING + 48;
@@ -708,10 +680,12 @@ export default function CAGEDExplorer() {
               ))}
             </>
           )}
-          <span style={STYLE.divider}>│</span>
-          <span style={STYLE.optionLabel}>Frying Pan</span>
-          <ToggleButton label="Off" active={!showFryingPan} onClick={() => setShowFryingPan(false)} theme={theme} />
-          <ToggleButton label="On" active={showFryingPan} onClick={() => setShowFryingPan(true)} theme={theme} />
+          {activeShape === "all" && <>
+            <span style={STYLE.divider}>│</span>
+            <span style={STYLE.optionLabel}>Frying Pan</span>
+            <ToggleButton label="Off" active={!showFryingPan} onClick={() => setShowFryingPan(false)} theme={theme} />
+            <ToggleButton label="On" active={showFryingPan} onClick={() => setShowFryingPan(true)} theme={theme} />
+          </>}
         </div>
 
         {/* Fretboard */}
@@ -856,13 +830,13 @@ export default function CAGEDExplorer() {
             })}
 
 
-            {displayPentaNotes.map(([s, f, interval]) => (
+            {pentaNotes.map(([s, f, interval]) => (
               <FretDot key={posKey(s, f)} cx={noteX(f)} cy={strY(s)} radius={PENTA_RADIUS} interval={interval}
                 keyIdx={effectiveKey} labelMode={labelMode} showNoteName={labelMode === "both" && f !== 0} theme={theme} />
             ))}
 
             {showMinTriad && visibleShapes.map(sh =>
-              minTriads[sh].filter(([s, f]) => !isSingleShapePan || panCovers(s, f)).map(([s, f, interval], idx) => (
+              minTriads[sh].map(([s, f, interval], idx) => (
                   <FretDot key={`m-${sh}-${idx}`} cx={noteX(f)} cy={strY(s)} radius={TRIAD_RADIUS} interval={interval}
                     keyIdx={effectiveKey} labelMode={labelMode} shapeBorder={activeShape === "all" ? theme.shape[sh] : null}
                     showNoteName={labelMode === "both" && f !== 0} theme={theme} />
@@ -870,7 +844,7 @@ export default function CAGEDExplorer() {
             )}
 
             {showMajTriad && visibleShapes.map(sh =>
-              majTriads[sh].filter(([s, f]) => !isSingleShapePan || panCovers(s, f)).map(([s, f, interval], idx) => (
+              majTriads[sh].map(([s, f, interval], idx) => (
                 <FretDot key={`t-${sh}-${idx}`} cx={noteX(f)} cy={strY(s)} radius={TRIAD_RADIUS} interval={interval}
                   keyIdx={effectiveKey} labelMode={labelMode} shapeBorder={activeShape === "all" ? theme.shape[sh] : null}
                   showNoteName={labelMode === "both" && f !== 0} theme={theme} />
