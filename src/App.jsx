@@ -11,7 +11,6 @@ import {
  */
 
 const NOTES = ["C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"];
-const SHAPES = SHAPE_ORDER;
 const STR_NAMES = ["E", "A", "D", "G", "B", "e"];
 
 const THEME = {
@@ -326,7 +325,7 @@ export default function CAGEDExplorer() {
     }
     setAdvancedMode(!advancedMode);
   };
-  const visibleShapes = useMemo(() => (activeShape === "all" || activeShape === "off") ? SHAPES : [activeShape], [activeShape]);
+  const visibleShapes = useMemo(() => (activeShape === "all" || activeShape === "off") ? SHAPE_ORDER : [activeShape], [activeShape]);
 
   // Per-shape triad notes — shift static data by effectiveKey
   const majTriads = useMemo(() => {
@@ -375,7 +374,7 @@ export default function CAGEDExplorer() {
 
   const shapeRanges = useMemo(() => {
     const ranges = {};
-    SHAPES.forEach(sh => {
+    SHAPE_ORDER.forEach(sh => {
       const allNotes = rangeQualities.flatMap(q => [
         ...TRIAD_SHAPE[q][sh],
         ...PENTA_BOX[q][sh],
@@ -393,7 +392,7 @@ export default function CAGEDExplorer() {
   }, [effectiveKey, rangeQualities]);
 
   const hoverRanges = useMemo(
-    () => computeHoverRanges(shapeRanges, SHAPES),
+    () => computeHoverRanges(shapeRanges, SHAPE_ORDER),
     [shapeRanges]
   );
 
@@ -572,7 +571,7 @@ export default function CAGEDExplorer() {
         {/* Shapes + Labels */}
         <div style={STYLE.optionRow(14)}>
           <span style={STYLE.optionLabel}>Shapes</span>
-          {["off", ...SHAPES, "all"].map(s => {
+          {["off", ...SHAPE_ORDER, "all"].map(s => {
             const label = s === "off" ? "Off" : s === "all" ? "All"
               : isMinorKey ? s + "m" : s;
             return (
@@ -664,7 +663,7 @@ export default function CAGEDExplorer() {
 
             {(showTriads || showPenta) && activeShape === "all" && (() => {
               const highlighted = new Set([...pinnedShapes, ...(hoveredShape ? [hoveredShape] : [])]);
-              return SHAPES.filter(sh => highlighted.has(sh)).flatMap(sh =>
+              return SHAPE_ORDER.filter(sh => highlighted.has(sh)).flatMap(sh =>
                 shapeRanges[sh].map(({ lo, hi }, ci) => {
                   const x1 = noteX(lo) - FRET_SPACING * 0.48;
                   const x2 = noteX(hi) + FRET_SPACING * 0.48;
