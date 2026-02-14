@@ -35,7 +35,8 @@ Music theory logic lives in `src/music.js` (pure functions + data constants), ke
 
 **`src/App.jsx`** — Single `CAGEDExplorer` component with subcomponents:
 - `ToggleButton`, `FretDot`, `LegendSection`, `ChordDiagram`
-- UI constants: `THEME` (complete color palette), `CHORD_MAJ/MIN` (open chord fingerings), `LEGEND` (context-sensitive legend entries), `INTERVAL_SEMITONES` (interval-to-semitone mapping)
+- Theme constants: `THEME_COMMON`, `THEME_DARK`, `THEME_LIGHT` (color palettes), `makeStyles(theme)` (layout styles)
+- UI constants: `CHORD_MAJ/MIN` (open chord fingerings), `LEGEND` (context-sensitive legend entries), `INTERVAL_SEMITONES` (interval-to-semitone mapping)
 
 ### Key Concept: effectiveKey
 
@@ -47,7 +48,7 @@ All fretboard note positions follow the same pattern as `FRYING_PAN`: defined fo
 
 ### State Management
 
-React hooks only (`useState`, `useMemo`). Main state: `keyIndex` (0-11), `isMinorKey`, `activeShape` (C/A/G/E/D/all/off), `showTriads`, `pentaScale` (off/pentatonic/blues), `triadQuality` (major/minor), `pentaQuality` (major/minor), `labelMode` (intervals/notes/both), `showFryingPan` (boolean), `hoveredShape`, `pinnedShapes` (Set).
+React hooks only (`useState`, `useMemo`). Main state: `themeMode` (dark/light), `keyIndex` (0-11), `isMinorKey`, `activeShape` (C/A/G/E/D/all/off), `showTriads`, `pentaScale` (off/pentatonic/blues), `triadQuality` (major/minor), `pentaQuality` (major/minor), `labelMode` (intervals/notes/both), `showFryingPan` (boolean), `hoveredShape`, `pinnedShapes` (Set).
 
 ### Overlay System
 
@@ -59,7 +60,18 @@ In "All" shapes view, each shape's fretboard column has an invisible hit rect fo
 
 ### Theme System
 
-The `THEME` object defines all colors. Shape colors: C (#d8908c), A (#d4b880), G (#80b8a4), E (#a898c4), D (#cc90a8). Use these consistently for any new features.
+Dual theme support (light/dark) with three theme objects in `src/App.jsx`:
+- `THEME_COMMON` — Shared colors: shape (C/A/G/E/D) and interval colors, frying pan overlay
+- `THEME_DARK` — Dark palette (deep blue-purple gradient)
+- `THEME_LIGHT` — Light palette (warm wood-tone)
+
+Theme state uses `useState` with localStorage persistence and OS `prefers-color-scheme` detection via `matchMedia`. All subcomponents receive `theme` as a prop. The `STYLE` object is generated via `makeStyles(theme)` and memoized.
+
+Shape colors: C (#d8908c), A (#d4b880), G (#80b8a4), E (#a898c4), D (#cc90a8). These are shared across both themes.
+
+**`color-scheme` and flash prevention:** The `<meta name="color-scheme">` tag and inline script live in `<head>` in `index.html` — they must run before any CSS or body parsing. Chrome decides whether to apply auto-dark-mode early in page load; if `color-scheme` isn't declared in time, Chrome will forcibly invert light-colored pages. The CSS in `index.css` gates `color-scheme` behind `[data-theme]` selectors (never a blanket `:root { color-scheme: dark }`) to avoid fighting with the inline script.
+
+**Dark Reader / browser dark-mode extensions:** Extensions like Dark Reader operate at a level above `color-scheme` and will invert the light theme regardless of any meta tags or CSS declarations. This is not fixable from web code — users must whitelist the site in their extension. When debugging theme colors that look inverted, always check for browser extensions first.
 
 ## Testing
 
@@ -70,6 +82,7 @@ Tests use Vitest (`src/App.test.js`) and cover the static data tables and overla
 - `FRYING_PAN` geometry — visibility across all keys, shape mapping consistency
 - Partial cluster detection — every shape has at least one full cluster across all 12 keys × major/minor
 - `computeHoverRanges` — no overlaps, full coverage, no partial leaks, tiling without gaps
+- Theme structure — `THEME_DARK` and `THEME_LIGHT` have identical keys, no undefined values
 
 Tests are property-based where possible, iterating all 12 keys × major/minor scales to verify invariants.
 
