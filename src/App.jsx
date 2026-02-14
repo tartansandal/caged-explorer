@@ -137,7 +137,7 @@ function ToggleButton({ label, active, onClick, style = {} }) {
   const border = active ? THEME.border.accent : THEME.border.subtle;
 
   return (
-    <button onClick={onClick} style={{
+    <button onClick={onClick} aria-pressed={active} style={{
       background: bg, color, border: `1px solid ${border}`,
       borderRadius: 5, padding: "3px 10px", fontSize: "0.7rem",
       cursor: "pointer", transition: "all 0.15s", ...style,
