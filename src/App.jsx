@@ -133,7 +133,6 @@ const CHORD_MIN = {
 const LEGEND = {
   triadMaj:  [["R","Root"], ["3","Major 3rd"], ["5","Perfect 5th"]],
   triadMin:  [["R","Root"], ["♭3","Minor 3rd"], ["5","Perfect 5th"]],
-  triadBoth: [["R","Root"], ["3","Major 3rd"], ["♭3","Minor 3rd"], ["5","Perfect 5th"]],
   pentaMaj:  [["2","Major 2nd"], ["6","Major 6th"]],
   pentaMajWithMin: [["2","Major 2nd"], ["3","Major 3rd"], ["6","Major 6th"]], // When minor triad shown (3 not in triad legend)
   pentaMin:  [["♭3","Minor 3rd"], ["4","Perfect 4th"], ["♭7","Minor 7th"]],
@@ -173,7 +172,7 @@ function ToggleButton({ label, active, onClick, accent = false, style = {} }) {
   );
 }
 
-function FretDot({ cx, cy, radius, interval, keyIdx, labelMode, shapeBorder, dashed = false, showNoteName = false }) {
+function FretDot({ cx, cy, radius, interval, keyIdx, labelMode, shapeBorder, showNoteName = false }) {
   const color = THEME.interval[interval];
   const note = noteName(interval, keyIdx);
   const primary = labelMode === "notes" ? note : interval;
@@ -184,7 +183,7 @@ function FretDot({ cx, cy, radius, interval, keyIdx, labelMode, shapeBorder, das
     <g>
       <circle cx={cx} cy={cy} r={radius + (isTriad ? 4 : 3)} fill={THEME.glow[isTriad ? "medium" : "soft"]} />
       <circle cx={cx} cy={cy} r={radius} fill={color} stroke={shapeBorder || THEME.stroke.medium}
-        strokeWidth={shapeBorder ? 2.5 : (isTriad ? 1 : 0.7)} strokeDasharray={dashed ? "3,2" : "none"} />
+        strokeWidth={shapeBorder ? 2.5 : (isTriad ? 1 : 0.7)} strokeDasharray="none" />
       <text x={cx} y={cy + (isTriad ? 3.5 : 3)} textAnchor="middle" fill={THEME.text.dark}
         fontSize={isLong ? (isTriad ? 8 : 6) : (isTriad ? 10 : 8)} fontWeight={isTriad ? 700 : 600}>
         {primary}
@@ -289,8 +288,8 @@ export default function CAGEDExplorer() {
   const [overlayMode, setOverlayMode] = useState("off");
 
   const effectiveKey = isMinorKey ? (keyIndex + 9) % 12 : keyIndex;
-  const showMajTriad = triadMode === "major" || triadMode === "both";
-  const showMinTriad = triadMode === "minor" || triadMode === "both";
+  const showMajTriad = triadMode === "major";
+  const showMinTriad = triadMode === "minor";
   const showTriads = triadMode !== "off";
   const showPenta = pentaMode !== "off";
   const visibleShapes = useMemo(() => activeShape === "all" ? SHAPES : [activeShape], [activeShape]);
@@ -352,12 +351,6 @@ export default function CAGEDExplorer() {
     if (showMinTriad) visibleShapes.forEach(sh => minTriads[sh].forEach(([s, f]) => set.add(posKey(s, f))));
     return set;
   }, [majTriads, minTriads, visibleShapes, showMajTriad, showMinTriad]);
-
-  const majTriadPositions = useMemo(() => {
-    const set = new Set();
-    if (showMajTriad) visibleShapes.forEach(sh => majTriads[sh].forEach(([s, f]) => set.add(posKey(s, f))));
-    return set;
-  }, [majTriads, visibleShapes, showMajTriad]);
 
   const pentaNotes = useMemo(() => {
     if (!pentaData) return [];
@@ -470,27 +463,27 @@ export default function CAGEDExplorer() {
   const svgW = MARGIN_LEFT + NUM_FRETS * FRET_SPACING + 25;
   const svgH = MARGIN_TOP + 5 * STRING_SPACING + 48;
 
-  const triadLegend = triadMode === "both" ? LEGEND.triadBoth : triadMode === "minor" ? LEGEND.triadMin : LEGEND.triadMaj;
+  const triadLegend = triadMode === "minor" ? LEGEND.triadMin : LEGEND.triadMaj;
   // Pentatonic legend varies by pentaMode × triadMode:
   //   triads off  → full legend (includes R, 5 etc.)
   //   triads on   → omit intervals already in the triad legend
   const PENTA_LEGEND = {
-    off:   { off: [], major: [], minor: [], both: [] },
-    major: { off: LEGEND.pentaMajFull, major: LEGEND.pentaMaj, minor: LEGEND.pentaMajWithMin, both: LEGEND.pentaMaj },
-    minor: { off: LEGEND.pentaMinFull, major: LEGEND.pentaMin, minor: LEGEND.pentaMinWithMaj, both: LEGEND.pentaMinWithMaj },
-    blues: { off: LEGEND.bluesFull,    major: LEGEND.blues,    minor: LEGEND.bluesWithMaj,    both: LEGEND.bluesWithMaj },
+    off:   { off: [], major: [], minor: [] },
+    major: { off: LEGEND.pentaMajFull, major: LEGEND.pentaMaj, minor: LEGEND.pentaMajWithMin },
+    minor: { off: LEGEND.pentaMinFull, major: LEGEND.pentaMin, minor: LEGEND.pentaMinWithMaj },
+    blues: { off: LEGEND.bluesFull,    major: LEGEND.blues,    minor: LEGEND.bluesWithMaj },
   };
   const pentaLegend = PENTA_LEGEND[pentaMode][triadMode];
 
   const keyName = NOTES[effectiveKey];
   const footerKey = (() => {
     if (triadMode === "off") return showPenta ? `${keyName} ${scaleName(pentaMode)}` : "";
-    const base = triadMode === "both" ? `${keyName} Major · ${keyName} Minor` : triadMode === "minor" ? `${keyName} Minor` : `${keyName} Major`;
+    const base = triadMode === "minor" ? `${keyName} Minor` : `${keyName} Major`;
     return showPenta ? `${base} · ${scaleName(pentaMode)}` : base;
   })();
 
   const subtitle = (() => {
-    const triadPart = triadMode === "both" ? "Major & Minor Triads" : triadMode === "minor" ? "Minor Triads" : "Major Triads";
+    const triadPart = triadMode === "minor" ? "Minor Triads" : "Major Triads";
     return showPenta ? `${triadPart} · ${scaleName(pentaMode)}` : triadPart;
   })();
 
@@ -552,8 +545,8 @@ export default function CAGEDExplorer() {
         {/* Options Row 1: Triads + Labels */}
         <div style={STYLE.optionRow(14)}>
           <span style={STYLE.optionLabel}>Triads</span>
-          {["major", "minor", "both", "off"].map(m => (
-            <ToggleButton key={m} label={m === "major" ? "Major" : m === "minor" ? "Minor" : m === "both" ? "Both" : "Off"}
+          {["major", "minor", "off"].map(m => (
+            <ToggleButton key={m} label={m === "major" ? "Major" : m === "minor" ? "Minor" : "Off"}
               active={triadMode === m} onClick={() => setTriadMode(m)} />
           ))}
           <span style={STYLE.divider}>│</span>
@@ -709,12 +702,10 @@ export default function CAGEDExplorer() {
             ))}
 
             {showMinTriad && visibleShapes.map(sh =>
-              minTriads[sh]
-                .filter(([s, f]) => !(triadMode === "both" && majTriadPositions.has(posKey(s, f))))
-                .map(([s, f, interval], idx) => (
+              minTriads[sh].map(([s, f, interval], idx) => (
                   <FretDot key={`m-${sh}-${idx}`} cx={noteX(f)} cy={strY(s)} radius={TRIAD_RADIUS} interval={interval}
                     keyIdx={effectiveKey} labelMode={labelMode} shapeBorder={activeShape === "all" ? THEME.shape[sh] : null}
-                    dashed={triadMode === "both"} showNoteName={labelMode === "both" && f !== 0} />
+                    showNoteName={labelMode === "both" && f !== 0} />
                 ))
             )}
 
@@ -731,17 +722,8 @@ export default function CAGEDExplorer() {
         {/* Bottom Section: Legend + Chord Diagrams */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginTop: 20, gap: 20, flexWrap: "wrap" }}>
           <div>
-            {showTriads && <LegendSection title={triadMode === "both" ? "Triads" : triadMode === "minor" ? "Minor Triad" : "Triad"}
+            {showTriads && <LegendSection title={triadMode === "minor" ? "Minor Triad" : "Triad"}
               items={triadLegend} dotSize={20} keyIdx={effectiveKey} labelMode={labelMode} />}
-
-            {showTriads && triadMode === "both" && (
-              <div style={{ fontSize: "0.6rem", color: THEME.text.muted, marginTop: 6, display: "flex", alignItems: "center", gap: 6 }}>
-                <svg width={20} height={12}>
-                  <circle cx={6} cy={6} r={5} fill={THEME.interval["♭3"]} stroke={THEME.stroke.medium} strokeWidth={1} strokeDasharray="3,2" />
-                </svg>
-                <span>Dashed border = minor</span>
-              </div>
-            )}
 
             {pentaLegend.length > 0 && <LegendSection title={scaleName(pentaMode)} items={pentaLegend} dotSize={16}
               mt={showTriads ? 14 : 0} keyIdx={effectiveKey} labelMode={labelMode} />}

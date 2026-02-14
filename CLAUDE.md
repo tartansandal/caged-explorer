@@ -44,7 +44,7 @@ All fretboard note positions follow the same pattern as `FRYING_PAN`: defined fo
 
 ### State Management
 
-React hooks only (`useState`, `useMemo`). Main state: `keyIndex` (0-11), `isMinorKey`, `activeShape` (C/A/G/E/D or 'all'), `pentaMode` (off/major/minor/blues), `triadMode` (off/major/minor/both), `labelMode` (intervals/notes/both), `overlayMode` (off/fryingPan/threeTwo).
+React hooks only (`useState`, `useMemo`). Main state: `keyIndex` (0-11), `isMinorKey`, `activeShape` (C/A/G/E/D or 'all'), `pentaMode` (off/major/minor/blues), `triadMode` (off/major/minor), `labelMode` (intervals/notes/both), `overlayMode` (off/fryingPan/threeTwo).
 
 ### Overlay System
 

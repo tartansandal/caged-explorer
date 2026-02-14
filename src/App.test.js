@@ -153,7 +153,7 @@ describe("TRIAD_SHAPE data integrity", () => {
             if (!byString[s]) byString[s] = [];
             byString[s].push({ fret: f, interval: iv });
           });
-          for (const [s, strNotes] of Object.entries(byString)) {
+          for (const [_s, strNotes] of Object.entries(byString)) {
             if (strNotes.length <= 1) continue;
             // 2 notes on the same string is only okay if they're 12 frets apart
             expect(strNotes.length).toBeLessThanOrEqual(2);
