@@ -830,7 +830,7 @@ export default function CAGEDExplorer() {
                 : theme.overlay.fryingPanRight;
 
               return (
-                <g key={`fp-${i}`}>
+                <g key={`fp-${i}`} pointerEvents="none">
                   <rect
                     x={panX1} y={panY1}
                     width={panX2 - panX1} height={panY2 - panY1}
