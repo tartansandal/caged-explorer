@@ -551,4 +551,32 @@ export function shiftNotes(notes, effectiveKey, maxFret = NUM_FRETS) {
   return result;
 }
 
+export function clusterFrets(frets, gapThreshold = 6) {
+  const sorted = [...frets].sort((a, b) => a - b);
+  if (!sorted.length) return [{ lo: 0, hi: 0 }];
+  const clusters = [{ lo: sorted[0], hi: sorted[0] }];
+  for (let i = 1; i < sorted.length; i++) {
+    if (sorted[i] - clusters[clusters.length - 1].hi > gapThreshold) {
+      clusters.push({ lo: sorted[i], hi: sorted[i] });
+    } else {
+      clusters[clusters.length - 1].hi = sorted[i];
+    }
+  }
+  return clusters;
+}
+
+// Precomputed shape fret ranges at effectiveKey=0, keyed by quality then shape.
+// Blues notes excluded: their ♭5s span across the fretboard gap between octave
+// clusters and would merge them into one giant range, breaking label positioning.
+export const SHAPE_FRET_RANGES = { major: {}, minor: {} };
+["major", "minor"].forEach(q => {
+  SHAPE_ORDER.forEach(sh => {
+    const allFrets = [
+      ...TRIAD_SHAPE[q][sh],
+      ...PENTA_BOX[q][sh],
+    ].map(([, f]) => f);
+    SHAPE_FRET_RANGES[q][sh] = clusterFrets(allFrets);
+  });
+});
+
 export const posKey = (str, fret) => `${str}-${fret}`;

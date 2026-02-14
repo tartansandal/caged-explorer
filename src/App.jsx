@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import {
-  posKey, shiftNotes,
+  posKey, shiftNotes, clusterFrets,
   NUM_FRETS, SHAPE_ORDER, FRYING_PAN, SHAPE_ORIENTATION,
   PENTA_BOX, TRIAD_SHAPE, BLUES_SHAPE,
 } from "./music.js";
@@ -356,27 +356,28 @@ export default function CAGEDExplorer() {
     return byShape;
   }, [activeShape, effectiveKey, pentaQuality]);
 
-  // Shape fret ranges for labels and background highlights — derived from triad data
-  // Returns array of clusters: [{lo, hi}] — usually 1, but 2 when octave repeat is visible
+  // Shape fret ranges for labels and background highlights — quality-dependent.
+  // Uses only the active quality's triads + pentatonics so ranges tightly bound the
+  // notes that can actually appear. In advanced mode triad and penta qualities can
+  // differ, so both are included. Blues excluded: ♭5s bridge the octave gap.
+  const rangeQualities = useMemo(() => {
+    const q = new Set([triadQuality, pentaQuality]);
+    return [...q];
+  }, [triadQuality, pentaQuality]);
+
   const shapeRanges = useMemo(() => {
     const ranges = {};
     SHAPES.forEach(sh => {
-      const notes = shiftNotes(TRIAD_SHAPE.major[sh], effectiveKey);
-      const frets = notes.map(([, f]) => f).sort((a, b) => a - b);
-      if (!frets.length) { ranges[sh] = [{ lo: 0, hi: 0 }]; return; }
-      // Split into clusters when gap between consecutive frets exceeds a threshold
-      const clusters = [{ lo: frets[0], hi: frets[0] }];
-      for (let i = 1; i < frets.length; i++) {
-        if (frets[i] - clusters[clusters.length - 1].hi > 6) {
-          clusters.push({ lo: frets[i], hi: frets[i] });
-        } else {
-          clusters[clusters.length - 1].hi = frets[i];
-        }
-      }
-      ranges[sh] = clusters;
+      const allNotes = rangeQualities.flatMap(q => [
+        ...TRIAD_SHAPE[q][sh],
+        ...PENTA_BOX[q][sh],
+      ]);
+      const shifted = shiftNotes(allNotes, effectiveKey);
+      const frets = shifted.map(([, f]) => f);
+      ranges[sh] = clusterFrets(frets);
     });
     return ranges;
-  }, [effectiveKey]);
+  }, [effectiveKey, rangeQualities]);
 
   const pentaData = pentaScale === "off" ? null : (pentaQuality === "major" ? majPenta : minPenta);
 
@@ -684,8 +685,8 @@ export default function CAGEDExplorer() {
               const highlighted = new Set([...pinnedShapes, ...(hoveredShape ? [hoveredShape] : [])]);
               return SHAPES.filter(sh => highlighted.has(sh)).flatMap(sh =>
                 shapeRanges[sh].map(({ lo, hi }, ci) => {
-                  const x1 = lo === 0 ? MARGIN_LEFT - 20 : fretX(lo) - FRET_SPACING * 0.48;
-                  const x2 = fretX(hi) + FRET_SPACING * 0.48;
+                  const x1 = noteX(lo) - FRET_SPACING * 0.48;
+                  const x2 = noteX(hi) + FRET_SPACING * 0.48;
                   return <rect key={`${sh}-${ci}`} x={x1} y={MARGIN_TOP - 13} width={x2 - x1} height={5 * STRING_SPACING + 26} fill={THEME.shape[sh]} opacity={0.08} rx={3} />;
                 })
               );

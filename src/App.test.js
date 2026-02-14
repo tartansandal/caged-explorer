@@ -8,6 +8,8 @@ import {
   TRIAD_SHAPE,
   BLUES_SHAPE,
   shiftNotes,
+  clusterFrets,
+  SHAPE_FRET_RANGES,
 } from "./music.js";
 
 // ─── FRYING_PAN geometry ────────────────────────────────────────────────────
@@ -171,20 +173,7 @@ describe("TRIAD_SHAPE data integrity", () => {
 
 // ─── BLUES_SHAPE bounding ────────────────────────────────────────────────────
 
-// Shared helpers for blues bounding tests
-const fretClusters = (frets) => {
-  const sorted = [...frets].sort((a, b) => a - b);
-  if (!sorted.length) return [];
-  const clusters = [{ lo: sorted[0], hi: sorted[0] }];
-  for (let i = 1; i < sorted.length; i++) {
-    if (sorted[i] - clusters[clusters.length - 1].hi > 6) {
-      clusters.push({ lo: sorted[i], hi: sorted[i] });
-    } else {
-      clusters[clusters.length - 1].hi = sorted[i];
-    }
-  }
-  return clusters;
-};
+// Shared helper for blues bounding tests (uses exported clusterFrets)
 
 const filterBlues = (bluesNotes, clusters) =>
   bluesNotes.filter(([, f]) => clusters.some(c => f >= c.lo - 1 && f <= c.hi + 1));
@@ -194,7 +183,7 @@ describe("BLUES_SHAPE.minor notes bounded to minor pentatonic box", () => {
     for (const sh of SHAPE_ORDER) {
       for (let ek = 0; ek < 12; ek++) {
         const pentaFrets = shiftNotes(PENTA_BOX.minor[sh], ek).map(([, f]) => f);
-        const clusters = fretClusters(pentaFrets);
+        const clusters = clusterFrets(pentaFrets);
         const shifted = shiftNotes(BLUES_SHAPE.minor[sh], ek);
         const filtered = filterBlues(shifted, clusters);
 
@@ -211,7 +200,7 @@ describe("BLUES_SHAPE.minor notes bounded to minor pentatonic box", () => {
       for (let ek = 0; ek < 12; ek++) {
         const pentaNotes = shiftNotes(PENTA_BOX.minor[sh], ek);
         const pentaFrets = pentaNotes.map(([, f]) => f);
-        const clusters = fretClusters(pentaFrets);
+        const clusters = clusterFrets(pentaFrets);
         const blues = filterBlues(shiftNotes(BLUES_SHAPE.minor[sh], ek), clusters);
         const allNotes = [...pentaNotes, ...blues];
 
@@ -232,7 +221,7 @@ describe("BLUES_SHAPE.minor notes bounded to minor pentatonic box", () => {
     for (const sh of SHAPE_ORDER) {
       for (let ek = 0; ek < 12; ek++) {
         const pentaFrets = shiftNotes(PENTA_BOX.minor[sh], ek).map(([, f]) => f);
-        const clusters = fretClusters(pentaFrets);
+        const clusters = clusterFrets(pentaFrets);
         const shifted = shiftNotes(BLUES_SHAPE.minor[sh], ek);
         const filtered = filterBlues(shifted, clusters);
         totalRemoved += shifted.length - filtered.length;
@@ -247,7 +236,7 @@ describe("BLUES_SHAPE.major notes bounded to major pentatonic box", () => {
     for (const sh of SHAPE_ORDER) {
       for (let ek = 0; ek < 12; ek++) {
         const pentaFrets = shiftNotes(PENTA_BOX.major[sh], ek).map(([, f]) => f);
-        const clusters = fretClusters(pentaFrets);
+        const clusters = clusterFrets(pentaFrets);
         const shifted = shiftNotes(BLUES_SHAPE.major[sh], ek);
         const filtered = filterBlues(shifted, clusters);
 
@@ -264,7 +253,7 @@ describe("BLUES_SHAPE.major notes bounded to major pentatonic box", () => {
       for (let ek = 0; ek < 12; ek++) {
         const pentaNotes = shiftNotes(PENTA_BOX.major[sh], ek);
         const pentaFrets = pentaNotes.map(([, f]) => f);
-        const clusters = fretClusters(pentaFrets);
+        const clusters = clusterFrets(pentaFrets);
         const blues = filterBlues(shiftNotes(BLUES_SHAPE.major[sh], ek), clusters);
         const allNotes = [...pentaNotes, ...blues];
 
@@ -285,7 +274,7 @@ describe("BLUES_SHAPE.major notes bounded to major pentatonic box", () => {
     for (const sh of SHAPE_ORDER) {
       for (let ek = 0; ek < 12; ek++) {
         const pentaFrets = shiftNotes(PENTA_BOX.major[sh], ek).map(([, f]) => f);
-        const clusters = fretClusters(pentaFrets);
+        const clusters = clusterFrets(pentaFrets);
         const shifted = shiftNotes(BLUES_SHAPE.major[sh], ek);
         const filtered = filterBlues(shifted, clusters);
         totalRemoved += shifted.length - filtered.length;
@@ -346,6 +335,116 @@ describe("shiftNotes", () => {
         shiftNotes(PENTA_BOX.major[sh], ek).forEach(([s]) => strings.add(s));
       });
       expect(strings.size).toBe(6);
+    }
+  });
+});
+
+// ─── clusterFrets ────────────────────────────────────────────────────────────
+
+describe("clusterFrets", () => {
+  it("clusters adjacent frets into a single range", () => {
+    expect(clusterFrets([1, 3, 5, 7])).toEqual([{ lo: 1, hi: 7 }]);
+  });
+
+  it("splits into separate clusters when gap exceeds threshold", () => {
+    const result = clusterFrets([1, 3, 15, 17]);
+    expect(result).toEqual([{ lo: 1, hi: 3 }, { lo: 15, hi: 17 }]);
+  });
+
+  it("returns [{lo:0, hi:0}] for empty input", () => {
+    expect(clusterFrets([])).toEqual([{ lo: 0, hi: 0 }]);
+  });
+
+  it("handles a single fret", () => {
+    expect(clusterFrets([5])).toEqual([{ lo: 5, hi: 5 }]);
+  });
+
+  it("handles unsorted input", () => {
+    expect(clusterFrets([10, 2, 7, 4])).toEqual([{ lo: 2, hi: 10 }]);
+  });
+
+  it("respects custom gap threshold", () => {
+    // gap of 5 between 3 and 8 — with threshold 4 they split, with 6 they merge
+    expect(clusterFrets([1, 3, 8, 10], 4)).toEqual([{ lo: 1, hi: 3 }, { lo: 8, hi: 10 }]);
+    expect(clusterFrets([1, 3, 8, 10], 6)).toEqual([{ lo: 1, hi: 10 }]);
+  });
+});
+
+// ─── SHAPE_FRET_RANGES ──────────────────────────────────────────────────────
+
+describe("SHAPE_FRET_RANGES", () => {
+  it("includes all triad and pentatonic frets for each quality at effectiveKey=0", () => {
+    for (const q of ["major", "minor"]) {
+      for (const sh of SHAPE_ORDER) {
+        const sources = [TRIAD_SHAPE[q][sh], PENTA_BOX[q][sh]];
+        const clusters = SHAPE_FRET_RANGES[q][sh];
+        sources.forEach(notes => {
+          notes.forEach(([, f]) => {
+            const covered = clusters.some(c => f >= c.lo && f <= c.hi);
+            expect(covered, `${q} ${sh} fret=${f} not in ${JSON.stringify(clusters)}`).toBe(true);
+          });
+        });
+      }
+    }
+  });
+
+  it("cluster boundaries are tight — lo and hi are actual note frets", () => {
+    for (const q of ["major", "minor"]) {
+      for (const sh of SHAPE_ORDER) {
+        const allFrets = new Set([
+          ...TRIAD_SHAPE[q][sh].map(([, f]) => f),
+          ...PENTA_BOX[q][sh].map(([, f]) => f),
+        ]);
+        for (const cluster of SHAPE_FRET_RANGES[q][sh]) {
+          expect(allFrets.has(cluster.lo), `${q} ${sh} lo=${cluster.lo} is not a note fret`).toBe(true);
+          expect(allFrets.has(cluster.hi), `${q} ${sh} hi=${cluster.hi} is not a note fret`).toBe(true);
+        }
+      }
+    }
+  });
+
+  it("quality-specific ranges are tighter than union of both qualities", () => {
+    // Regression: unioning major+minor widened E major from [7,10] to [7,11].
+    // Verify each quality's range is no wider than the combined range.
+    for (const q of ["major", "minor"]) {
+      for (const sh of SHAPE_ORDER) {
+        const qOnly = SHAPE_FRET_RANGES[q][sh];
+        const unionFrets = [
+          ...TRIAD_SHAPE.major[sh], ...TRIAD_SHAPE.minor[sh],
+          ...PENTA_BOX.major[sh], ...PENTA_BOX.minor[sh],
+        ].map(([, f]) => f);
+        const union = clusterFrets(unionFrets);
+        // Quality-specific ranges must fit within (or equal) the union ranges
+        for (let i = 0; i < qOnly.length; i++) {
+          expect(qOnly[i].lo, `${q} ${sh}[${i}].lo`).toBeGreaterThanOrEqual(union[i].lo);
+          expect(qOnly[i].hi, `${q} ${sh}[${i}].hi`).toBeLessThanOrEqual(union[i].hi);
+        }
+      }
+    }
+  });
+
+  it("always produces exactly 2 clusters per quality (one per octave)", () => {
+    for (const q of ["major", "minor"]) {
+      for (const sh of SHAPE_ORDER) {
+        expect(SHAPE_FRET_RANGES[q][sh], `${q} ${sh}`).toHaveLength(2);
+      }
+    }
+  });
+
+  it("shifted ranges cover all shifted notes for all 12 keys", () => {
+    for (const q of ["major", "minor"]) {
+      for (const sh of SHAPE_ORDER) {
+        for (let ek = 0; ek < 12; ek++) {
+          const allNotes = [...TRIAD_SHAPE[q][sh], ...PENTA_BOX[q][sh]];
+          const shifted = shiftNotes(allNotes, ek);
+          const frets = shifted.map(([, f]) => f);
+          const clusters = clusterFrets(frets);
+          shifted.forEach(([, f]) => {
+            const covered = clusters.some(c => f >= c.lo && f <= c.hi);
+            expect(covered, `${q} ${sh} ek=${ek} fret=${f}`).toBe(true);
+          });
+        }
+      }
     }
   });
 });
