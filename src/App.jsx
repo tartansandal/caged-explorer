@@ -33,6 +33,7 @@ const THEME = {
     "♭7": "#c4a0cc",
   },
   bg: {
+    page:      "linear-gradient(160deg, #0c1222 0%, #1a1040 50%, #0c1222 100%)",
     panel:     "rgba(10,15,30,0.5)",
     card:      "rgba(10,15,30,0.4)",
     btnOff:    "rgba(255,255,255,0.04)",
@@ -51,6 +52,8 @@ const THEME = {
     muted:     "#64748b",
     dim:       "#475569",
     dark:      "#1a1030",
+    heading:   "#f1f5f9",
+    footer:    "#334155",
   },
   glow: {
     soft:   "rgba(255,255,255,0.08)",
@@ -64,6 +67,33 @@ const THEME = {
     fryingPanLeft: "#d4b070",
     fryingPanRight: "#c0a0d0",
   },
+  accent: {
+    blue: "#93c5fd",
+  },
+  fretboard: {
+    gradientTop: "#3b2507",
+    gradientBottom: "#261803",
+    markerDot: "#4a5568",
+    shadow: "inset 0 0 40px rgba(0,0,0,0.5), 0 4px 24px rgba(0,0,0,0.3)",
+    fretLine: "#334155",
+  },
+  btn: {
+    activeBg: "#f1f5f9",
+    activeText: "#0f172a",
+    activeBorder: "#f1f5f9",
+    selectedBg: "rgba(241,245,249,0.15)",
+    selectedBorder: "rgba(241,245,249,0.25)",
+  },
+  minorBtn: {
+    activeBg: "rgba(210,170,140,0.25)",
+    activeText: "#d8ac90",
+    activeBorder: "rgba(210,170,140,0.4)",
+    selectedBg: "rgba(210,170,140,0.1)",
+    selectedText: "#8a7060",
+    selectedBorder: "rgba(210,170,140,0.15)",
+    defaultText: "#4a5568",
+  },
+  divider: "rgba(255,255,255,0.1)",
 };
 
 const FRET_SPACING   = 56;
@@ -79,20 +109,20 @@ const STYLE = {
   rowLabel: { fontSize: "0.58rem", color: THEME.text.dim, letterSpacing: "0.2em", textTransform: "uppercase", marginRight: 8, minWidth: 72, textAlign: "right" },
   optionRow: (mb) => ({ display: "flex", justifyContent: "center", alignItems: "center", gap: 6, marginBottom: mb, flexWrap: "wrap" }),
   optionLabel: { fontSize: "0.56rem", color: THEME.text.dim, letterSpacing: "0.15em", textTransform: "uppercase" },
-  divider: { color: "rgba(255,255,255,0.1)", margin: "0 4px", fontSize: "0.8rem" },
+  divider: { color: THEME.divider, margin: "0 4px", fontSize: "0.8rem" },
   keyBtn: (active, sel) => ({
     borderRadius: 5, padding: "4px 10px", fontSize: "0.75rem", fontWeight: sel ? 700 : 400,
     cursor: "pointer", transition: "all 0.15s", minWidth: 38, textAlign: "center",
-    background: active ? "#f1f5f9" : sel ? "rgba(241,245,249,0.15)" : THEME.bg.btnOff,
-    color: active ? "#0f172a" : sel ? THEME.text.secondary : THEME.text.muted,
-    border: `1px solid ${active ? "#f1f5f9" : sel ? "rgba(241,245,249,0.25)" : THEME.border.light}`,
+    background: active ? THEME.btn.activeBg : sel ? THEME.btn.selectedBg : THEME.bg.btnOff,
+    color: active ? THEME.btn.activeText : sel ? THEME.text.secondary : THEME.text.muted,
+    border: `1px solid ${active ? THEME.btn.activeBorder : sel ? THEME.btn.selectedBorder : THEME.border.light}`,
   }),
   minorKeyBtn: (active, sel) => ({
     borderRadius: 5, padding: "4px 6px", fontSize: "0.68rem", fontWeight: sel ? 700 : 400,
     cursor: "pointer", transition: "all 0.15s", minWidth: 38, textAlign: "center",
-    background: active ? "rgba(210,170,140,0.25)" : sel ? "rgba(210,170,140,0.1)" : THEME.bg.btnOff,
-    color: active ? "#d8ac90" : sel ? "#8a7060" : "#4a5568",
-    border: `1px solid ${active ? "rgba(210,170,140,0.4)" : sel ? "rgba(210,170,140,0.15)" : THEME.border.light}`,
+    background: active ? THEME.minorBtn.activeBg : sel ? THEME.minorBtn.selectedBg : THEME.bg.btnOff,
+    color: active ? THEME.minorBtn.activeText : sel ? THEME.minorBtn.selectedText : THEME.minorBtn.defaultText,
+    border: `1px solid ${active ? THEME.minorBtn.activeBorder : sel ? THEME.minorBtn.selectedBorder : THEME.border.light}`,
   }),
 };
 
@@ -133,7 +163,7 @@ const noteX = (fret) => fret === 0 ? MARGIN_LEFT - 16 : MARGIN_LEFT + (fret - 0.
 const strY = (str) => MARGIN_TOP + (str - 1) * STRING_SPACING;
 function ToggleButton({ label, active, onClick, style = {} }) {
   const bg = active ? THEME.bg.btnAccent : THEME.bg.btnOff;
-  const color = active ? "#93c5fd" : THEME.text.dim;
+  const color = active ? THEME.accent.blue : THEME.text.dim;
   const border = active ? THEME.border.accent : THEME.border.subtle;
 
   return (
@@ -219,7 +249,7 @@ function ChordDiagram({ chord, shape, accent, keyIdx, labelMode, italic = false 
       <svg viewBox={`0 0 ${W} ${H}`} width={W * 1.15} height={H * 1.15}>
         <rect x={LEFT - 1} y={TOP} width={5 * STR_GAP + 2} height={2.5} rx={1} fill={THEME.text.secondary} />
         {Array.from({ length: nf }, (_, i) => i + 1).map(f =>
-          <line key={f} x1={LEFT} y1={TOP + f * FRET_GAP} x2={LEFT + 5 * STR_GAP} y2={TOP + f * FRET_GAP} stroke="#334155" strokeWidth={0.7} />
+          <line key={f} x1={LEFT} y1={TOP + f * FRET_GAP} x2={LEFT + 5 * STR_GAP} y2={TOP + f * FRET_GAP} stroke={THEME.fretboard.fretLine} strokeWidth={0.7} />
         )}
         {[0, 1, 2, 3, 4, 5].map(i =>
           <line key={i} x1={LEFT + i * STR_GAP} y1={TOP} x2={LEFT + i * STR_GAP} y2={TOP + nf * FRET_GAP} stroke={THEME.text.dim} strokeWidth={0.6} />
@@ -489,17 +519,17 @@ export default function CAGEDExplorer() {
   })();
 
   return (
-    <div style={{ background: "linear-gradient(160deg, #0c1222 0%, #1a1040 50%, #0c1222 100%)",
+    <div style={{ background: THEME.bg.page,
       minHeight: "100vh", padding: "24px 16px", boxSizing: "border-box", fontFamily: "system-ui, -apple-system, 'Segoe UI', sans-serif", color: THEME.text.primary }}>
       <div style={{ maxWidth: 1000, margin: "0 auto", position: "relative" }}>
 
         <h1 style={{ textAlign: "center", fontSize: "2.5rem", fontWeight: 300, margin: "0 0 2px",
-          letterSpacing: "0.25em", color: "#f1f5f9", fontFamily: "Georgia, 'Times New Roman', serif" }}>
+          letterSpacing: "0.25em", color: THEME.text.heading, fontFamily: "Georgia, 'Times New Roman', serif" }}>
           CAGED Explorer
         </h1>
         <button onClick={toggleAdvanced} title={advancedMode ? "Hide quality overrides" : "Show quality overrides"}
           style={{ position: "absolute", top: 8, right: 8, background: "none", border: "none", cursor: "pointer",
-            fontSize: "1.3rem", color: advancedMode ? "#93c5fd" : THEME.text.dim, transition: "color 0.15s",
+            fontSize: "1.3rem", color: advancedMode ? THEME.accent.blue : THEME.text.dim, transition: "color 0.15s",
             opacity: advancedMode ? 1 : 0.6 }}>
           ⚙
         </button>
@@ -591,12 +621,12 @@ export default function CAGEDExplorer() {
 
         {/* Fretboard */}
         <div style={{ background: THEME.bg.panel, borderRadius: 12, padding: "10px 0", border: `1px solid ${THEME.border.subtle}`,
-          overflowX: "auto", boxShadow: "inset 0 0 40px rgba(0,0,0,0.5), 0 4px 24px rgba(0,0,0,0.3)" }}>
+          overflowX: "auto", boxShadow: THEME.fretboard.shadow }}>
           <svg viewBox={`0 0 ${svgW} ${svgH}`} style={{ width: "100%", minWidth: 700, display: "block" }}>
             <defs>
               <linearGradient id="fb" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#3b2507" stopOpacity="0.22" />
-                <stop offset="100%" stopColor="#261803" stopOpacity="0.22" />
+                <stop offset="0%" stopColor={THEME.fretboard.gradientTop} stopOpacity="0.22" />
+                <stop offset="100%" stopColor={THEME.fretboard.gradientBottom} stopOpacity="0.22" />
               </linearGradient>
             </defs>
 
@@ -615,10 +645,10 @@ export default function CAGEDExplorer() {
             )}
 
             {[3, 5, 7, 9].map(f =>
-              <circle key={f} cx={noteX(f)} cy={MARGIN_TOP + 2.5 * STRING_SPACING} r={3.5} fill="#4a5568" opacity={0.85} />
+              <circle key={f} cx={noteX(f)} cy={MARGIN_TOP + 2.5 * STRING_SPACING} r={3.5} fill={THEME.fretboard.markerDot} opacity={0.85} />
             )}
-            <circle cx={noteX(12)} cy={MARGIN_TOP + 1.5 * STRING_SPACING} r={3.5} fill="#4a5568" opacity={0.85} />
-            <circle cx={noteX(12)} cy={MARGIN_TOP + 3.5 * STRING_SPACING} r={3.5} fill="#4a5568" opacity={0.85} />
+            <circle cx={noteX(12)} cy={MARGIN_TOP + 1.5 * STRING_SPACING} r={3.5} fill={THEME.fretboard.markerDot} opacity={0.85} />
+            <circle cx={noteX(12)} cy={MARGIN_TOP + 3.5 * STRING_SPACING} r={3.5} fill={THEME.fretboard.markerDot} opacity={0.85} />
 
             {Array.from({ length: NUM_FRETS + 1 }, (_, i) => i).map(f =>
               <text key={f} x={f === 0 ? MARGIN_LEFT : noteX(f)} y={MARGIN_TOP + 5 * STRING_SPACING + 34}
@@ -838,7 +868,7 @@ export default function CAGEDExplorer() {
         {/* Footer */}
         <div style={{ textAlign: "center", marginTop: 24, paddingTop: 16, borderTop: `1px solid ${THEME.border.subtle}` }}>
           <span style={{ fontSize: "0.82rem", color: THEME.text.muted, fontWeight: 500 }}>{footerKey}</span>
-          <span style={{ fontSize: "0.72rem", color: "#334155", marginLeft: 12 }}>
+          <span style={{ fontSize: "0.72rem", color: THEME.text.footer, marginLeft: 12 }}>
             {activeShape === "off" ? "Full fretboard view" : activeShape === "all" ? "Five shapes connected across the fretboard" : `${activeShape} shape voicing`}
           </span>
         </div>
