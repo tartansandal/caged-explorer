@@ -284,7 +284,7 @@ export default function CAGEDExplorer() {
   const [pentaQuality, setPentaQuality] = useState("major");
   const [advancedMode, setAdvancedMode] = useState(false);
   const [labelMode, setLabelMode] = useState("intervals");
-  const [overlayMode, setOverlayMode] = useState("off");
+  const [showFryingPan, setShowFryingPan] = useState(false);
   const [pinnedShapes, setPinnedShapes] = useState(new Set());
   const [hoveredShape, setHoveredShape] = useState(null);
 
@@ -427,8 +427,6 @@ export default function CAGEDExplorer() {
     return out;
   }, [pentaData, bluesNotes, majPenta, minPenta, visibleShapes, triadPositions, pentaScale, pentaQuality]);
 
-  const showThreeTwoBars = overlayMode === "threeTwo";
-  const showFryingPan = overlayMode === "fryingPan";
 
   // Frying pan geometry: shift static geometry by effectiveKey, filter to visible frets.
   // Shape is identical for major/minor pentatonic — determined only by effectiveKey.
@@ -468,53 +466,6 @@ export default function CAGEDExplorer() {
     return shapes;
   }, [showFryingPan, activeShape, effectiveKey]);
 
-  // 3:2 bars: derived from frying pan geometry.
-  // Each frying pan produces a 3-note bar (handle string) and a 2-note bar (other string).
-  const threeTwoBars = useMemo(() => {
-    if (!showThreeTwoBars) return [];
-    const showLeft = activeShape === "all" || SHAPE_ORIENTATION[activeShape] === "left";
-    const showRight = activeShape === "all" || SHAPE_ORIENTATION[activeShape] === "right";
-
-    const bars = [];
-    const addBars = (templates, shift) => {
-      templates.forEach(t => {
-        const panMin = t.panMin + shift;
-        const panMax = t.panMax + shift;
-        const handleFret = t.handleFret + shift;
-
-        const otherStr = t.pair[0] === t.handleStr ? t.pair[1] : t.pair[0];
-
-        // 3-note bar: on handle string, spans from handle fret to far pan edge
-        let bar3Min, bar3Max;
-        if (t.handleDir === "left") {
-          bar3Min = handleFret;
-          bar3Max = panMax;
-        } else {
-          bar3Min = panMin;
-          bar3Max = handleFret;
-        }
-
-        // 2-note bar: on other string, spans pan frets
-        const bar2Min = panMin;
-        const bar2Max = panMax;
-
-        // Only include bars within visible fretboard
-        if (bar3Min >= 0 && bar3Max <= NUM_FRETS) {
-          bars.push({ string: t.handleStr, minFret: bar3Min, maxFret: bar3Max, type: 3 });
-        }
-        if (bar2Min >= 0 && bar2Max <= NUM_FRETS) {
-          bars.push({ string: otherStr, minFret: bar2Min, maxFret: bar2Max, type: 2 });
-        }
-      });
-    };
-
-    for (const shift of [effectiveKey, effectiveKey - 12]) {
-      if (showLeft) addBars(FRYING_PAN.left, shift);
-      if (showRight) addBars(FRYING_PAN.right, shift);
-    }
-
-    return bars;
-  }, [showThreeTwoBars, activeShape, effectiveKey]);
 
   const svgW = MARGIN_LEFT + NUM_FRETS * FRET_SPACING + 25;
   const svgH = MARGIN_TOP + 5 * STRING_SPACING + 48;
@@ -645,10 +596,7 @@ export default function CAGEDExplorer() {
           )}
           <span style={STYLE.divider}>│</span>
           <span style={STYLE.optionLabel}>Overlay</span>
-          {["off", "fryingPan", "threeTwo"].map(m => (
-            <ToggleButton key={m} label={m === "off" ? "Off" : m === "fryingPan" ? "Frying Pan" : "3:2"}
-              active={overlayMode === m} onClick={() => setOverlayMode(m)} accent={m !== "off" && overlayMode === m} />
-          ))}
+          <ToggleButton label="Frying Pan" active={showFryingPan} onClick={() => setShowFryingPan(v => !v)} accent={showFryingPan} />
         </div>
 
         {/* Fretboard */}
@@ -791,24 +739,6 @@ export default function CAGEDExplorer() {
               );
             })}
 
-            {/* 3:2 System bars - render behind notes */}
-            {threeTwoBars.map((bar, i) => {
-              const x1 = bar.minFret === 0 ? MARGIN_LEFT - 26 : noteX(bar.minFret) - PENTA_RADIUS - 4;
-              const x2 = noteX(bar.maxFret) + PENTA_RADIUS + 4;
-              const barColor = bar.type === 3 ? THEME.interval.R : THEME.interval["5"];
-              return (
-                <rect
-                  key={`bar-${i}`}
-                  x={x1}
-                  y={strY(bar.string) - 5}
-                  width={x2 - x1}
-                  height={10}
-                  rx={5}
-                  fill={barColor}
-                  opacity={0.4}
-                />
-              );
-            })}
 
             {pentaNotes.map(([s, f, interval], i) => (
               <FretDot key={`p${i}`} cx={noteX(f)} cy={strY(s)} radius={PENTA_RADIUS} interval={interval}
@@ -894,23 +824,6 @@ export default function CAGEDExplorer() {
               </>
             )}
 
-            {showThreeTwoBars && (
-              <>
-                <div style={{ fontSize: "0.55rem", color: THEME.text.dim, textTransform: "uppercase", letterSpacing: "0.2em", margin: "14px 0 8px" }}>
-                  3:2 System
-                </div>
-                <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                    <div style={{ width: 24, height: 10, borderRadius: 5, background: THEME.interval.R, opacity: 0.6 }} />
-                    <span style={{ fontSize: "0.74rem", color: THEME.text.secondary }}>3 notes per string</span>
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                    <div style={{ width: 16, height: 10, borderRadius: 5, background: THEME.interval["5"], opacity: 0.6 }} />
-                    <span style={{ fontSize: "0.74rem", color: THEME.text.secondary }}>2 notes per string</span>
-                  </div>
-                </div>
-              </>
-            )}
           </div>
 
           {showTriads && (
