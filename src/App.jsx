@@ -100,6 +100,68 @@ const THEME_DARK = {
   divider: "rgba(255,255,255,0.1)",
 };
 
+const THEME_LIGHT = {
+  ...THEME_COMMON,
+  bg: {
+    panel: "rgba(180,160,130,0.15)",
+    card: "rgba(245,235,220,0.6)",
+    btnOff: "rgba(0,0,0,0.04)",
+    btnOn: "rgba(0,0,0,0.08)",
+    btnAccent: "rgba(59,130,246,0.12)",
+    page: "linear-gradient(160deg, #f5ebe0 0%, #ede0d0 50%, #f5ebe0 100%)",
+  },
+  border: {
+    subtle: "rgba(120,90,60,0.1)",
+    light: "rgba(120,90,60,0.15)",
+    medium: "rgba(120,90,60,0.2)",
+    accent: "rgba(59,130,246,0.3)",
+  },
+  text: {
+    primary: "#2a2018",
+    secondary: "#6a5f50",
+    muted: "#8a7f70",
+    dim: "#a09585",
+    dark: "#1a1030",
+    heading: "#2a2018",
+    footer: "#a09585",
+  },
+  glow: {
+    soft: "rgba(0,0,0,0.06)",
+    medium: "rgba(0,0,0,0.08)",
+  },
+  stroke: {
+    light: "rgba(0,0,0,0.15)",
+    medium: "rgba(0,0,0,0.2)",
+  },
+  accent: {
+    blue: "#2563eb",
+  },
+  fretboard: {
+    gradientTop: "#d4b896",
+    gradientBottom: "#c4a880",
+    markerDot: "#b8a890",
+    shadow: "inset 0 0 30px rgba(0,0,0,0.08), 0 2px 12px rgba(0,0,0,0.1)",
+    fretLine: "#a09080",
+  },
+  btn: {
+    activeBg: "#2a2018",
+    activeText: "#f5ebe0",
+    activeBorder: "#2a2018",
+    selectedBg: "rgba(42,32,24,0.1)",
+    selectedBorder: "rgba(42,32,24,0.2)",
+  },
+  minorBtn: {
+    activeBg: "rgba(180,130,90,0.2)",
+    activeText: "#8a6030",
+    activeBorder: "rgba(180,130,90,0.4)",
+    selectedBg: "rgba(180,130,90,0.08)",
+    selectedText: "#8a7060",
+    selectedBorder: "rgba(180,130,90,0.15)",
+    defaultText: "#8a7f70",
+  },
+  divider: "rgba(0,0,0,0.12)",
+};
+
 const THEME = THEME_DARK;
 
 const FRET_SPACING   = 56;
@@ -882,3 +944,5 @@ export default function CAGEDExplorer() {
     </div>
   );
 }
+
+export { THEME_DARK, THEME_LIGHT, THEME_COMMON };
