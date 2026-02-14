@@ -1,16 +1,56 @@
-# React + Vite
+# CAGED Explorer
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+An interactive fretboard visualization tool for exploring the CAGED guitar chord system. Built with React and SVG.
 
-Currently, two official plugins are available:
+## What it does
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+CAGED Explorer lets you visualize how the five CAGED chord shapes (C, A, G, E, D) tile across the fretboard in any key, for both major and minor tonalities. It shows:
 
-## React Compiler
+- **Chord shapes** — open chord fingerings and their barre chord positions across the neck
+- **Triads** — major and minor triad tones within each shape
+- **Pentatonic scales** — major and minor pentatonic box patterns, with optional blues notes
+- **Frying pan overlay** — highlights 5-note pentatonic groups across string pairs, showing how shapes connect horizontally
+- **Shape hover regions** — in "All" mode, hover over fretboard regions to see where each shape lives
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+All views support both major and minor keys across all 12 roots, with note labels showing intervals, note names, or both. Light and dark themes are available, with OS preference detection.
 
-## Expanding the ESLint configuration
+## Getting started
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```bash
+npm install
+npm run dev
+```
+
+Open http://localhost:5173.
+
+## Scripts
+
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start dev server with HMR |
+| `npm run build` | Production build to `dist/` |
+| `npm run lint` | Run ESLint |
+| `npm test` | Run test suite |
+
+## Tech stack
+
+- React 19
+- Vite (rolldown variant)
+- Vitest
+- SVG (inline, no charting library)
+- No CSS framework — inline styles throughout
+
+## Architecture
+
+The codebase is split into two main files:
+
+- `src/music.js` — pure functions and static data tables for music theory (pentatonic boxes, triad shapes, fret ranges, note shifting)
+- `src/App.jsx` — React components, UI state, and SVG rendering
+
+All fretboard note positions are defined at `effectiveKey=0` with two octaves of coverage, then shifted at runtime to the selected key. This keeps the data tables simple and the rendering logic uniform.
+
+See `CLAUDE.md` for detailed architecture notes.
+
+## License
+
+[MIT](LICENSE)
