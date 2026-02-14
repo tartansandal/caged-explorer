@@ -553,7 +553,7 @@ export function shiftNotes(notes, effectiveKey, maxFret = NUM_FRETS) {
 
 export function clusterFrets(frets, gapThreshold = 6) {
   const sorted = [...frets].sort((a, b) => a - b);
-  if (!sorted.length) return [{ lo: 0, hi: 0 }];
+  if (!sorted.length) return [];
   const clusters = [{ lo: sorted[0], hi: sorted[0] }];
   for (let i = 1; i < sorted.length; i++) {
     if (sorted[i] - clusters[clusters.length - 1].hi > gapThreshold) {

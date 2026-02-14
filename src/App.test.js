@@ -352,8 +352,8 @@ describe("clusterFrets", () => {
     expect(result).toEqual([{ lo: 1, hi: 3 }, { lo: 15, hi: 17 }]);
   });
 
-  it("returns [{lo:0, hi:0}] for empty input", () => {
-    expect(clusterFrets([])).toEqual([{ lo: 0, hi: 0 }]);
+  it("returns [] for empty input", () => {
+    expect(clusterFrets([])).toEqual([]);
   });
 
   it("handles a single fret", () => {
