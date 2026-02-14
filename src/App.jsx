@@ -580,10 +580,16 @@ export default function CAGEDExplorer() {
                 active={activeShape === s} onClick={() => changeShape(s)} />
             );
           })}
+          <span style={STYLE.divider}>│</span>
+          <span style={STYLE.optionLabel}>Labels</span>
+          {["intervals", "notes", "both"].map(m => (
+            <ToggleButton key={m} label={m === "intervals" ? "Intervals" : m === "notes" ? "Notes" : "Both"}
+              active={labelMode === m} onClick={() => setLabelMode(m)} />
+          ))}
         </div>
 
-        {/* Options Row 1: Triads + Labels */}
-        <div style={STYLE.optionRow(14)}>
+        {/* Options Row: Triads + Pentatonic + Frying Pan */}
+        <div style={STYLE.optionRow(22)}>
           <span style={STYLE.optionLabel}>Triads</span>
           <ToggleButton label="Off" active={!showTriads} onClick={() => setShowTriads(false)} />
           <ToggleButton label="On" active={showTriads} onClick={() => setShowTriads(true)} />
@@ -597,15 +603,6 @@ export default function CAGEDExplorer() {
             </>
           )}
           <span style={STYLE.divider}>│</span>
-          <span style={STYLE.optionLabel}>Labels</span>
-          {["intervals", "notes", "both"].map(m => (
-            <ToggleButton key={m} label={m === "intervals" ? "Intervals" : m === "notes" ? "Notes" : "Both"}
-              active={labelMode === m} onClick={() => setLabelMode(m)} />
-          ))}
-        </div>
-
-        {/* Options Row 2: Pentatonic + Overlay */}
-        <div style={STYLE.optionRow(22)}>
           <span style={STYLE.optionLabel}>Pentatonic</span>
           <ToggleButton label="Off" active={pentaScale === "off"} onClick={() => setPentaScale("off")} />
           <ToggleButton label="On" active={pentaScale === "pentatonic"} onClick={() => setPentaScale("pentatonic")} />
