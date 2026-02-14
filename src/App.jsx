@@ -620,8 +620,9 @@ export default function CAGEDExplorer() {
             </>
           )}
           <span style={STYLE.divider}>│</span>
-          <span style={STYLE.optionLabel}>Overlay</span>
-          <ToggleButton label="Frying Pan" active={showFryingPan} onClick={() => setShowFryingPan(v => !v)} />
+          <span style={STYLE.optionLabel}>Frying Pan</span>
+          <ToggleButton label="Off" active={!showFryingPan} onClick={() => setShowFryingPan(false)} />
+          <ToggleButton label="On" active={showFryingPan} onClick={() => setShowFryingPan(true)} />
         </div>
 
         {/* Fretboard */}
