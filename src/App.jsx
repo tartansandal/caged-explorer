@@ -368,14 +368,23 @@ export default function CAGEDExplorer() {
         if (!seen.has(key) && !triadPositions.has(key)) { seen.add(key); out.push([s, f, interval]); }
       });
       if (pentaMode === "blues") {
+        // Bound blues notes to within 1 fret of the shape's minor pentatonic clusters
+        const pentaFrets = (minPenta[sh] || []).map(([, f]) => f).sort((a, b) => a - b);
+        const clusters = [];
+        pentaFrets.forEach(f => {
+          const last = clusters[clusters.length - 1];
+          if (last && f - last.hi <= 6) last.hi = f;
+          else clusters.push({ lo: f, hi: f });
+        });
         (bluesNotes[sh] || []).forEach(([s, f, interval]) => {
           const key = posKey(s, f);
-          if (!seen.has(key) && !triadPositions.has(key)) { seen.add(key); out.push([s, f, interval]); }
+          const inRange = clusters.some(c => f >= c.lo - 1 && f <= c.hi + 1);
+          if (inRange && !seen.has(key) && !triadPositions.has(key)) { seen.add(key); out.push([s, f, interval]); }
         });
       }
     });
     return out;
-  }, [pentaData, bluesNotes, visibleShapes, triadPositions, pentaMode]);
+  }, [pentaData, bluesNotes, minPenta, visibleShapes, triadPositions, pentaMode]);
 
   const showThreeTwoBars = overlayMode === "threeTwo";
   const showFryingPan = overlayMode === "fryingPan";
