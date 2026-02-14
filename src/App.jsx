@@ -285,6 +285,22 @@ export default function CAGEDExplorer() {
   const [advancedMode, setAdvancedMode] = useState(false);
   const [labelMode, setLabelMode] = useState("intervals");
   const [overlayMode, setOverlayMode] = useState("off");
+  const [pinnedShapes, setPinnedShapes] = useState(new Set());
+  const [hoveredShape, setHoveredShape] = useState(null);
+
+  const toggleShapePin = (sh) => {
+    setPinnedShapes(prev => {
+      const next = new Set(prev);
+      if (next.has(sh)) next.delete(sh);
+      else next.add(sh);
+      return next;
+    });
+  };
+
+  const changeShape = (s) => {
+    setActiveShape(s);
+    if (s !== "all") setPinnedShapes(new Set());
+  };
 
   const effectiveKey = isMinorKey ? (keyIndex + 9) % 12 : keyIndex;
   const showMajTriad = showTriads && triadQuality === "major";
@@ -574,7 +590,7 @@ export default function CAGEDExplorer() {
               : isMinorKey ? s + "m" : s;
             return (
               <ToggleButton key={s} label={label}
-                active={activeShape === s} onClick={() => setActiveShape(s)} />
+                active={activeShape === s} onClick={() => changeShape(s)} />
             );
           })}
         </div>
@@ -664,18 +680,16 @@ export default function CAGEDExplorer() {
               <text key={i} x={14} y={strY(6 - i) + 4} textAnchor="middle" fill={THEME.text.dim} fontSize={10} fontFamily="ui-monospace, monospace">{l}</text>
             )}
 
-            {(showTriads || showPenta) && activeShape === "all" && SHAPES.map(sh => {
-              const majF = showMajTriad ? majTriads[sh].map(([, f]) => f) : [];
-              const minF = showMinTriad ? minTriads[sh].map(([, f]) => f) : [];
-              const pF = pentaData ? (pentaData[sh] || []).map(([, f]) => f) : [];
-              const allFrets = [...majF, ...minF, ...pF];
-              if (!allFrets.length) return null;
-              const mn = Math.min(...allFrets);
-              const mx = Math.max(...allFrets);
-              const x1 = mn === 0 ? MARGIN_LEFT - 20 : fretX(mn) - FRET_SPACING * 0.48;
-              const x2 = fretX(mx) + FRET_SPACING * 0.48;
-              return <rect key={sh} x={x1} y={MARGIN_TOP - 13} width={x2 - x1} height={5 * STRING_SPACING + 26} fill={THEME.shape[sh]} opacity={0.04} rx={3} />;
-            })}
+            {(showTriads || showPenta) && activeShape === "all" && (() => {
+              const highlighted = new Set([...pinnedShapes, ...(hoveredShape ? [hoveredShape] : [])]);
+              return SHAPES.filter(sh => highlighted.has(sh)).flatMap(sh =>
+                shapeRanges[sh].map(({ lo, hi }, ci) => {
+                  const x1 = lo === 0 ? MARGIN_LEFT - 20 : fretX(lo) - FRET_SPACING * 0.48;
+                  const x2 = fretX(hi) + FRET_SPACING * 0.48;
+                  return <rect key={`${sh}-${ci}`} x={x1} y={MARGIN_TOP - 13} width={x2 - x1} height={5 * STRING_SPACING + 26} fill={THEME.shape[sh]} opacity={0.08} rx={3} />;
+                })
+              );
+            })()}
 
             {(showTriads || showPenta) && showShapeDistinctions && visibleShapes.length > 0 && (
               <text x={9} y={MARGIN_TOP - 27} textAnchor="start" fill={THEME.text.dim} fontSize={9} fontWeight={700}>Shape:</text>
@@ -683,11 +697,26 @@ export default function CAGEDExplorer() {
 
             {(showTriads || showPenta) && showShapeDistinctions && visibleShapes.flatMap(sh => {
               const lbl = isMinorKey ? sh + "m" : sh;
+              const isActive = pinnedShapes.has(sh) || hoveredShape === sh;
+              const isAllView = activeShape === "all";
               return shapeRanges[sh].map(({ lo, hi }, ci) => {
                 const avg = (lo + hi) / 2;
                 const raw = avg < 0.5 ? MARGIN_LEFT - 16 : MARGIN_LEFT + (avg - 0.5) * FRET_SPACING;
                 const cx = Math.max(raw, MARGIN_LEFT + 4);
-                return <text key={`${sh}-${ci}`} x={cx} y={MARGIN_TOP - 27} textAnchor="middle" fill={THEME.shape[sh]} fontSize={10} fontWeight={700}>{lbl}</text>;
+                return <text
+                  key={`${sh}-${ci}`}
+                  x={cx}
+                  y={MARGIN_TOP - 27}
+                  textAnchor="middle"
+                  fill={THEME.shape[sh]}
+                  fontSize={10}
+                  fontWeight={700}
+                  opacity={isAllView ? (isActive ? 1 : 0.6) : 1}
+                  style={isAllView ? { cursor: "pointer", textDecoration: pinnedShapes.has(sh) ? "underline" : "none" } : undefined}
+                  onClick={isAllView ? () => toggleShapePin(sh) : undefined}
+                  onMouseEnter={isAllView ? () => setHoveredShape(sh) : undefined}
+                  onMouseLeave={isAllView ? () => setHoveredShape(null) : undefined}
+                >{lbl}</text>;
               });
             })}
 
