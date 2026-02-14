@@ -608,7 +608,7 @@ export default function CAGEDExplorer() {
         <div style={STYLE.optionRow(22)}>
           <span style={STYLE.optionLabel}>Pentatonic</span>
           <ToggleButton label="Off" active={pentaScale === "off"} onClick={() => setPentaScale("off")} />
-          <ToggleButton label="Pentatonic" active={pentaScale === "pentatonic"} onClick={() => setPentaScale("pentatonic")} />
+          <ToggleButton label="On" active={pentaScale === "pentatonic"} onClick={() => setPentaScale("pentatonic")} />
           <ToggleButton label="Blues" active={pentaScale === "blues"} onClick={() => setPentaScale("blues")} />
           {advancedMode && pentaScale !== "off" && (
             <>
