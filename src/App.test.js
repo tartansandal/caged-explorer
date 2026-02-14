@@ -285,6 +285,26 @@ describe("BLUES_SHAPE.major notes bounded to major pentatonic box", () => {
   });
 });
 
+// ─── BLUES_SHAPE data integrity ─────────────────────────────────────────────
+
+describe("BLUES_SHAPE data integrity", () => {
+  it("minor blues notes all have interval ♭5", () => {
+    for (const sh of SHAPE_ORDER) {
+      BLUES_SHAPE.minor[sh].forEach(([,, iv]) => {
+        expect(iv).toBe("♭5");
+      });
+    }
+  });
+
+  it("major blues notes all have interval ♭3", () => {
+    for (const sh of SHAPE_ORDER) {
+      BLUES_SHAPE.major[sh].forEach(([,, iv]) => {
+        expect(iv).toBe("♭3");
+      });
+    }
+  });
+});
+
 // ─── major/minor pentatonic equivalence ──────────────────────────────────────
 
 describe("major/minor pentatonic equivalence", () => {
