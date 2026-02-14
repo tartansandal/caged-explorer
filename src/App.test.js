@@ -640,29 +640,69 @@ describe("frying pan alignment with pentatonic notes", () => {
   });
 });
 
-describe("shape-filtered pans overlap shape clusters", () => {
-  it("pans filtered by shape cluster overlap contain pentatonic notes from that shape", () => {
+describe("shape-filtered pans use note-based overlap", () => {
+  // Helper: filter pans by note overlap (mirrors App.jsx logic)
+  function filterPansByNotes(pans, majNotes, minNotes) {
+    const notes = [...majNotes, ...minNotes];
+    return pans.filter(pan =>
+      notes.some(([s, f]) =>
+        (s === pan.pair[0] || s === pan.pair[1]) &&
+        f >= pan.panMinFret && f <= pan.panMaxFret
+      )
+    );
+  }
+
+  it("each surviving pan contains at least one pentatonic note from the shape", () => {
     for (let key = 0; key < 12; key++) {
       for (const q of ["major", "minor"]) {
         const ek = q === "minor" ? (key + 9) % 12 : key;
         const allPans = visiblePans(key);
 
         for (const sh of SHAPE_ORDER) {
-          const ranges = buildShapeRanges(ek, [q]);
-          const clusters = ranges[sh] || [];
-          // Filter pans by overlap with non-partial clusters (same as App.jsx)
-          const filtered = allPans.filter(pan =>
-            clusters.some(c => !c.partial && pan.panMinFret <= c.hi && pan.panMaxFret >= c.lo)
-          );
+          const majNotes = shiftNotes(PENTA_BOX.major[sh], ek);
+          const minNotes = shiftNotes(PENTA_BOX.minor[sh], ek);
+          const filtered = filterPansByNotes(allPans, majNotes, minNotes);
+          const allNotes = [...majNotes, ...minNotes];
 
-          // Each surviving pan should have at least one penta note from this shape
-          const shapeNotes = shiftNotes(PENTA_BOX[q][sh], ek);
+          // Each surviving pan has at least one note from either quality
           filtered.forEach(pan => {
-            const hasNote = shapeNotes.some(([s, f]) =>
+            const hasNote = allNotes.some(([s, f]) =>
               (s === pan.pair[0] || s === pan.pair[1]) &&
               f >= pan.panMinFret && f <= pan.panMaxFret
             );
             expect(hasNote, `key=${key} ${q} shape=${sh} pan frets [${pan.panMinFret},${pan.panMaxFret}] strings ${pan.pair}`).toBe(true);
+          });
+        }
+      }
+    }
+  });
+
+  it("no pan covering a shape note is excluded by the filter", () => {
+    for (let key = 0; key < 12; key++) {
+      for (const q of ["major", "minor"]) {
+        const ek = q === "minor" ? (key + 9) % 12 : key;
+        const allPans = visiblePans(key);
+
+        for (const sh of SHAPE_ORDER) {
+          const majNotes = shiftNotes(PENTA_BOX.major[sh], ek);
+          const minNotes = shiftNotes(PENTA_BOX.minor[sh], ek);
+          const filtered = filterPansByNotes(allPans, majNotes, minNotes);
+          const allNotes = [...majNotes, ...minNotes];
+
+          // Any unfiltered pan that covers a shape note must also be in filtered
+          allPans.forEach(pan => {
+            const coversNote = allNotes.some(([s, f]) =>
+              (s === pan.pair[0] || s === pan.pair[1]) &&
+              f >= pan.panMinFret && f <= pan.panMaxFret
+            );
+            if (coversNote) {
+              const inFiltered = filtered.some(fp =>
+                fp.panMinFret === pan.panMinFret &&
+                fp.panMaxFret === pan.panMaxFret &&
+                fp.pair[0] === pan.pair[0]
+              );
+              expect(inFiltered, `key=${key} ${q} shape=${sh} pan frets [${pan.panMinFret},${pan.panMaxFret}] strings ${pan.pair} excluded despite covering a note`).toBe(true);
+            }
           });
         }
       }

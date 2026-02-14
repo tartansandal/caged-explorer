@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import {
   posKey, shiftNotes, clusterFrets, computeHoverRanges,
   NUM_FRETS, SHAPE_ORDER, FRYING_PAN,
@@ -459,18 +459,38 @@ export default function CAGEDExplorer() {
       addShifted(FRYING_PAN.right, shift);
     }
 
-    // When a single shape is selected, keep only pans whose body overlaps
-    // the shape's fret clusters
+    // When a single shape is selected, keep only pans that overlap the
+    // shape's actual pentatonic notes (both qualities, to cover all toggles)
     if (activeShape !== "all" && activeShape !== "off") {
-      const clusters = shapeRanges[activeShape] || [];
+      const notes = [
+        ...(majPenta[activeShape] || []),
+        ...(minPenta[activeShape] || []),
+      ];
       return shapes.filter(pan =>
-        clusters.some(c => !c.partial && pan.panMinFret <= c.hi && pan.panMaxFret >= c.lo)
+        notes.some(([s, f]) =>
+          (s === pan.lowerStr || s === pan.upperStr) &&
+          f >= pan.panMinFret && f <= pan.panMaxFret
+        )
       );
     }
 
     return shapes;
-  }, [showFryingPan, activeShape, keyIndex, shapeRanges]);
+  }, [showFryingPan, activeShape, keyIndex, majPenta, minPenta]);
 
+
+  // When frying pan is on in single-shape view, filter notes to only those
+  // covered by a surviving pan (prevents orphan dots in partial clusters)
+  const isSingleShapePan = showFryingPan && activeShape !== "all" && activeShape !== "off";
+  const panCovers = useCallback((s, f) =>
+    fryingPanShapes.some(pan =>
+      (s === pan.lowerStr || s === pan.upperStr) &&
+      f >= pan.panMinFret && f <= pan.panMaxFret
+    ),
+  [fryingPanShapes]);
+
+  const displayPentaNotes = useMemo(() =>
+    isSingleShapePan ? pentaNotes.filter(([s, f]) => panCovers(s, f)) : pentaNotes,
+  [pentaNotes, isSingleShapePan, panCovers]);
 
   const svgW = MARGIN_LEFT + NUM_FRETS * FRET_SPACING + 25;
   const svgH = MARGIN_TOP + 5 * STRING_SPACING + 48;
@@ -749,13 +769,13 @@ export default function CAGEDExplorer() {
             })}
 
 
-            {pentaNotes.map(([s, f, interval], i) => (
+            {displayPentaNotes.map(([s, f, interval], i) => (
               <FretDot key={`p${i}`} cx={noteX(f)} cy={strY(s)} radius={PENTA_RADIUS} interval={interval}
                 keyIdx={effectiveKey} labelMode={labelMode} showNoteName={labelMode === "both" && f !== 0} />
             ))}
 
             {showMinTriad && visibleShapes.map(sh =>
-              minTriads[sh].map(([s, f, interval], idx) => (
+              minTriads[sh].filter(([s, f]) => !isSingleShapePan || panCovers(s, f)).map(([s, f, interval], idx) => (
                   <FretDot key={`m-${sh}-${idx}`} cx={noteX(f)} cy={strY(s)} radius={TRIAD_RADIUS} interval={interval}
                     keyIdx={effectiveKey} labelMode={labelMode} shapeBorder={activeShape === "all" ? THEME.shape[sh] : null}
                     showNoteName={labelMode === "both" && f !== 0} />
@@ -763,7 +783,7 @@ export default function CAGEDExplorer() {
             )}
 
             {showMajTriad && visibleShapes.map(sh =>
-              majTriads[sh].map(([s, f, interval], idx) => (
+              majTriads[sh].filter(([s, f]) => !isSingleShapePan || panCovers(s, f)).map(([s, f, interval], idx) => (
                 <FretDot key={`t-${sh}-${idx}`} cx={noteX(f)} cy={strY(s)} radius={TRIAD_RADIUS} interval={interval}
                   keyIdx={effectiveKey} labelMode={labelMode} shapeBorder={activeShape === "all" ? THEME.shape[sh] : null}
                   showNoteName={labelMode === "both" && f !== 0} />
