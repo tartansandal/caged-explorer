@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import {
   posKey, shiftNotes, clusterFrets, computeHoverRanges,
-  NUM_FRETS, SHAPE_ORDER, FRYING_PAN, SHAPE_ORIENTATION,
+  NUM_FRETS, SHAPE_ORDER, FRYING_PAN,
   PENTA_BOX, TRIAD_SHAPE, BLUES_SHAPE, SHAPE_FRET_RANGES,
 } from "./music.js";
 
@@ -428,12 +428,10 @@ export default function CAGEDExplorer() {
   }, [pentaData, bluesNotes, majPenta, minPenta, visibleShapes, triadPositions, pentaScale, pentaQuality]);
 
 
-  // Frying pan geometry: shift static geometry by effectiveKey, filter to visible frets.
-  // Shape is identical for major/minor pentatonic — determined only by effectiveKey.
+  // Frying pan geometry: shift static geometry by keyIndex (not effectiveKey,
+  // since minor pentatonic clusters are offset 3 semitones from relative major).
   const fryingPanShapes = useMemo(() => {
     if (!showFryingPan) return [];
-    const showLeft = activeShape === "all" || SHAPE_ORIENTATION[activeShape] === "left";
-    const showRight = activeShape === "all" || SHAPE_ORIENTATION[activeShape] === "right";
 
     const shapes = [];
     const addShifted = (templates, shift) => {
@@ -441,7 +439,6 @@ export default function CAGEDExplorer() {
         const panMin = t.panMin + shift;
         const panMax = t.panMax + shift;
         const handleFret = t.handleFret + shift;
-        // Keep if pan or handle is within visible fretboard
         if ([panMin, panMax, handleFret].some(f => f >= 0 && f <= NUM_FRETS)) {
           shapes.push({
             lowerStr: t.pair[0],
@@ -456,15 +453,22 @@ export default function CAGEDExplorer() {
       });
     };
 
-    // Try both effectiveKey and effectiveKey-12: the two-octave geometry
-    // covers shifts 0-4, but higher keys need the -12 wrap to fill lower frets.
-    for (const shift of [effectiveKey, effectiveKey - 12]) {
-      if (showLeft) addShifted(FRYING_PAN.left, shift);
-      if (showRight) addShifted(FRYING_PAN.right, shift);
+    for (const shift of [keyIndex, keyIndex - 12]) {
+      addShifted(FRYING_PAN.left, shift);
+      addShifted(FRYING_PAN.right, shift);
+    }
+
+    // When a single shape is selected, keep only pans whose body overlaps
+    // the shape's fret clusters
+    if (activeShape !== "all" && activeShape !== "off") {
+      const clusters = shapeRanges[activeShape] || [];
+      return shapes.filter(pan =>
+        clusters.some(c => !c.partial && pan.panMinFret <= c.hi && pan.panMaxFret >= c.lo)
+      );
     }
 
     return shapes;
-  }, [showFryingPan, activeShape, effectiveKey]);
+  }, [showFryingPan, activeShape, keyIndex, shapeRanges]);
 
 
   const svgW = MARGIN_LEFT + NUM_FRETS * FRET_SPACING + 25;
@@ -816,11 +820,6 @@ export default function CAGEDExplorer() {
                     <span style={{ fontSize: "0.74rem", color: THEME.text.secondary }}>5-note group across 2 strings</span>
                   </div>
                 </div>
-                {!["all", "off"].includes(activeShape) && (
-                  <div style={{ fontSize: "0.62rem", color: THEME.text.muted, marginTop: 6, fontStyle: "italic" }}>
-                    {SHAPE_ORIENTATION[activeShape] === "left" ? "Left-hand" : "Right-hand"} orientation ({activeShape} shape)
-                  </div>
-                )}
               </>
             )}
 

@@ -587,3 +587,85 @@ describe("computeHoverRanges", () => {
     }
   });
 });
+
+// ─── Frying pan alignment with pentatonic notes ─────────────────────────────
+
+// Helper: compute visible pans for a given keyIndex (mirrors App.jsx logic)
+function visiblePans(keyIndex) {
+  const shapes = [];
+  const addShifted = (templates, shift) => {
+    templates.forEach(t => {
+      const panMin = t.panMin + shift;
+      const panMax = t.panMax + shift;
+      const handleFret = t.handleFret + shift;
+      if ([panMin, panMax, handleFret].some(f => f >= 0 && f <= NUM_FRETS)) {
+        shapes.push({
+          pair: t.pair,
+          panMinFret: panMin,
+          panMaxFret: panMax,
+        });
+      }
+    });
+  };
+  for (const shift of [keyIndex, keyIndex - 12]) {
+    addShifted(FRYING_PAN.left, shift);
+    addShifted(FRYING_PAN.right, shift);
+  }
+  return shapes;
+}
+
+describe("frying pan alignment with pentatonic notes", () => {
+  it("every visible pan contains at least one pentatonic note on its string pair, for all 12 keys × major/minor", () => {
+    for (let key = 0; key < 12; key++) {
+      for (const isMinor of [false, true]) {
+        const ek = isMinor ? (key + 9) % 12 : key;
+        // Gather all pentatonic notes across all shapes
+        const allNotes = [];
+        SHAPE_ORDER.forEach(sh => {
+          allNotes.push(...shiftNotes(PENTA_BOX.major[sh], ek));
+          allNotes.push(...shiftNotes(PENTA_BOX.minor[sh], ek));
+        });
+
+        // Only check pans whose body overlaps the visible fretboard
+        const pans = visiblePans(key).filter(p => p.panMaxFret >= 0 && p.panMinFret <= NUM_FRETS);
+        pans.forEach(pan => {
+          const hasNote = allNotes.some(([s, f]) =>
+            (s === pan.pair[0] || s === pan.pair[1]) &&
+            f >= pan.panMinFret && f <= pan.panMaxFret
+          );
+          expect(hasNote, `key=${key} minor=${isMinor} pan frets [${pan.panMinFret},${pan.panMaxFret}] strings ${pan.pair}`).toBe(true);
+        });
+      }
+    }
+  });
+});
+
+describe("shape-filtered pans overlap shape clusters", () => {
+  it("pans filtered by shape cluster overlap contain pentatonic notes from that shape", () => {
+    for (let key = 0; key < 12; key++) {
+      for (const q of ["major", "minor"]) {
+        const ek = q === "minor" ? (key + 9) % 12 : key;
+        const allPans = visiblePans(key);
+
+        for (const sh of SHAPE_ORDER) {
+          const ranges = buildShapeRanges(ek, [q]);
+          const clusters = ranges[sh] || [];
+          // Filter pans by overlap with non-partial clusters (same as App.jsx)
+          const filtered = allPans.filter(pan =>
+            clusters.some(c => !c.partial && pan.panMinFret <= c.hi && pan.panMaxFret >= c.lo)
+          );
+
+          // Each surviving pan should have at least one penta note from this shape
+          const shapeNotes = shiftNotes(PENTA_BOX[q][sh], ek);
+          filtered.forEach(pan => {
+            const hasNote = shapeNotes.some(([s, f]) =>
+              (s === pan.pair[0] || s === pan.pair[1]) &&
+              f >= pan.panMinFret && f <= pan.panMaxFret
+            );
+            expect(hasNote, `key=${key} ${q} shape=${sh} pan frets [${pan.panMinFret},${pan.panMaxFret}] strings ${pan.pair}`).toBe(true);
+          });
+        }
+      }
+    }
+  });
+});
