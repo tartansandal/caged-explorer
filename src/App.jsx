@@ -668,7 +668,7 @@ export default function CAGEDExplorer() {
           )}
           <span style={STYLE.divider}>│</span>
           <span style={STYLE.optionLabel}>Pentatonic</span>
-          <ToggleButton label="Off" active={pentaScale === "off"} onClick={() => setPentaScale("off")} theme={theme} />
+          <ToggleButton label="Off" active={pentaScale === "off"} onClick={() => { setPentaScale("off"); setShowFryingPan(false); }} theme={theme} />
           <ToggleButton label="On" active={pentaScale === "pentatonic"} onClick={() => setPentaScale("pentatonic")} theme={theme} />
           <ToggleButton label="Blues" active={pentaScale === "blues"} onClick={() => setPentaScale("blues")} theme={theme} />
           {advancedMode && pentaScale !== "off" && (
@@ -680,7 +680,7 @@ export default function CAGEDExplorer() {
               ))}
             </>
           )}
-          {activeShape === "all" && <>
+          {activeShape === "all" && pentaScale !== "off" && <>
             <span style={STYLE.divider}>│</span>
             <span style={STYLE.optionLabel}>Frying Pan</span>
             <ToggleButton label="Off" active={!showFryingPan} onClick={() => setShowFryingPan(false)} theme={theme} />
