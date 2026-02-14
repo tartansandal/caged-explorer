@@ -791,7 +791,7 @@ export default function CAGEDExplorer() {
         </div>
 
         {/* Bottom Section: Legend + Chord Diagrams */}
-        <div style={{ display: "flex", alignItems: "flex-start", marginTop: 20, gap: 16, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", alignItems: "stretch", marginTop: 20, gap: 16, flexWrap: "wrap" }}>
           {showTriads && (
             <div style={{ minWidth: 140, padding: "8px 12px", border: `1px solid ${THEME.border.subtle}`, borderRadius: 8 }}>
               <LegendSection title={triadQuality === "minor" ? "Minor Triad" : "Triad"}
@@ -799,7 +799,7 @@ export default function CAGEDExplorer() {
             </div>
           )}
 
-          <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", gap: 16, flexWrap: "wrap", alignItems: "stretch" }}>
             {pentaLegend.length > 0 && (
               <div style={{ minWidth: 140, padding: "8px 12px", border: `1px solid ${THEME.border.subtle}`, borderRadius: 8 }}>
                 <LegendSection title={scaleName(pentaScale, pentaQuality)} items={pentaLegend} dotSize={16}
