@@ -848,14 +848,14 @@ export default function CAGEDExplorer() {
             <div style={{ flexBasis: "100%", minWidth: 0 }}>
               {showMajTriad && (
                 <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center", marginBottom: showMinTriad ? 10 : 0 }}>
-                  {((activeShape === "all" || activeShape === "off") ? SHAPES : [activeShape]).map(sh =>
+                  {visibleShapes.map(sh =>
                     <ChordDiagram key={sh} chord={CHORD_MAJ[sh]} shape={sh} accent={THEME.shape[sh]} keyIdx={effectiveKey} labelMode={labelMode} />
                   )}
                 </div>
               )}
               {showMinTriad && (
                 <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center" }}>
-                  {((activeShape === "all" || activeShape === "off") ? SHAPES : [activeShape]).map(sh =>
+                  {visibleShapes.map(sh =>
                     <ChordDiagram key={`m-${sh}`} chord={CHORD_MIN[sh]} shape={sh + "m"} accent={THEME.shape[sh]} keyIdx={effectiveKey} labelMode={labelMode} italic />
                   )}
                 </div>
