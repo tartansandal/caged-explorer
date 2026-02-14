@@ -356,10 +356,11 @@ export default function CAGEDExplorer() {
 
   // Per-shape blues notes (minor: ♭5, major: ♭3)
   const bluesNotes = useMemo(() => {
+    if (pentaScale !== "blues") return {};
     const byShape = {};
     visibleShapes.forEach(sh => { byShape[sh] = shiftNotes(BLUES_SHAPE[pentaQuality][sh], effectiveKey); });
     return byShape;
-  }, [visibleShapes, effectiveKey, pentaQuality]);
+  }, [visibleShapes, effectiveKey, pentaQuality, pentaScale]);
 
   // Shape fret ranges for labels and background highlights — quality-dependent.
   // Uses only the active quality's triads + pentatonics so ranges tightly bound the
