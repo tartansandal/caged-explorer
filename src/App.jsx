@@ -152,10 +152,10 @@ const scaleName = (pentaScale, pentaQuality) => {
 const fretX = (fret) => MARGIN_LEFT + fret * FRET_SPACING;
 const noteX = (fret) => fret === 0 ? MARGIN_LEFT - 16 : MARGIN_LEFT + (fret - 0.5) * FRET_SPACING;
 const strY = (str) => MARGIN_TOP + (str - 1) * STRING_SPACING;
-function ToggleButton({ label, active, onClick, accent = false, style = {} }) {
-  const bg = active ? (accent ? THEME.bg.btnAccent : THEME.bg.btnOn) : THEME.bg.btnOff;
-  const color = active ? (accent ? "#93c5fd" : THEME.text.secondary) : THEME.text.dim;
-  const border = active ? (accent ? THEME.border.accent : THEME.border.medium) : THEME.border.subtle;
+function ToggleButton({ label, active, onClick, style = {} }) {
+  const bg = active ? THEME.bg.btnAccent : THEME.bg.btnOff;
+  const color = active ? "#93c5fd" : THEME.text.dim;
+  const border = active ? THEME.border.accent : THEME.border.subtle;
 
   return (
     <button onClick={onClick} style={{
@@ -583,8 +583,8 @@ export default function CAGEDExplorer() {
         <div style={STYLE.optionRow(22)}>
           <span style={STYLE.optionLabel}>Pentatonic</span>
           <ToggleButton label="Off" active={pentaScale === "off"} onClick={() => setPentaScale("off")} />
-          <ToggleButton label="Pentatonic" active={pentaScale === "pentatonic"} onClick={() => setPentaScale("pentatonic")} accent={pentaScale === "pentatonic"} />
-          <ToggleButton label="Blues" active={pentaScale === "blues"} onClick={() => setPentaScale("blues")} accent={pentaScale === "blues"} />
+          <ToggleButton label="Pentatonic" active={pentaScale === "pentatonic"} onClick={() => setPentaScale("pentatonic")} />
+          <ToggleButton label="Blues" active={pentaScale === "blues"} onClick={() => setPentaScale("blues")} />
           {advancedMode && pentaScale !== "off" && (
             <>
               {["major", "minor"].map(q => (
@@ -596,7 +596,7 @@ export default function CAGEDExplorer() {
           )}
           <span style={STYLE.divider}>│</span>
           <span style={STYLE.optionLabel}>Overlay</span>
-          <ToggleButton label="Frying Pan" active={showFryingPan} onClick={() => setShowFryingPan(v => !v)} accent={showFryingPan} />
+          <ToggleButton label="Frying Pan" active={showFryingPan} onClick={() => setShowFryingPan(v => !v)} />
         </div>
 
         {/* Fretboard */}
