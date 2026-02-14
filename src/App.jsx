@@ -545,7 +545,7 @@ export default function CAGEDExplorer() {
         {/* Options Row 1: Triads + Labels */}
         <div style={STYLE.optionRow(14)}>
           <span style={STYLE.optionLabel}>Triads</span>
-          {["major", "minor", "off"].map(m => (
+          {["off", "major", "minor"].map(m => (
             <ToggleButton key={m} label={m === "major" ? "Major" : m === "minor" ? "Minor" : "Off"}
               active={triadMode === m} onClick={() => setTriadMode(m)} />
           ))}
