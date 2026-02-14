@@ -794,7 +794,7 @@ export default function CAGEDExplorer() {
         <div style={{ display: "flex", alignItems: "flex-start", marginTop: 20, gap: 16, flexWrap: "wrap" }}>
           {showTriads && activeShape === "all" && (
             <div style={{ minWidth: 120, padding: "8px 12px", border: `1px solid ${THEME.border.subtle}`, borderRadius: 8 }}>
-              <div style={{ fontSize: "0.55rem", color: THEME.text.dim, textTransform: "uppercase", letterSpacing: "0.2em", marginBottom: 8 }}>Shape borders</div>
+              <div style={{ fontSize: "0.55rem", color: THEME.text.dim, textTransform: "uppercase", letterSpacing: "0.2em", marginBottom: 8 }}>Shapes</div>
               <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                 {SHAPES.map(s =>
                   <div key={s} style={{ display: "flex", alignItems: "center", gap: 5 }}>
