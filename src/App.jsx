@@ -330,16 +330,18 @@ export default function CAGEDExplorer() {
 
   // Per-shape triad notes — shift static data by effectiveKey
   const majTriads = useMemo(() => {
+    if (!showTriads || triadQuality !== "major") return {};
     const byShape = {};
     visibleShapes.forEach(sh => { byShape[sh] = shiftNotes(TRIAD_SHAPE.major[sh], effectiveKey); });
     return byShape;
-  }, [visibleShapes, effectiveKey]);
+  }, [visibleShapes, effectiveKey, showTriads, triadQuality]);
 
   const minTriads = useMemo(() => {
+    if (!showTriads || triadQuality !== "minor") return {};
     const byShape = {};
     visibleShapes.forEach(sh => { byShape[sh] = shiftNotes(TRIAD_SHAPE.minor[sh], effectiveKey); });
     return byShape;
-  }, [visibleShapes, effectiveKey]);
+  }, [visibleShapes, effectiveKey, showTriads, triadQuality]);
 
   // Per-shape pentatonic notes
   const majPenta = useMemo(() => {
