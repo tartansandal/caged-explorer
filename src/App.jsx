@@ -13,7 +13,7 @@ import {
 
 const STR_NAMES = ["E", "A", "D", "G", "B", "e"];
 
-const THEME = {
+const THEME_COMMON = {
   shape: {
     C: "#d8908c",
     A: "#d4b880",
@@ -32,6 +32,14 @@ const THEME = {
     "♭5": "#8cacd8",
     "♭7": "#c4a0cc",
   },
+  overlay: {
+    fryingPanLeft: "#d4b070",
+    fryingPanRight: "#c0a0d0",
+  },
+};
+
+const THEME_DARK = {
+  ...THEME_COMMON,
   bg: {
     page:      "linear-gradient(160deg, #0c1222 0%, #1a1040 50%, #0c1222 100%)",
     panel:     "rgba(10,15,30,0.5)",
@@ -63,10 +71,6 @@ const THEME = {
     light:  "rgba(255,255,255,0.25)",
     medium: "rgba(255,255,255,0.3)",
   },
-  overlay: {
-    fryingPanLeft: "#d4b070",
-    fryingPanRight: "#c0a0d0",
-  },
   accent: {
     blue: "#93c5fd",
   },
@@ -95,6 +99,8 @@ const THEME = {
   },
   divider: "rgba(255,255,255,0.1)",
 };
+
+const THEME = THEME_DARK;
 
 const FRET_SPACING   = 56;
 const STRING_SPACING = 26;
