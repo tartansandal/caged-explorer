@@ -426,10 +426,22 @@ function HelpModal({ onClose, theme }) {
           the entire fretboard, cutting across the CAGED shapes. Hover over the
           shape regions to see how the vertical and horizontal patterns intersect.
         </p>
-        <p style={{ margin: 0 }}>
+        <p style={para}>
           Organising your learning this way lets you progressively build
           understanding without getting lost &mdash; and if you do get lost, you can
           always find your way back to a familiar landmark.
+        </p>
+
+        <h3 style={heading}>Putting the Map Away</h3>
+        <p style={para}>
+          The CAGED system is a map, not a destination. As you play more,
+          you&rsquo;ll internalize the shapes and hear the intervals without
+          thinking. One day you&rsquo;ll realize you haven&rsquo;t opened this
+          in months. That&rsquo;s not failure &mdash; that&rsquo;s the whole point.
+        </p>
+        <p style={{ margin: 0 }}>
+          You&rsquo;ve freed yourself up to explore concepts of harmony and melody
+          more deeply &mdash; perhaps you now need a Modal or Arpeggio Explorer?
         </p>
       </div>
       </div>
