@@ -477,18 +477,21 @@ describe("SHAPE_FRET_RANGES", () => {
 
 // ─── Partial cluster detection ──────────────────────────────────────────────
 
-// Helper: build shapeRanges with partial flag, same as App.jsx
-function buildShapeRanges(ek, qualities) {
+// Helper: build shapeRanges with partial flag, same as App.jsx.
+// noteTypes controls which note sets to include (default: both).
+function buildShapeRanges(ek, qualities, { triads = true, penta = true } = {}) {
   const ranges = {};
+  const q0 = qualities[0];
   SHAPE_ORDER.forEach(sh => {
-    const allNotes = qualities.flatMap(q => [
-      ...TRIAD_SHAPE[q][sh],
-      ...PENTA_BOX[q][sh],
-    ]);
+    const noteSets = (q) => [
+      ...(triads ? TRIAD_SHAPE[q][sh] : []),
+      ...(penta ? PENTA_BOX[q][sh] : []),
+    ];
+    const allNotes = qualities.flatMap(noteSets);
     const shifted = shiftNotes(allNotes, ek);
     const frets = shifted.map(([, f]) => f);
-    const canSpan = SHAPE_FRET_RANGES[qualities[0]][sh][0].hi
-                  - SHAPE_FRET_RANGES[qualities[0]][sh][0].lo;
+    const canClusters = clusterFrets(noteSets(q0).map(([, f]) => f));
+    const canSpan = canClusters.length > 0 ? canClusters[0].hi - canClusters[0].lo : 0;
     ranges[sh] = clusterFrets(frets).map(c => ({
       ...c,
       partial: (c.hi - c.lo) < canSpan * 0.7,
@@ -534,6 +537,18 @@ describe("partial cluster detection", () => {
               expect(c.hi - c.lo).toBeLessThan(canSpan * 0.7);
             }
           });
+        }
+      }
+    }
+  });
+
+  it("triads-only: every shape has at least one non-partial cluster across all keys", () => {
+    for (const q of ["major", "minor"]) {
+      for (let ek = 0; ek < 12; ek++) {
+        const ranges = buildShapeRanges(ek, [q], { triads: true, penta: false });
+        for (const sh of SHAPE_ORDER) {
+          const hasFull = ranges[sh].some(c => !c.partial);
+          expect(hasFull, `triads-only ${q} ${sh} ek=${ek} has no full cluster`).toBe(true);
         }
       }
     }

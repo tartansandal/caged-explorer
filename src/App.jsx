@@ -571,24 +571,25 @@ export default function CAGEDExplorer() {
 
   const shapeRanges = useMemo(() => {
     const ranges = {};
+    const q0 = rangeQualities[0];
     SHAPE_ORDER.forEach(sh => {
-      const allNotes = rangeQualities.flatMap(q => [
-        ...TRIAD_SHAPE[q][sh],
-        ...PENTA_BOX[q][sh],
-      ]);
+      const noteSets = (q) => [
+        ...(showTriads ? TRIAD_SHAPE[q][sh] : []),
+        ...(showPenta ? PENTA_BOX[q][sh] : []),
+      ];
+      const allNotes = rangeQualities.flatMap(noteSets);
       const shifted = shiftNotes(allNotes, effectiveKey);
       const frets = shifted.map(([, f]) => f);
-      // Use first quality as canonical span reference — both qualities produce
-      // similar cluster widths, so either works for the 70% partial threshold.
-      const canSpan = SHAPE_FRET_RANGES[rangeQualities[0]][sh][0].hi
-                    - SHAPE_FRET_RANGES[rangeQualities[0]][sh][0].lo;
+      // Canonical span from same note types at ek=0, used for partial detection.
+      const canClusters = clusterFrets(noteSets(q0).map(([, f]) => f));
+      const canSpan = canClusters.length > 0 ? canClusters[0].hi - canClusters[0].lo : 0;
       ranges[sh] = clusterFrets(frets).map(c => ({
         ...c,
         partial: (c.hi - c.lo) < canSpan * 0.7,
       }));
     });
     return ranges;
-  }, [effectiveKey, rangeQualities]);
+  }, [effectiveKey, rangeQualities, showTriads, showPenta]);
 
   const hoverRanges = useMemo(
     () => computeHoverRanges(shapeRanges, SHAPE_ORDER),
