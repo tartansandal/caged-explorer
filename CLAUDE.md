@@ -31,12 +31,18 @@ Music theory logic lives in `src/music.js` (pure functions + data constants), ke
 - `shiftNotes(notes, effectiveKey)` — Shifts note positions by `effectiveKey` using double-shift (`+ek` and `+(ek-12)`) with dedup.
 - `clusterFrets(frets, gapThreshold)` — Groups sorted frets into `{lo, hi}` clusters separated by gaps > threshold.
 - `computeHoverRanges(shapeRanges, shapes)` — Computes non-overlapping hover regions from shape clusters, splitting at midpoints between adjacent cluster centers. Excludes partial clusters.
+- `FRET_X` — Precomputed cumulative x-offset array for proportional fret spacing (length `NUM_FRETS + 1`). Each fret is `r = 2^(-1/12)` times the width of the previous, matching real guitar geometry. Total width preserved at `NUM_FRETS * 56` (same as the old uniform spacing). `FRET_X[0] = 0`, `FRET_X[NUM_FRETS] = 840`.
+- `FRET_W(f)` — Returns the pixel width of fret `f` (1-indexed). Fret 1 ≈ 81px, fret 7 ≈ 57px, fret 13 = half of fret 1 (octave relationship).
 - Constants: `FRYING_PAN` (overlay geometry), `SHAPE_ORDER`, `SHAPE_ORIENTATION`, `NUM_FRETS`, `posKey`, `CHORD_MAJ/MIN` (open chord fingerings), `INTERVAL_SEMITONES` (interval-to-semitone mapping)
 
 **`src/App.jsx`** — Single `CAGEDExplorer` component with subcomponents:
 - `ToggleButton`, `FretDot`, `LegendSection`, `ChordDiagram`
+- `fretX(fret)` — X position of fret wire: `MARGIN_LEFT + FRET_X[fret]`
+- `noteX(fret)` — X position of a note dot (midpoint between adjacent fret wires): `(FRET_X[fret-1] + FRET_X[fret]) / 2`. Fret 0 (open strings) is a special case offset left of the nut.
+- Shape highlights and hover rects use `FRET_W(fret) * 0.48` for per-fret half-width padding (not a uniform constant).
 - Theme constants: `THEME_COMMON`, `THEME_DARK`, `THEME_LIGHT` (color palettes), `makeStyles(theme)` (layout styles)
 - UI constants: `LEGEND` (context-sensitive legend entries)
+- The mini `ChordDiagram` component uses its own uniform `FRET_GAP` — it represents a zoomed-in 4-fret window, not the full fretboard.
 
 ### Key Concept: effectiveKey
 
@@ -82,9 +88,14 @@ Tests use Vitest (`src/App.test.js`) and cover the static data tables and overla
 - `FRYING_PAN` geometry — visibility across all keys, shape mapping consistency
 - Partial cluster detection — every shape has at least one full cluster across all 12 keys × major/minor
 - `computeHoverRanges` — no overlaps, full coverage, no partial leaks, tiling without gaps
+- `FRET_X` geometry — total width, monotonicity, `2^(-1/12)` ratio between consecutive frets, octave relationship (fret 13 = half of fret 1)
 - Theme structure — `THEME_DARK` and `THEME_LIGHT` have identical keys, no undefined values
 
 Tests are property-based where possible, iterating all 12 keys × major/minor scales to verify invariants.
+
+## Deployment
+
+Hosted on GitHub Pages at `https://tartansandal.github.io/caged-explorer/`. A GitHub Actions workflow (`.github/workflows/deploy.yml`) auto-deploys on every push to `main`: installs deps, builds, uploads `dist/` as a Pages artifact. Vite `base` is set to `'/caged-explorer/'` in `vite.config.js` so asset paths resolve under the subdirectory. Public assets referenced in JSX must use `import.meta.env.BASE_URL` (e.g. `` `${import.meta.env.BASE_URL}logo.svg` ``), not absolute paths like `"/logo.svg"`.
 
 ## Code Style
 
