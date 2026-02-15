@@ -674,7 +674,7 @@ export default function CAGEDExplorer() {
       minHeight: "100vh", padding: "24px 16px", boxSizing: "border-box", fontFamily: "system-ui, -apple-system, 'Segoe UI', sans-serif", color: theme.text.primary }}>
       <div style={{ maxWidth: 1000, margin: "0 auto", position: "relative" }}>
 
-        <img src="/logo.svg" width={80} height={80} alt="" style={{ position: "absolute", top: -4, left: 0, opacity: 0.85 }} />
+        <img src={`${import.meta.env.BASE_URL}logo.svg`} width={80} height={80} alt="" style={{ position: "absolute", top: -4, left: 0, opacity: 0.85 }} />
         <h1 style={{ textAlign: "center", fontSize: "2.5rem", fontWeight: 300, margin: "0 0 2px",
           letterSpacing: "0.25em", color: theme.text.heading, fontFamily: "Georgia, 'Times New Roman', serif" }}>
           CAGED Explorer
