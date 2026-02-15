@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import {
   posKey, shiftNotes, clusterFrets, computeHoverRanges, noteName,
-  NUM_FRETS, SHAPE_ORDER, FRYING_PAN, NOTES,
+  NUM_FRETS, SHAPE_ORDER, FRYING_PAN, NOTES, FRET_X, FRET_W,
   PENTA_BOX, TRIAD_SHAPE, BLUES_SHAPE, SHAPE_FRET_RANGES,
   CHORD_MAJ, CHORD_MIN,
 } from "./music.js";
@@ -166,7 +166,6 @@ const THEME_LIGHT = {
   divider: "rgba(0,0,0,0.12)",
 };
 
-const FRET_SPACING   = 56;
 const STRING_SPACING = 26;
 const MARGIN_LEFT    = 52;
 const MARGIN_TOP     = 38;
@@ -230,8 +229,8 @@ const scaleName = (scaleMode, pentaQuality) => {
   return pentaQuality === "major" ? "Major Pentatonic" : "Minor Pentatonic";
 };
 
-const fretX = (fret) => MARGIN_LEFT + fret * FRET_SPACING;
-const noteX = (fret) => fret === 0 ? MARGIN_LEFT - 16 : MARGIN_LEFT + (fret - 0.5) * FRET_SPACING;
+const fretX = (fret) => MARGIN_LEFT + FRET_X[fret];
+const noteX = (fret) => fret === 0 ? MARGIN_LEFT - 16 : MARGIN_LEFT + (FRET_X[fret - 1] + FRET_X[fret]) / 2;
 const strY = (str) => MARGIN_TOP + (str - 1) * STRING_SPACING;
 function ToggleButton({ label, active, onClick, style = {}, theme }) {
   const bg = active ? theme.bg.btnAccent : theme.bg.btnOff;
@@ -647,7 +646,7 @@ export default function CAGEDExplorer() {
     return shapes;
   }, [showFryingPan, activeShape, keyIndex]);
 
-  const svgW = MARGIN_LEFT + NUM_FRETS * FRET_SPACING + 25;
+  const svgW = MARGIN_LEFT + FRET_X[NUM_FRETS] + 25;
   const svgH = MARGIN_TOP + 5 * STRING_SPACING + 48;
 
   const triadLegend = triadQuality === "minor" ? LEGEND.triadMin : LEGEND.triadMaj;
@@ -804,10 +803,10 @@ export default function CAGEDExplorer() {
               </linearGradient>
             </defs>
 
-            <rect x={MARGIN_LEFT - 3} y={MARGIN_TOP - 13} width={NUM_FRETS * FRET_SPACING + 6} height={5 * STRING_SPACING + 26} rx={3} fill="url(#fb)" />
+            <rect x={MARGIN_LEFT - 3} y={MARGIN_TOP - 13} width={FRET_X[NUM_FRETS] + 6} height={5 * STRING_SPACING + 26} rx={3} fill="url(#fb)" />
 
             {[6, 5, 4, 3, 2, 1].map(s =>
-              <line key={s} x1={MARGIN_LEFT - 20} y1={strY(s)} x2={MARGIN_LEFT + NUM_FRETS * FRET_SPACING} y2={strY(s)}
+              <line key={s} x1={MARGIN_LEFT - 20} y1={strY(s)} x2={MARGIN_LEFT + FRET_X[NUM_FRETS]} y2={strY(s)}
                 stroke={theme.text.secondary} strokeWidth={0.3 + (s - 1) * 0.16} opacity={0.45} />
             )}
 
@@ -837,8 +836,8 @@ export default function CAGEDExplorer() {
               if (!hoveredShape) return null;
               return SHAPE_ORDER.filter(sh => sh === hoveredShape).flatMap(sh =>
                 shapeRanges[sh].map(({ lo, hi }, ci) => {
-                  const x1 = noteX(lo) - FRET_SPACING * 0.48;
-                  const x2 = noteX(hi) + FRET_SPACING * 0.48;
+                  const x1 = noteX(lo) - FRET_W(lo) * 0.48;
+                  const x2 = noteX(hi) + FRET_W(hi) * 0.48;
                   return <rect key={`bg-${sh}-${ci}`} x={x1} y={MARGIN_TOP - 13} width={x2 - x1} height={5 * STRING_SPACING + 26} fill={theme.shape[sh]} opacity={theme.fretboard.shapeHighlight} rx={3} />;
                 })
               );
@@ -850,8 +849,8 @@ export default function CAGEDExplorer() {
 
             {/* Hit rects for shape hover/click in all-view */}
             {(showTriads || showPenta) && activeShape === "all" && hoverRanges.map(({ shape, ci, hoverLo, hoverHi }) => {
-              const x1 = noteX(hoverLo) - FRET_SPACING * 0.48;
-              const x2 = noteX(hoverHi) + FRET_SPACING * 0.48;
+              const x1 = noteX(hoverLo) - FRET_W(hoverLo) * 0.48;
+              const x2 = noteX(hoverHi) + FRET_W(hoverHi) * 0.48;
               return <rect
                 key={`hit-${shape}-${ci}`}
                 x={x1}
@@ -871,7 +870,7 @@ export default function CAGEDExplorer() {
               const isAllView = activeShape === "all";
               return shapeRanges[sh].map(({ lo, hi, partial }, ci) => {
                 const avg = (lo + hi) / 2;
-                const raw = avg < 0.5 ? MARGIN_LEFT - 16 : MARGIN_LEFT + (avg - 0.5) * FRET_SPACING;
+                const raw = avg < 0.5 ? MARGIN_LEFT - 16 : noteX(Math.round(avg));
                 const cx = Math.max(raw, MARGIN_LEFT + 4);
                 return <text
                   key={`${sh}-${ci}`}
