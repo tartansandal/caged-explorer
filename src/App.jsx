@@ -836,23 +836,44 @@ export default function CAGEDExplorer() {
         )}
 
         {/* Shapes + Labels */}
-        <div style={STYLE.optionRow(14)}>
-          <span style={STYLE.optionLabel}>Shapes</span>
-          {["off", ...SHAPE_ORDER, "all"].map(s => {
-            const label = s === "off" ? "Off" : s === "all" ? "All"
-              : isMinorKey ? s + "m" : s;
-            return (
-              <ToggleButton key={s} label={label}
-                active={activeShape === s} onClick={() => changeShape(s)} theme={theme} />
-            );
-          })}
-          <span style={STYLE.divider}>│</span>
-          <span style={STYLE.optionLabel}>Labels</span>
-          {["intervals", "notes", "both"].map(m => (
-            <ToggleButton key={m} label={m === "intervals" ? "Intervals" : m === "notes" ? "Notes" : "Both"}
-              active={labelMode === m} onClick={() => setLabelMode(m)} theme={theme} />
-          ))}
-        </div>
+        {isMobile ? (
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 10 }}>
+            <select
+              className="caged-select"
+              value={activeShape}
+              onChange={e => changeShape(e.target.value)}
+              style={{ background: theme.bg.btnOff, color: theme.text.primary, border: `1px solid ${theme.border.light}` }}
+            >
+              {["off", ...SHAPE_ORDER, "all"].map(s => (
+                <option key={s} value={s}>
+                  {s === "off" ? "Off" : s === "all" ? "All" : isMinorKey ? s + "m" : s}
+                </option>
+              ))}
+            </select>
+            {["intervals", "notes", "both"].map(m => (
+              <ToggleButton key={m} label={m === "intervals" ? "Int" : m === "notes" ? "Notes" : "Both"}
+                active={labelMode === m} onClick={() => setLabelMode(m)} theme={theme} />
+            ))}
+          </div>
+        ) : (
+          <div style={STYLE.optionRow(14)}>
+            <span style={STYLE.optionLabel}>Shapes</span>
+            {["off", ...SHAPE_ORDER, "all"].map(s => {
+              const label = s === "off" ? "Off" : s === "all" ? "All"
+                : isMinorKey ? s + "m" : s;
+              return (
+                <ToggleButton key={s} label={label}
+                  active={activeShape === s} onClick={() => changeShape(s)} theme={theme} />
+              );
+            })}
+            <span style={STYLE.divider}>│</span>
+            <span style={STYLE.optionLabel}>Labels</span>
+            {["intervals", "notes", "both"].map(m => (
+              <ToggleButton key={m} label={m === "intervals" ? "Intervals" : m === "notes" ? "Notes" : "Both"}
+                active={labelMode === m} onClick={() => setLabelMode(m)} theme={theme} />
+            ))}
+          </div>
+        )}
 
         {/* Options Row: Triads + Pentatonic + Frying Pan */}
         <div style={STYLE.optionRow(22)}>
