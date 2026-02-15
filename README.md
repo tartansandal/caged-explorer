@@ -6,6 +6,8 @@
 
 An interactive fretboard visualization tool for exploring the CAGED guitar chord system. Built with React and SVG.
 
+**[Live demo](https://tartansandal.github.io/caged-explorer/)**
+
 ## What it does
 
 CAGED Explorer lets you visualize how the five CAGED chord shapes (C, A, G, E, D) tile across the fretboard in any key, for both major and minor tonalities. It shows:
