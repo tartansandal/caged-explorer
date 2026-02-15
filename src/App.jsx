@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import {
   posKey, shiftNotes, clusterFrets, computeHoverRanges, noteName,
-  NUM_FRETS, SHAPE_ORDER, FRYING_PAN, NOTES, FRET_X, FRET_W,
+  NUM_FRETS, SHAPE_ORDER, FRYING_PAN, NOTES, FRET_X, FRET_W, fretXAt, fretWAt,
   PENTA_BOX, TRIAD_SHAPE, BLUES_SHAPE, SHAPE_FRET_RANGES,
   CHORD_MAJ, CHORD_MIN,
 } from "./music.js";
@@ -230,7 +230,7 @@ const scaleName = (scaleMode, pentaQuality) => {
 };
 
 const fretX = (fret) => MARGIN_LEFT + FRET_X[fret];
-const noteX = (fret) => fret === 0 ? MARGIN_LEFT - 16 : MARGIN_LEFT + (FRET_X[fret - 1] + FRET_X[fret]) / 2;
+const noteX = (fret) => fret === 0 ? MARGIN_LEFT - 16 : MARGIN_LEFT + (fretXAt(fret - 1) + fretXAt(fret)) / 2;
 const strY = (str) => MARGIN_TOP + (str - 1) * STRING_SPACING;
 function ToggleButton({ label, active, onClick, style = {}, theme }) {
   const bg = active ? theme.bg.btnAccent : theme.bg.btnOff;
@@ -853,8 +853,8 @@ export default function CAGEDExplorer() {
               if (!hoveredShape) return null;
               return SHAPE_ORDER.filter(sh => sh === hoveredShape).flatMap(sh =>
                 shapeRanges[sh].map(({ lo, hi }, ci) => {
-                  const x1 = noteX(lo) - FRET_W(lo) * 0.48;
-                  const x2 = noteX(hi) + FRET_W(hi) * 0.48;
+                  const x1 = noteX(lo) - fretWAt(lo) * 0.48;
+                  const x2 = noteX(hi) + fretWAt(hi) * 0.48;
                   return <rect key={`bg-${sh}-${ci}`} x={x1} y={MARGIN_TOP - 13} width={x2 - x1} height={5 * STRING_SPACING + 26} fill={theme.shape[sh]} opacity={theme.fretboard.shapeHighlight} rx={3} />;
                 })
               );
@@ -866,8 +866,8 @@ export default function CAGEDExplorer() {
 
             {/* Hit rects for shape hover/click in all-view */}
             {(showTriads || showPenta) && activeShape === "all" && hoverRanges.map(({ shape, ci, hoverLo, hoverHi }) => {
-              const x1 = noteX(hoverLo) - FRET_W(hoverLo) * 0.48;
-              const x2 = noteX(hoverHi) + FRET_W(hoverHi) * 0.48;
+              const x1 = noteX(hoverLo) - fretWAt(hoverLo) * 0.48;
+              const x2 = noteX(hoverHi) + fretWAt(hoverHi) * 0.48;
               return <rect
                 key={`hit-${shape}-${ci}`}
                 x={x1}

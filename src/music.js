@@ -22,6 +22,21 @@ export const FRET_X = (() => {
 // Width of fret f (1-indexed: space between fret wire f-1 and f).
 export const FRET_W = (f) => FRET_X[f] - FRET_X[f - 1];
 
+// Linearly interpolate FRET_X for fractional fret values (hover ranges produce these).
+export const fretXAt = (f) => {
+  const lo = Math.floor(f), hi = Math.ceil(f);
+  if (lo === hi) return FRET_X[lo];
+  return FRET_X[lo] + (FRET_X[hi] - FRET_X[lo]) * (f - lo);
+};
+
+// Width at fractional fret. For f < 1 (open strings area), use fret 1's width
+// since there's no fret wire at position -1 for FRET_X to reference.
+export const fretWAt = (f) => {
+  if (f < 1) return FRET_W(1);
+  const lo = Math.floor(f), hi = Math.ceil(f);
+  return lo === hi ? FRET_W(f) : fretXAt(f) - fretXAt(f - 1);
+};
+
 export const SHAPE_ORDER = ["C", "A", "G", "E", "D"];
 
 // Frying pan geometry: defined for effectiveKey=0 (C major / A minor pentatonic).

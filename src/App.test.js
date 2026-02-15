@@ -14,6 +14,8 @@ import {
   computeHoverRanges,
   FRET_X,
   FRET_W,
+  fretXAt,
+  fretWAt,
 } from "./music.js";
 
 // ─── FRYING_PAN geometry ────────────────────────────────────────────────────
@@ -800,6 +802,53 @@ describe("FRET_X proportional fret positions", () => {
   it("FRET_W returns positive widths for all frets", () => {
     for (let f = 1; f <= NUM_FRETS; f++) {
       expect(FRET_W(f)).toBeGreaterThan(0);
+    }
+  });
+});
+
+// ─── Hover rect pixel coordinates ───────────────────────────────────────────
+
+describe("hover rect coordinates with proportional frets", () => {
+  it("fretXAt interpolates correctly for fractional frets", () => {
+    // Integer values match FRET_X exactly
+    for (let f = 0; f <= NUM_FRETS; f++) {
+      expect(fretXAt(f)).toBe(FRET_X[f]);
+    }
+    // Midpoint is between neighbors
+    for (let f = 0; f < NUM_FRETS; f++) {
+      const mid = fretXAt(f + 0.5);
+      expect(mid).toBeGreaterThan(FRET_X[f]);
+      expect(mid).toBeLessThan(FRET_X[f + 1]);
+    }
+  });
+
+  it("fretWAt returns positive finite values for fret 0 and fractional frets", () => {
+    // Fret 0 (open strings) — the original FRET_W(0) returns NaN
+    expect(Number.isFinite(fretWAt(0))).toBe(true);
+    expect(fretWAt(0)).toBeGreaterThan(0);
+    // Fractional frets
+    for (const f of [0.5, 2.5, 7.5, 9.75, 12.25]) {
+      expect(Number.isFinite(fretWAt(f)), `fretWAt(${f})`).toBe(true);
+      expect(fretWAt(f), `fretWAt(${f})`).toBeGreaterThan(0);
+    }
+    // Integer frets still match FRET_W
+    for (let f = 1; f <= NUM_FRETS; f++) {
+      expect(fretWAt(f)).toBe(FRET_W(f));
+    }
+  });
+
+  it("all hover hoverLo/hoverHi values produce finite fretWAt results across all keys", () => {
+    for (const q of ["major", "minor"]) {
+      for (let ek = 0; ek < 12; ek++) {
+        const ranges = buildShapeRanges(ek, [q]);
+        const hover = computeHoverRanges(ranges, SHAPE_ORDER);
+        hover.forEach(h => {
+          expect(Number.isFinite(fretXAt(h.hoverLo)), `${q} ek=${ek} ${h.shape}[${h.ci}] fretXAt(${h.hoverLo})`).toBe(true);
+          expect(Number.isFinite(fretXAt(h.hoverHi)), `${q} ek=${ek} ${h.shape}[${h.ci}] fretXAt(${h.hoverHi})`).toBe(true);
+          expect(Number.isFinite(fretWAt(h.hoverLo)), `${q} ek=${ek} ${h.shape}[${h.ci}] fretWAt(${h.hoverLo})`).toBe(true);
+          expect(Number.isFinite(fretWAt(h.hoverHi)), `${q} ek=${ek} ${h.shape}[${h.ci}] fretWAt(${h.hoverHi})`).toBe(true);
+        });
+      }
     }
   });
 });
