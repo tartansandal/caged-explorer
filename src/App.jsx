@@ -693,12 +693,12 @@ export default function CAGEDExplorer() {
         <div style={{ position: "absolute", top: 8, right: 8, display: "flex", alignItems: "center", gap: 12 }}>
           <button onClick={() => setShowHelp(true)} title="About CAGED Explorer"
             style={{ background: "none", border: "none", cursor: "pointer",
-              fontSize: "1.1rem", color: theme.text.dim, transition: "color 0.15s", opacity: 0.7, fontFamily: "Georgia, serif" }}>
+              fontSize: "1.3rem", fontWeight: 600, color: theme.text.dim, transition: "color 0.15s", opacity: 0.7, fontFamily: "Georgia, serif" }}>
             ?
           </button>
           <button onClick={toggleAdvanced} title={advancedMode ? "Hide quality overrides" : "Show quality overrides"}
             style={{ background: "none", border: "none", cursor: "pointer",
-              fontSize: "1.3rem", color: advancedMode ? theme.accent.blue : theme.text.dim, transition: "color 0.15s",
+              fontSize: "1.5rem", color: advancedMode ? theme.accent.blue : theme.text.dim, transition: "color 0.15s",
               opacity: advancedMode ? 1 : 0.6 }}>
             ⚙
           </button>
@@ -712,7 +712,7 @@ export default function CAGEDExplorer() {
           </a>
           <button onClick={toggleTheme} title={themeMode === "dark" ? "Switch to light mode" : "Switch to dark mode"}
             style={{ background: "none", border: "none", cursor: "pointer",
-              fontSize: "1.2rem", color: theme.text.dim, transition: "color 0.15s", opacity: 0.7 }}>
+              fontSize: "1.4rem", color: theme.text.dim, transition: "color 0.15s", opacity: 0.7 }}>
             {themeMode === "dark" ? "☀" : "☾"}
           </button>
         </div>
