@@ -478,9 +478,10 @@ export default function CAGEDExplorer() {
   const [labelMode, setLabelMode] = useState("intervals");
   const [showFryingPan, setShowFryingPan] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
 
   const [hoveredShape, setHoveredShape] = useState(null);
-  const isMobile = useIsMobile(639); // eslint-disable-line no-unused-vars -- used in later responsive tasks
+  const isMobile = useIsMobile(639);
 
   const [themeMode, setThemeMode] = useState(() => {
     const saved = typeof window !== "undefined" ? localStorage.getItem("theme") : null;
@@ -704,38 +705,80 @@ export default function CAGEDExplorer() {
       minHeight: "100vh", padding: "24px 16px", boxSizing: "border-box", fontFamily: "system-ui, -apple-system, 'Segoe UI', sans-serif", color: theme.text.primary }}>
       <div style={{ maxWidth: 1000, margin: "0 auto", position: "relative" }}>
 
-        <img src={`${import.meta.env.BASE_URL}logo.svg`} width={80} height={80} alt="" style={{ position: "absolute", top: -4, left: 0, opacity: 0.85 }} />
-        <h1 style={{ textAlign: "center", fontSize: "2.5rem", fontWeight: 300, margin: "0 0 2px",
+        {!isMobile && <img src={`${import.meta.env.BASE_URL}logo.svg`} width={80} height={80} alt="" style={{ position: "absolute", top: -4, left: 0, opacity: 0.85 }} />}
+        <h1 style={{ textAlign: "center", fontSize: isMobile ? "1.4rem" : "2.5rem", fontWeight: 300, margin: "0 0 2px",
           letterSpacing: "0.25em", color: theme.text.heading, fontFamily: "Georgia, 'Times New Roman', serif" }}>
           CAGED Explorer
         </h1>
-        <div style={{ position: "absolute", top: 8, right: 8, display: "flex", alignItems: "center", gap: 12 }}>
-          <button onClick={() => setShowHelp(true)} title="About CAGED Explorer"
-            style={{ background: "none", border: "none", cursor: "pointer",
-              fontSize: "1.3rem", fontWeight: 600, color: theme.text.dim, transition: "color 0.15s", opacity: 0.7, fontFamily: "Georgia, serif" }}>
-            ?
-          </button>
-          <button onClick={toggleAdvanced} title={advancedMode ? "Hide quality overrides" : "Show quality overrides"}
-            style={{ background: "none", border: "none", cursor: "pointer",
-              fontSize: "1.5rem", color: advancedMode ? theme.accent.blue : theme.text.dim, transition: "color 0.15s",
-              opacity: advancedMode ? 1 : 0.6 }}>
-            ⚙
-          </button>
-          <a href="https://github.com/tartansandal/caged-explorer" target="_blank" rel="noopener noreferrer"
-            title="View on GitHub"
-            style={{ background: "none", border: "none", cursor: "pointer",
-              color: theme.text.dim, transition: "color 0.15s", opacity: 0.7, display: "inline-flex" }}>
-            <svg width={18} height={18} viewBox="0 0 16 16" fill="currentColor">
-              <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/>
-            </svg>
-          </a>
-          <button onClick={toggleTheme} title={themeMode === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-            style={{ background: "none", border: "none", cursor: "pointer",
-              fontSize: "1.4rem", color: theme.text.dim, transition: "color 0.15s", opacity: 0.7 }}>
-            {themeMode === "dark" ? "☀" : "☾"}
-          </button>
-        </div>
-        <p style={{ textAlign: "center", fontSize: "0.62rem", color: theme.text.muted, margin: "0 0 22px",
+        {isMobile ? (
+          <div style={{ position: "absolute", top: 4, right: 8 }}>
+            <button onClick={() => setShowMenu(m => !m)} title="Menu"
+              style={{ background: "none", border: "none", cursor: "pointer",
+                fontSize: "1.4rem", color: theme.text.dim, opacity: 0.7 }}>
+              ☰
+            </button>
+            {showMenu && (
+              <>
+                <div style={{ position: "fixed", inset: 0, zIndex: 99 }} onClick={() => setShowMenu(false)} />
+                <div style={{ position: "absolute", top: 32, right: 0, zIndex: 100,
+                  background: theme.bg.modal, border: `1px solid ${theme.border.subtle}`,
+                  borderRadius: 8, padding: "8px 12px", display: "flex", flexDirection: "column", gap: 8, minWidth: 160 }}>
+                  <button onClick={() => { setShowHelp(true); setShowMenu(false); }}
+                    style={{ display: "flex", alignItems: "center", gap: 8, background: "none", border: "none",
+                      cursor: "pointer", color: theme.text.primary, fontSize: "0.82rem", padding: "4px 0" }}>
+                    <span style={{ fontFamily: "Georgia, serif", fontWeight: 600 }}>?</span> About
+                  </button>
+                  <button onClick={() => { toggleAdvanced(); setShowMenu(false); }}
+                    style={{ display: "flex", alignItems: "center", gap: 8, background: "none", border: "none",
+                      cursor: "pointer", color: advancedMode ? theme.accent.blue : theme.text.primary, fontSize: "0.82rem", padding: "4px 0" }}>
+                    ⚙ Advanced
+                  </button>
+                  <button onClick={() => { toggleTheme(); setShowMenu(false); }}
+                    style={{ display: "flex", alignItems: "center", gap: 8, background: "none", border: "none",
+                      cursor: "pointer", color: theme.text.primary, fontSize: "0.82rem", padding: "4px 0" }}>
+                    {themeMode === "dark" ? "☀" : "☾"} Theme
+                  </button>
+                  <a href="https://github.com/tartansandal/caged-explorer" target="_blank" rel="noopener noreferrer"
+                    style={{ display: "flex", alignItems: "center", gap: 8, background: "none", border: "none",
+                      cursor: "pointer", color: theme.text.primary, fontSize: "0.82rem", padding: "4px 0", textDecoration: "none" }}>
+                    <svg width={14} height={14} viewBox="0 0 16 16" fill="currentColor">
+                      <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/>
+                    </svg>
+                    GitHub
+                  </a>
+                </div>
+              </>
+            )}
+          </div>
+        ) : (
+          <div style={{ position: "absolute", top: 8, right: 8, display: "flex", alignItems: "center", gap: 12 }}>
+            <button onClick={() => setShowHelp(true)} title="About CAGED Explorer"
+              style={{ background: "none", border: "none", cursor: "pointer",
+                fontSize: "1.3rem", fontWeight: 600, color: theme.text.dim, transition: "color 0.15s", opacity: 0.7, fontFamily: "Georgia, serif" }}>
+              ?
+            </button>
+            <button onClick={toggleAdvanced} title={advancedMode ? "Hide quality overrides" : "Show quality overrides"}
+              style={{ background: "none", border: "none", cursor: "pointer",
+                fontSize: "1.5rem", color: advancedMode ? theme.accent.blue : theme.text.dim, transition: "color 0.15s",
+                opacity: advancedMode ? 1 : 0.6 }}>
+              ⚙
+            </button>
+            <a href="https://github.com/tartansandal/caged-explorer" target="_blank" rel="noopener noreferrer"
+              title="View on GitHub"
+              style={{ background: "none", border: "none", cursor: "pointer",
+                color: theme.text.dim, transition: "color 0.15s", opacity: 0.7, display: "inline-flex" }}>
+              <svg width={18} height={18} viewBox="0 0 16 16" fill="currentColor">
+                <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/>
+              </svg>
+            </a>
+            <button onClick={toggleTheme} title={themeMode === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+              style={{ background: "none", border: "none", cursor: "pointer",
+                fontSize: "1.4rem", color: theme.text.dim, transition: "color 0.15s", opacity: 0.7 }}>
+              {themeMode === "dark" ? "☀" : "☾"}
+            </button>
+          </div>
+        )}
+        <p style={{ textAlign: "center", fontSize: isMobile ? "0.55rem" : "0.62rem", color: theme.text.muted, margin: "0 0 22px",
           letterSpacing: "0.28em", textTransform: "uppercase" }}>
           {subtitle}
         </p>
