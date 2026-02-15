@@ -185,6 +185,15 @@ const MARGIN_TOP     = 38;
 const TRIAD_RADIUS   = 10;
 const PENTA_RADIUS   = 8;
 
+// Mobile (vertical) fretboard layout: nut at top, frets descending
+const STRING_SPACING_M = 48;
+const MARGIN_LEFT_M    = 40;   // space for fret numbers on left
+const MARGIN_TOP_M     = 30;   // space for string names at top
+
+const fretY  = (fret) => MARGIN_TOP_M + FRET_X[fret];
+const noteY  = (fret) => fret === 0 ? MARGIN_TOP_M - 16 : MARGIN_TOP_M + (fretXAt(fret - 1) + fretXAt(fret)) / 2;
+const strX   = (str)  => MARGIN_LEFT_M + (str - 1) * STRING_SPACING_M;
+
 // Shared layout styles extracted from JSX
 const makeStyles = (theme) => ({
   keyRow: (mb) => ({ display: "flex", alignItems: "center", justifyContent: "center", gap: 5, marginBottom: mb, flexWrap: "wrap" }),
@@ -681,6 +690,9 @@ export default function CAGEDExplorer() {
   const svgW = MARGIN_LEFT + FRET_X[NUM_FRETS] + 25;
   const svgH = MARGIN_TOP + 5 * STRING_SPACING + 48;
 
+  const svgW_M = MARGIN_LEFT_M + 5 * STRING_SPACING_M + 25;
+  const svgH_M = MARGIN_TOP_M + FRET_X[NUM_FRETS] + 48;
+
   const triadLegend = triadQuality === "minor" ? LEGEND.triadMin : LEGEND.triadMaj;
   const pentaLegendKey = scaleMode === "off" ? "off"
     : scaleMode === "blues" ? `blues-${pentaQuality}`
@@ -955,48 +967,79 @@ export default function CAGEDExplorer() {
 
         {/* Fretboard */}
         <div style={{ background: theme.bg.panel, borderRadius: 12, padding: "10px 0", border: `1px solid ${theme.border.subtle}`,
-          overflowX: "auto", boxShadow: theme.fretboard.shadow }}>
-          <svg viewBox={`0 0 ${svgW} ${svgH}`} style={{ width: "100%", minWidth: 700, display: "block" }}>
+          boxShadow: theme.fretboard.shadow,
+          ...(isMobile ? { overflowY: "auto", maxHeight: "70vh" } : { overflowX: "auto" }) }}>
+          <svg viewBox={`0 0 ${isMobile ? svgW_M : svgW} ${isMobile ? svgH_M : svgH}`}
+               style={{ width: "100%", ...(isMobile ? {} : { minWidth: 700 }), display: "block" }}>
             <defs>
-              <linearGradient id="fb" x1="0" y1="0" x2="0" y2="1">
+              <linearGradient id="fb" x1="0" y1="0" x2={isMobile ? "1" : "0"} y2={isMobile ? "0" : "1"}>
                 <stop offset="0%" stopColor={theme.fretboard.gradientTop} stopOpacity="0.22" />
                 <stop offset="100%" stopColor={theme.fretboard.gradientBottom} stopOpacity="0.22" />
               </linearGradient>
             </defs>
 
-            <rect x={MARGIN_LEFT - 3} y={MARGIN_TOP - 13} width={FRET_X[NUM_FRETS] + 6} height={5 * STRING_SPACING + 26} rx={3} fill="url(#fb)" />
+            {isMobile
+              ? <rect x={MARGIN_LEFT_M - 13} y={MARGIN_TOP_M - 3} width={5 * STRING_SPACING_M + 26} height={FRET_X[NUM_FRETS] + 6} rx={3} fill="url(#fb)" />
+              : <rect x={MARGIN_LEFT - 3} y={MARGIN_TOP - 13} width={FRET_X[NUM_FRETS] + 6} height={5 * STRING_SPACING + 26} rx={3} fill="url(#fb)" />
+            }
 
             {[6, 5, 4, 3, 2, 1].map(s =>
-              <line key={s} x1={MARGIN_LEFT - 20} y1={strY(s)} x2={MARGIN_LEFT + FRET_X[NUM_FRETS]} y2={strY(s)}
-                stroke={theme.text.secondary} strokeWidth={0.3 + (s - 1) * 0.16} opacity={0.45} />
+              isMobile
+                ? <line key={s} x1={strX(s)} y1={MARGIN_TOP_M - 20} x2={strX(s)} y2={MARGIN_TOP_M + FRET_X[NUM_FRETS]}
+                    stroke={theme.text.secondary} strokeWidth={0.3 + (s - 1) * 0.16} opacity={0.45} />
+                : <line key={s} x1={MARGIN_LEFT - 20} y1={strY(s)} x2={MARGIN_LEFT + FRET_X[NUM_FRETS]} y2={strY(s)}
+                    stroke={theme.text.secondary} strokeWidth={0.3 + (s - 1) * 0.16} opacity={0.45} />
             )}
 
-            <rect x={MARGIN_LEFT - 2} y={MARGIN_TOP - 13} width={4} height={5 * STRING_SPACING + 26} rx={1} fill={theme.text.secondary} opacity={0.8} />
+            {isMobile
+              ? <rect x={MARGIN_LEFT_M - 13} y={MARGIN_TOP_M - 2} width={5 * STRING_SPACING_M + 26} height={4} rx={1} fill={theme.text.secondary} opacity={0.8} />
+              : <rect x={MARGIN_LEFT - 2} y={MARGIN_TOP - 13} width={4} height={5 * STRING_SPACING + 26} rx={1} fill={theme.text.secondary} opacity={0.8} />
+            }
 
             {Array.from({ length: NUM_FRETS }, (_, i) => i + 1).map(f =>
-              <line key={f} x1={fretX(f)} y1={MARGIN_TOP - 11} x2={fretX(f)} y2={MARGIN_TOP + 5 * STRING_SPACING + 11}
-                stroke={theme.text.dim} strokeWidth={0.8} opacity={0.5} />
+              isMobile
+                ? <line key={f} x1={MARGIN_LEFT_M - 11} y1={fretY(f)} x2={MARGIN_LEFT_M + 5 * STRING_SPACING_M + 11} y2={fretY(f)}
+                    stroke={theme.text.dim} strokeWidth={0.8} opacity={0.5} />
+                : <line key={f} x1={fretX(f)} y1={MARGIN_TOP - 11} x2={fretX(f)} y2={MARGIN_TOP + 5 * STRING_SPACING + 11}
+                    stroke={theme.text.dim} strokeWidth={0.8} opacity={0.5} />
             )}
 
             {[3, 5, 7, 9].map(f =>
-              <circle key={f} cx={noteX(f)} cy={MARGIN_TOP + 2.5 * STRING_SPACING} r={3.5} fill={theme.fretboard.markerDot} opacity={0.85} />
+              isMobile
+                ? <circle key={f} cx={MARGIN_LEFT_M + 2.5 * STRING_SPACING_M} cy={noteY(f)} r={3.5} fill={theme.fretboard.markerDot} opacity={0.85} />
+                : <circle key={f} cx={noteX(f)} cy={MARGIN_TOP + 2.5 * STRING_SPACING} r={3.5} fill={theme.fretboard.markerDot} opacity={0.85} />
             )}
-            <circle cx={noteX(12)} cy={MARGIN_TOP + 1.5 * STRING_SPACING} r={3.5} fill={theme.fretboard.markerDot} opacity={0.85} />
-            <circle cx={noteX(12)} cy={MARGIN_TOP + 3.5 * STRING_SPACING} r={3.5} fill={theme.fretboard.markerDot} opacity={0.85} />
+            {isMobile ? <>
+              <circle cx={MARGIN_LEFT_M + 1.5 * STRING_SPACING_M} cy={noteY(12)} r={3.5} fill={theme.fretboard.markerDot} opacity={0.85} />
+              <circle cx={MARGIN_LEFT_M + 3.5 * STRING_SPACING_M} cy={noteY(12)} r={3.5} fill={theme.fretboard.markerDot} opacity={0.85} />
+            </> : <>
+              <circle cx={noteX(12)} cy={MARGIN_TOP + 1.5 * STRING_SPACING} r={3.5} fill={theme.fretboard.markerDot} opacity={0.85} />
+              <circle cx={noteX(12)} cy={MARGIN_TOP + 3.5 * STRING_SPACING} r={3.5} fill={theme.fretboard.markerDot} opacity={0.85} />
+            </>}
 
             {Array.from({ length: NUM_FRETS + 1 }, (_, i) => i).map(f =>
-              <text key={f} x={f === 0 ? MARGIN_LEFT : noteX(f)} y={MARGIN_TOP + 5 * STRING_SPACING + 34}
-                textAnchor="middle" fill={theme.text.dim} fontSize={9} fontFamily="ui-monospace, monospace">{f}</text>
+              isMobile
+                ? <text key={f} x={MARGIN_LEFT_M - 16} y={f === 0 ? MARGIN_TOP_M : noteY(f)}
+                    textAnchor="middle" dominantBaseline="central" fill={theme.text.dim} fontSize={9} fontFamily="ui-monospace, monospace">{f}</text>
+                : <text key={f} x={f === 0 ? MARGIN_LEFT : noteX(f)} y={MARGIN_TOP + 5 * STRING_SPACING + 34}
+                    textAnchor="middle" fill={theme.text.dim} fontSize={9} fontFamily="ui-monospace, monospace">{f}</text>
             )}
 
             {STR_NAMES.map((l, i) =>
-              <text key={i} x={14} y={strY(6 - i) + 4} textAnchor="middle" fill={theme.text.dim} fontSize={10} fontFamily="ui-monospace, monospace">{l}</text>
+              isMobile
+                ? <text key={i} x={strX(6 - i)} y={MARGIN_TOP_M - 12} textAnchor="middle" fill={theme.text.dim} fontSize={10} fontFamily="ui-monospace, monospace">{l}</text>
+                : <text key={i} x={14} y={strY(6 - i) + 4} textAnchor="middle" fill={theme.text.dim} fontSize={10} fontFamily="ui-monospace, monospace">{l}</text>
             )}
 
             {(showTriads || showPenta) && activeShape === "all" && (() => {
               if (!hoveredShape) return null;
               return SHAPE_ORDER.filter(sh => sh === hoveredShape).flatMap(sh =>
                 shapeRanges[sh].map(({ lo, hi }, ci) => {
+                  if (isMobile) {
+                    const y1 = noteY(lo) - fretWAt(lo) * 0.48;
+                    const y2 = noteY(hi) + fretWAt(hi) * 0.48;
+                    return <rect key={`bg-${sh}-${ci}`} x={MARGIN_LEFT_M - 13} y={y1} width={5 * STRING_SPACING_M + 26} height={y2 - y1} fill={theme.shape[sh]} opacity={theme.fretboard.shapeHighlight} rx={3} />;
+                  }
                   const x1 = noteX(lo) - fretWAt(lo) * 0.48;
                   const x2 = noteX(hi) + fretWAt(hi) * 0.48;
                   return <rect key={`bg-${sh}-${ci}`} x={x1} y={MARGIN_TOP - 13} width={x2 - x1} height={5 * STRING_SPACING + 26} fill={theme.shape[sh]} opacity={theme.fretboard.shapeHighlight} rx={3} />;
@@ -1004,12 +1047,26 @@ export default function CAGEDExplorer() {
               );
             })()}
 
-            {(showTriads || showPenta) && showShapeDistinctions && visibleShapes.length > 0 && (
+            {(showTriads || showPenta) && showShapeDistinctions && visibleShapes.length > 0 && !isMobile && (
               <text x={9} y={MARGIN_TOP - 27} textAnchor="start" fill={theme.text.dim} fontSize={9} fontWeight={700}>Shape:</text>
             )}
 
             {/* Hit rects for shape hover/click in all-view */}
             {(showTriads || showPenta) && activeShape === "all" && hoverRanges.map(({ shape, ci, hoverLo, hoverHi }) => {
+              if (isMobile) {
+                const y1 = noteY(hoverLo) - fretWAt(hoverLo) * 0.48;
+                const y2 = noteY(hoverHi) + fretWAt(hoverHi) * 0.48;
+                return <rect
+                  key={`hit-${shape}-${ci}`}
+                  x={MARGIN_LEFT_M - 38}
+                  y={y1}
+                  width={5 * STRING_SPACING_M + 26 + 38 - 13}
+                  height={y2 - y1}
+                  fill="transparent"
+                  onMouseEnter={() => setHoveredShape(shape)}
+                  onMouseLeave={() => setHoveredShape(null)}
+                />;
+              }
               const x1 = noteX(hoverLo) - fretWAt(hoverLo) * 0.48;
               const x2 = noteX(hoverHi) + fretWAt(hoverHi) * 0.48;
               return <rect
@@ -1031,6 +1088,20 @@ export default function CAGEDExplorer() {
               const isAllView = activeShape === "all";
               return shapeRanges[sh].map(({ lo, hi, partial }, ci) => {
                 const avg = (lo + hi) / 2;
+                if (isMobile) {
+                  const cy = avg < 0.5 ? MARGIN_TOP_M : noteY(Math.round(avg));
+                  return <text
+                    key={`${sh}-${ci}`}
+                    x={MARGIN_LEFT_M - 22}
+                    y={cy}
+                    textAnchor="middle"
+                    dominantBaseline="central"
+                    fill={theme.shape[sh]}
+                    fontSize={10}
+                    fontWeight={700}
+                    opacity={partial ? 0.25 : (isAllView ? (isActive ? 1 : 0.6) : 1)}
+                  >{lbl}</text>;
+                }
                 const raw = avg < 0.5 ? MARGIN_LEFT - 16 : noteX(Math.round(avg));
                 const cx = Math.max(raw, MARGIN_LEFT + 4);
                 return <text
@@ -1048,13 +1119,58 @@ export default function CAGEDExplorer() {
 
             {/* Frying-pan overlay - render behind notes */}
             {fryingPanShapes.map((pan, i) => {
+              const panColor = pan.handleDirection === "left"
+                ? theme.overlay.fryingPanLeft
+                : theme.overlay.fryingPanRight;
+
+              if (isMobile) {
+                const panY1 = noteY(pan.panMinFret) - PENTA_RADIUS - 6;
+                const panY2 = noteY(pan.panMaxFret) + PENTA_RADIUS + 6;
+                const panX1 = strX(pan.upperStr) - 9;
+                const panX2 = strX(pan.lowerStr) + 9;
+                const handleX = strX(pan.handleString);
+
+                let handleY1, handleY2;
+                if (pan.handleDirection === "left") {
+                  handleY1 = pan.handleFret === 0 ? MARGIN_TOP_M - 26 : noteY(pan.handleFret) - PENTA_RADIUS - 4;
+                  handleY2 = panY1;
+                } else {
+                  handleY1 = panY2;
+                  handleY2 = noteY(pan.handleFret) + PENTA_RADIUS + 4;
+                }
+
+                return (
+                  <g key={`fp-${i}`} pointerEvents="none">
+                    <rect
+                      x={panX1} y={panY1}
+                      width={panX2 - panX1} height={panY2 - panY1}
+                      rx={7}
+                      fill={panColor}
+                      opacity={0.25}
+                      stroke={panColor}
+                      strokeWidth={0.8}
+                      strokeOpacity={0.35}
+                    />
+                    <rect
+                      x={handleX - 4} y={handleY1}
+                      width={8} height={handleY2 - handleY1}
+                      rx={4}
+                      fill={panColor}
+                      opacity={0.20}
+                      stroke={panColor}
+                      strokeWidth={0.6}
+                      strokeOpacity={0.25}
+                    />
+                  </g>
+                );
+              }
+
               const panX1 = noteX(pan.panMinFret) - PENTA_RADIUS - 6;
               const panX2 = noteX(pan.panMaxFret) + PENTA_RADIUS + 6;
               const panY1 = strY(pan.upperStr) - 9;
               const panY2 = strY(pan.lowerStr) + 9;
               const handleY = strY(pan.handleString);
 
-              // Handle extends from pan edge to the handle note
               let handleX1, handleX2;
               if (pan.handleDirection === "left") {
                 handleX1 = pan.handleFret === 0 ? MARGIN_LEFT - 26 : noteX(pan.handleFret) - PENTA_RADIUS - 4;
@@ -1063,10 +1179,6 @@ export default function CAGEDExplorer() {
                 handleX1 = panX2;
                 handleX2 = noteX(pan.handleFret) + PENTA_RADIUS + 4;
               }
-
-              const panColor = pan.handleDirection === "left"
-                ? theme.overlay.fryingPanLeft
-                : theme.overlay.fryingPanRight;
 
               return (
                 <g key={`fp-${i}`} pointerEvents="none">
@@ -1096,13 +1208,13 @@ export default function CAGEDExplorer() {
 
 
             {pentaNotes.map(([s, f, interval]) => (
-              <FretDot key={posKey(s, f)} cx={noteX(f)} cy={strY(s)} radius={PENTA_RADIUS} interval={interval}
+              <FretDot key={posKey(s, f)} cx={isMobile ? strX(s) : noteX(f)} cy={isMobile ? noteY(f) : strY(s)} radius={PENTA_RADIUS} interval={interval}
                 keyIdx={effectiveKey} labelMode={labelMode} showNoteName={labelMode === "both" && f !== 0} theme={theme} />
             ))}
 
             {showMinTriad && visibleShapes.map(sh =>
               minTriads[sh].map(([s, f, interval], idx) => (
-                  <FretDot key={`m-${sh}-${idx}`} cx={noteX(f)} cy={strY(s)} radius={TRIAD_RADIUS} interval={interval}
+                  <FretDot key={`m-${sh}-${idx}`} cx={isMobile ? strX(s) : noteX(f)} cy={isMobile ? noteY(f) : strY(s)} radius={TRIAD_RADIUS} interval={interval}
                     keyIdx={effectiveKey} labelMode={labelMode} shapeBorder={activeShape === "all" ? theme.shape[sh] : null}
                     showNoteName={labelMode === "both" && f !== 0} theme={theme} />
                 ))
@@ -1110,7 +1222,7 @@ export default function CAGEDExplorer() {
 
             {showMajTriad && visibleShapes.map(sh =>
               majTriads[sh].map(([s, f, interval], idx) => (
-                <FretDot key={`t-${sh}-${idx}`} cx={noteX(f)} cy={strY(s)} radius={TRIAD_RADIUS} interval={interval}
+                <FretDot key={`t-${sh}-${idx}`} cx={isMobile ? strX(s) : noteX(f)} cy={isMobile ? noteY(f) : strY(s)} radius={TRIAD_RADIUS} interval={interval}
                   keyIdx={effectiveKey} labelMode={labelMode} shapeBorder={activeShape === "all" ? theme.shape[sh] : null}
                   showNoteName={labelMode === "both" && f !== 0} theme={theme} />
               ))
