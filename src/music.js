@@ -5,6 +5,23 @@
 
 export const NUM_FRETS = 15;
 
+// Proportional fret positions: each fret is r = 2^(-1/12) times the previous width.
+// Scaled so total width = NUM_FRETS * 56 (same as the old uniform spacing).
+// FRET_X[f] = cumulative x-offset at fret f (0 = nut, NUM_FRETS = last fret).
+export const FRET_X = (() => {
+  const r = Math.pow(2, -1 / 12);
+  const total = NUM_FRETS * 56;
+  const w1 = total * (1 - r) / (1 - Math.pow(r, NUM_FRETS));
+  const xs = [0];
+  for (let f = 1; f <= NUM_FRETS; f++) {
+    xs.push(xs[f - 1] + w1 * Math.pow(r, f - 1));
+  }
+  return xs;
+})();
+
+// Width of fret f (1-indexed: space between fret wire f-1 and f).
+export const FRET_W = (f) => FRET_X[f] - FRET_X[f - 1];
+
 export const SHAPE_ORDER = ["C", "A", "G", "E", "D"];
 
 // Frying pan geometry: defined for effectiveKey=0 (C major / A minor pentatonic).

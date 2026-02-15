@@ -12,6 +12,8 @@ import {
   clusterFrets,
   SHAPE_FRET_RANGES,
   computeHoverRanges,
+  FRET_X,
+  FRET_W,
 } from "./music.js";
 
 // ─── FRYING_PAN geometry ────────────────────────────────────────────────────
@@ -761,5 +763,43 @@ describe("Theme structure", () => {
     };
     check(THEME_DARK);
     check(THEME_LIGHT);
+  });
+});
+
+// ─── Proportional fret geometry ─────────────────────────────────────────────
+
+describe("FRET_X proportional fret positions", () => {
+  it("has NUM_FRETS + 1 entries starting at 0", () => {
+    expect(FRET_X).toHaveLength(NUM_FRETS + 1);
+    expect(FRET_X[0]).toBe(0);
+  });
+
+  it("total width matches NUM_FRETS * 56 (legacy uniform total)", () => {
+    expect(FRET_X[NUM_FRETS]).toBeCloseTo(NUM_FRETS * 56, 5);
+  });
+
+  it("positions are strictly increasing", () => {
+    for (let f = 1; f <= NUM_FRETS; f++) {
+      expect(FRET_X[f]).toBeGreaterThan(FRET_X[f - 1]);
+    }
+  });
+
+  it("consecutive fret widths decrease by ratio 2^(-1/12)", () => {
+    const expectedRatio = Math.pow(2, -1 / 12);
+    for (let f = 2; f <= NUM_FRETS; f++) {
+      const ratio = FRET_W(f) / FRET_W(f - 1);
+      expect(ratio).toBeCloseTo(expectedRatio, 10);
+    }
+  });
+
+  it("fret 13 is half the width of fret 1 (octave relationship)", () => {
+    // FRET_W(f) = w1 * r^(f-1), so FRET_W(13)/FRET_W(1) = r^12 = 2^(-1) = 0.5
+    expect(FRET_W(13) / FRET_W(1)).toBeCloseTo(0.5, 5);
+  });
+
+  it("FRET_W returns positive widths for all frets", () => {
+    for (let f = 1; f <= NUM_FRETS; f++) {
+      expect(FRET_W(f)).toBeGreaterThan(0);
+    }
   });
 });
