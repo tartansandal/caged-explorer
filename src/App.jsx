@@ -355,25 +355,30 @@ function ChordDiagram({ chord, shape, accent, keyIdx, labelMode, italic = false,
   );
 }
 
-function HelpModal({ onClose, theme }) {
+function HelpPanel({ isOpen, onClose, theme }) {
   const heading = { fontSize: "0.78rem", fontWeight: 700, margin: "20px 0 8px",
     letterSpacing: "0.15em", textTransform: "uppercase", color: theme.text.dim };
   const para = { margin: "0 0 8px" };
   return (
     <div onClick={onClose} style={{
-      position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)",
-      display: "flex", alignItems: "center", justifyContent: "center",
-      zIndex: 1000, padding: 16
+      position: "fixed", inset: 0, background: "rgba(0,0,0,0.3)",
+      zIndex: 1000,
+      opacity: isOpen ? 1 : 0, pointerEvents: isOpen ? "auto" : "none",
+      transition: "opacity 0.3s"
     }}>
       <div onClick={e => e.stopPropagation()} style={{
+        position: "fixed", top: 0, right: 0, bottom: 0,
+        width: 380, maxWidth: "100vw",
         background: theme.bg.modal, border: `1px solid ${theme.border.subtle}`,
-        borderRadius: 12, maxWidth: 600, maxHeight: "80vh",
-        padding: "24px 14px 24px 24px", overflow: "hidden", position: "relative",
+        borderRadius: "12px 0 0 12px",
+        padding: "24px 14px 24px 24px", overflow: "hidden",
         display: "flex", flexDirection: "column",
-        color: theme.text.primary, lineHeight: 1.7, fontSize: "0.88rem"
+        color: theme.text.primary, lineHeight: 1.7, fontSize: "0.88rem",
+        transform: isOpen ? "translateX(0)" : "translateX(100%)",
+        transition: "transform 0.3s ease"
       }}>
         <button onClick={onClose} style={{
-          position: "absolute", top: 8, right: 8, background: "none",
+          position: "absolute", top: 8, left: 8, background: "none",
           border: "none", cursor: "pointer", fontSize: "1.2rem",
           color: theme.text.dim, opacity: 0.7, zIndex: 1
         }}>&times;</button>
@@ -1055,7 +1060,7 @@ export default function CAGEDExplorer() {
           </span>
         </div>
       </div>
-      {showHelp && <HelpModal onClose={() => setShowHelp(false)} theme={theme} />}
+      <HelpPanel isOpen={showHelp} onClose={() => setShowHelp(false)} theme={theme} />
     </div>
   );
 }
