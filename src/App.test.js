@@ -1,4 +1,4 @@
-import { describe, it, expect, test } from "vitest";
+import { describe, it, expect } from "vitest";
 import { THEME_DARK, THEME_LIGHT } from "./App.jsx";
 import {
   SHAPE_ORDER,
@@ -747,11 +747,11 @@ function collectKeys(obj, prefix = "") {
 }
 
 describe("Theme structure", () => {
-  test("THEME_DARK and THEME_LIGHT have identical keys", () => {
+  it("THEME_DARK and THEME_LIGHT have identical keys", () => {
     expect(collectKeys(THEME_DARK)).toEqual(collectKeys(THEME_LIGHT));
   });
 
-  test("no theme value is undefined", () => {
+  it("no theme value is undefined", () => {
     const check = (obj, path = "") => {
       for (const [k, v] of Object.entries(obj)) {
         const p = path ? `${path}.${k}` : k;

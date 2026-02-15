@@ -533,6 +533,7 @@ export const BLUES_SHAPE = {
 // Shift note positions by effectiveKey using the FRYING_PAN double-shift
 // pattern: try both +ek and +(ek-12) to cover the full fretboard for any
 // key, dedup by position since two-octave data can produce overlapping notes.
+// Also filters results to [0, maxFret] — out-of-range notes are discarded.
 export function shiftNotes(notes, effectiveKey, maxFret = NUM_FRETS) {
   const seen = new Set();
   const result = [];

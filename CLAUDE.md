@@ -31,12 +31,12 @@ Music theory logic lives in `src/music.js` (pure functions + data constants), ke
 - `shiftNotes(notes, effectiveKey)` — Shifts note positions by `effectiveKey` using double-shift (`+ek` and `+(ek-12)`) with dedup.
 - `clusterFrets(frets, gapThreshold)` — Groups sorted frets into `{lo, hi}` clusters separated by gaps > threshold.
 - `computeHoverRanges(shapeRanges, shapes)` — Computes non-overlapping hover regions from shape clusters, splitting at midpoints between adjacent cluster centers. Excludes partial clusters.
-- Constants: `FRYING_PAN` (overlay geometry), `SHAPE_ORDER`, `SHAPE_ORIENTATION`, `NUM_FRETS`, `posKey`
+- Constants: `FRYING_PAN` (overlay geometry), `SHAPE_ORDER`, `SHAPE_ORIENTATION`, `NUM_FRETS`, `posKey`, `CHORD_MAJ/MIN` (open chord fingerings), `INTERVAL_SEMITONES` (interval-to-semitone mapping)
 
 **`src/App.jsx`** — Single `CAGEDExplorer` component with subcomponents:
 - `ToggleButton`, `FretDot`, `LegendSection`, `ChordDiagram`
 - Theme constants: `THEME_COMMON`, `THEME_DARK`, `THEME_LIGHT` (color palettes), `makeStyles(theme)` (layout styles)
-- UI constants: `CHORD_MAJ/MIN` (open chord fingerings), `LEGEND` (context-sensitive legend entries), `INTERVAL_SEMITONES` (interval-to-semitone mapping)
+- UI constants: `LEGEND` (context-sensitive legend entries)
 
 ### Key Concept: effectiveKey
 
@@ -48,7 +48,7 @@ All fretboard note positions follow the same pattern as `FRYING_PAN`: defined fo
 
 ### State Management
 
-React hooks only (`useState`, `useMemo`). Main state: `themeMode` (dark/light), `keyIndex` (0-11), `isMinorKey`, `activeShape` (C/A/G/E/D/all/off), `showTriads`, `pentaScale` (off/pentatonic/blues), `triadQuality` (major/minor), `pentaQuality` (major/minor), `labelMode` (intervals/notes/both), `showFryingPan` (boolean), `hoveredShape`.
+React hooks only (`useState`, `useMemo`). Main state: `themeMode` (dark/light), `keyIndex` (0-11), `isMinorKey`, `activeShape` (C/A/G/E/D/all/off), `showTriads`, `scaleMode` (off/pentatonic/blues), `triadQuality` (major/minor), `pentaQuality` (major/minor), `labelMode` (intervals/notes/both), `showFryingPan` (boolean), `hoveredShape`.
 
 ### Overlay System
 

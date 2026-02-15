@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import {
   posKey, shiftNotes, clusterFrets, computeHoverRanges, noteName,
-  NUM_FRETS, SHAPE_ORDER, FRYING_PAN, NOTES, INTERVAL_SEMITONES,
+  NUM_FRETS, SHAPE_ORDER, FRYING_PAN, NOTES,
   PENTA_BOX, TRIAD_SHAPE, BLUES_SHAPE, SHAPE_FRET_RANGES,
   CHORD_MAJ, CHORD_MIN,
 } from "./music.js";
@@ -214,6 +214,8 @@ const LEGEND = {
   bluesMajWithMin: [["2","Major 2nd"], ["3","Major 3rd"], ["6","Major 6th"]],
 };
 
+// Legend entries keyed by [scaleType][triadQuality]: when triads are visible,
+// the legend omits intervals already shown by the triad dots.
 const PENTA_LEGEND = {
   off:             { off: [], major: [], minor: [] },
   major:           { off: LEGEND.pentaMajFull, major: LEGEND.pentaMaj, minor: LEGEND.pentaMajWithMin },
@@ -222,9 +224,9 @@ const PENTA_LEGEND = {
   "blues-major":   { off: LEGEND.bluesMajFull, major: LEGEND.bluesMaj, minor: LEGEND.bluesMajWithMin },
 };
 
-const scaleName = (pentaScale, pentaQuality) => {
-  if (pentaScale === "off") return "";
-  if (pentaScale === "blues") return pentaQuality === "major" ? "Major Blues" : "Blues Scale";
+const scaleName = (scaleMode, pentaQuality) => {
+  if (scaleMode === "off") return "";
+  if (scaleMode === "blues") return pentaQuality === "major" ? "Major Blues" : "Blues Scale";
   return pentaQuality === "major" ? "Major Pentatonic" : "Minor Pentatonic";
 };
 
@@ -441,7 +443,7 @@ export default function CAGEDExplorer() {
   const [isMinorKey, setIsMinorKey] = useState(false);
   const [activeShape, setActiveShape] = useState("C");
   const [showTriads, setShowTriads] = useState(true);
-  const [pentaScale, setPentaScale] = useState("off");
+  const [scaleMode, setPentaScale] = useState("off");
   const [triadQuality, setTriadQuality] = useState("major");
   const [pentaQuality, setPentaQuality] = useState("major");
   const [advancedMode, setAdvancedMode] = useState(false);
@@ -491,7 +493,7 @@ export default function CAGEDExplorer() {
   const effectiveKey = isMinorKey ? (keyIndex + 9) % 12 : keyIndex;
   const showMajTriad = showTriads && triadQuality === "major";
   const showMinTriad = showTriads && triadQuality === "minor";
-  const showPenta = pentaScale !== "off";
+  const showPenta = scaleMode !== "off";
   const showShapeDistinctions = activeShape !== "off";
 
   const toggleAdvanced = () => {
@@ -521,26 +523,26 @@ export default function CAGEDExplorer() {
 
   // Per-shape pentatonic notes (used by pentatonic display and frying pan filtering)
   const majPenta = useMemo(() => {
-    if (pentaScale === "off" && !showFryingPan) return {};
+    if (scaleMode === "off" && !showFryingPan) return {};
     const byShape = {};
     visibleShapes.forEach(sh => { byShape[sh] = shiftNotes(PENTA_BOX.major[sh], effectiveKey); });
     return byShape;
-  }, [visibleShapes, effectiveKey, pentaScale, showFryingPan]);
+  }, [visibleShapes, effectiveKey, scaleMode, showFryingPan]);
 
   const minPenta = useMemo(() => {
-    if (pentaScale === "off" && !showFryingPan) return {};
+    if (scaleMode === "off" && !showFryingPan) return {};
     const byShape = {};
     visibleShapes.forEach(sh => { byShape[sh] = shiftNotes(PENTA_BOX.minor[sh], effectiveKey); });
     return byShape;
-  }, [visibleShapes, effectiveKey, pentaScale, showFryingPan]);
+  }, [visibleShapes, effectiveKey, scaleMode, showFryingPan]);
 
   // Per-shape blues notes (minor: ♭5, major: ♭3)
   const bluesNotes = useMemo(() => {
-    if (pentaScale !== "blues") return {};
+    if (scaleMode !== "blues") return {};
     const byShape = {};
     visibleShapes.forEach(sh => { byShape[sh] = shiftNotes(BLUES_SHAPE[pentaQuality][sh], effectiveKey); });
     return byShape;
-  }, [visibleShapes, effectiveKey, pentaQuality, pentaScale]);
+  }, [visibleShapes, effectiveKey, pentaQuality, scaleMode]);
 
   // Shape fret ranges for labels and background highlights — quality-dependent.
   // Uses only the active quality's triads + pentatonics so ranges tightly bound the
@@ -560,6 +562,8 @@ export default function CAGEDExplorer() {
       ]);
       const shifted = shiftNotes(allNotes, effectiveKey);
       const frets = shifted.map(([, f]) => f);
+      // Use first quality as canonical span reference — both qualities produce
+      // similar cluster widths, so either works for the 70% partial threshold.
       const canSpan = SHAPE_FRET_RANGES[rangeQualities[0]][sh][0].hi
                     - SHAPE_FRET_RANGES[rangeQualities[0]][sh][0].lo;
       ranges[sh] = clusterFrets(frets).map(c => ({
@@ -575,7 +579,7 @@ export default function CAGEDExplorer() {
     [shapeRanges]
   );
 
-  const pentaData = pentaScale === "off" ? null : (pentaQuality === "major" ? majPenta : minPenta);
+  const pentaData = scaleMode === "off" ? null : (pentaQuality === "major" ? majPenta : minPenta);
 
   const triadPositions = useMemo(() => {
     const set = new Set();
@@ -593,7 +597,7 @@ export default function CAGEDExplorer() {
         const key = posKey(s, f);
         if (!seen.has(key) && !triadPositions.has(key)) { seen.add(key); out.push([s, f, interval]); }
       });
-      if (pentaScale === "blues") {
+      if (scaleMode === "blues") {
         // Bound blues notes to within 1 fret of the shape's pentatonic clusters
         const clusterSource = pentaQuality === "major" ? majPenta : minPenta;
         const pentaFrets = (clusterSource[sh] || []).map(([, f]) => f);
@@ -606,7 +610,7 @@ export default function CAGEDExplorer() {
       }
     });
     return out;
-  }, [pentaData, bluesNotes, majPenta, minPenta, visibleShapes, triadPositions, pentaScale, pentaQuality]);
+  }, [pentaData, bluesNotes, majPenta, minPenta, visibleShapes, triadPositions, scaleMode, pentaQuality]);
 
 
   // Frying pan geometry: shift static geometry by keyIndex (not effectiveKey,
@@ -647,22 +651,22 @@ export default function CAGEDExplorer() {
   const svgH = MARGIN_TOP + 5 * STRING_SPACING + 48;
 
   const triadLegend = triadQuality === "minor" ? LEGEND.triadMin : LEGEND.triadMaj;
-  const pentaLegendKey = pentaScale === "off" ? "off"
-    : pentaScale === "blues" ? `blues-${pentaQuality}`
+  const pentaLegendKey = scaleMode === "off" ? "off"
+    : scaleMode === "blues" ? `blues-${pentaQuality}`
     : pentaQuality;
   const triadLegendKey = showTriads ? triadQuality : "off";
   const pentaLegend = PENTA_LEGEND[pentaLegendKey][triadLegendKey];
 
   const keyName = NOTES[effectiveKey];
   const footerKey = (() => {
-    if (!showTriads) return showPenta ? `${keyName} ${scaleName(pentaScale, pentaQuality)}` : "";
+    if (!showTriads) return showPenta ? `${keyName} ${scaleName(scaleMode, pentaQuality)}` : "";
     const base = triadQuality === "minor" ? `${keyName} Minor` : `${keyName} Major`;
-    return showPenta ? `${base} · ${scaleName(pentaScale, pentaQuality)}` : base;
+    return showPenta ? `${base} · ${scaleName(scaleMode, pentaQuality)}` : base;
   })();
 
   const subtitle = (() => {
     const triadPart = triadQuality === "minor" ? "Minor Triads" : "Major Triads";
-    return showPenta ? `${triadPart} · ${scaleName(pentaScale, pentaQuality)}` : triadPart;
+    return showPenta ? `${triadPart} · ${scaleName(scaleMode, pentaQuality)}` : triadPart;
   })();
 
   return (
@@ -769,10 +773,10 @@ export default function CAGEDExplorer() {
           )}
           <span style={STYLE.divider}>│</span>
           <span style={STYLE.optionLabel}>Pentatonic</span>
-          <ToggleButton label="Off" active={pentaScale === "off"} onClick={() => { setPentaScale("off"); setShowFryingPan(false); }} theme={theme} />
-          <ToggleButton label="On" active={pentaScale === "pentatonic"} onClick={() => setPentaScale("pentatonic")} theme={theme} />
-          <ToggleButton label="Blues" active={pentaScale === "blues"} onClick={() => setPentaScale("blues")} theme={theme} />
-          {advancedMode && pentaScale !== "off" && (
+          <ToggleButton label="Off" active={scaleMode === "off"} onClick={() => { setPentaScale("off"); setShowFryingPan(false); }} theme={theme} />
+          <ToggleButton label="On" active={scaleMode === "pentatonic"} onClick={() => setPentaScale("pentatonic")} theme={theme} />
+          <ToggleButton label="Blues" active={scaleMode === "blues"} onClick={() => setPentaScale("blues")} theme={theme} />
+          {advancedMode && scaleMode !== "off" && (
             <>
               {["major", "minor"].map(q => (
                 <ToggleButton key={q} label={q === "major" ? "Maj" : "Min"}
@@ -781,7 +785,7 @@ export default function CAGEDExplorer() {
               ))}
             </>
           )}
-          {activeShape === "all" && pentaScale !== "off" && <>
+          {activeShape === "all" && scaleMode !== "off" && <>
             <span style={STYLE.divider}>│</span>
             <span style={STYLE.optionLabel}>Frying Pan</span>
             <ToggleButton label="Off" active={!showFryingPan} onClick={() => setShowFryingPan(false)} theme={theme} />
@@ -966,7 +970,7 @@ export default function CAGEDExplorer() {
           <div style={{ display: "flex", gap: 16, flexWrap: "wrap", alignItems: "stretch" }}>
             {pentaLegend.length > 0 && (
               <div style={{ minWidth: 140, padding: "8px 12px", border: `1px solid ${theme.border.subtle}`, borderRadius: 8 }}>
-                <LegendSection title={scaleName(pentaScale, pentaQuality)} items={pentaLegend} dotSize={16}
+                <LegendSection title={scaleName(scaleMode, pentaQuality)} items={pentaLegend} dotSize={16}
                   keyIdx={effectiveKey} labelMode={labelMode} theme={theme} />
               </div>
             )}
@@ -996,17 +1000,17 @@ export default function CAGEDExplorer() {
             )}
           </div>
 
-          {pentaScale === "pentatonic" && pentaQuality === "minor" && (
+          {scaleMode === "pentatonic" && pentaQuality === "minor" && (
             <p style={{ fontSize: "0.68rem", color: theme.text.muted, lineHeight: 1.55, fontStyle: "italic", margin: 0, alignSelf: "center" }}>
               The ♭3 sits beside the major 3rd — the tension at the heart of the blues.
             </p>
           )}
-          {pentaScale === "blues" && pentaQuality === "minor" && (
+          {scaleMode === "blues" && pentaQuality === "minor" && (
             <p style={{ fontSize: "0.68rem", color: theme.text.muted, lineHeight: 1.55, fontStyle: "italic", margin: 0, alignSelf: "center" }}>
               The ♭5 squeezes between the 4th and 5th — a chromatic passing tone that gives the blues its grit.
             </p>
           )}
-          {pentaScale === "blues" && pentaQuality === "major" && (
+          {scaleMode === "blues" && pentaQuality === "major" && (
             <p style={{ fontSize: "0.68rem", color: theme.text.muted, lineHeight: 1.55, fontStyle: "italic", margin: 0, alignSelf: "center" }}>
               The ♭3 bends into the major 3rd — adding soul to a major key.
             </p>
