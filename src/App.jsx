@@ -876,40 +876,82 @@ export default function CAGEDExplorer() {
         )}
 
         {/* Options Row: Triads + Pentatonic + Frying Pan */}
-        <div style={STYLE.optionRow(22)}>
-          <span style={STYLE.optionLabel}>Triads</span>
-          <ToggleButton label="Off" active={!showTriads} onClick={() => setShowTriads(false)} theme={theme} />
-          <ToggleButton label="On" active={showTriads} onClick={() => setShowTriads(true)} theme={theme} />
-          {advancedMode && showTriads && (
-            <>
-              {["major", "minor"].map(q => (
-                <ToggleButton key={q} label={q === "major" ? "Maj" : "Min"}
-                  active={triadQuality === q} onClick={() => setTriadQuality(q)}
-                  style={{ fontSize: "0.6rem", padding: "2px 7px" }} theme={theme} />
-              ))}
-            </>
-          )}
-          <span style={STYLE.divider}>│</span>
-          <span style={STYLE.optionLabel}>Pentatonic</span>
-          <ToggleButton label="Off" active={scaleMode === "off"} onClick={() => { setPentaScale("off"); setShowFryingPan(false); }} theme={theme} />
-          <ToggleButton label="On" active={scaleMode === "pentatonic"} onClick={() => setPentaScale("pentatonic")} theme={theme} />
-          <ToggleButton label="Blues" active={scaleMode === "blues"} onClick={() => setPentaScale("blues")} theme={theme} />
-          {advancedMode && scaleMode !== "off" && (
-            <>
-              {["major", "minor"].map(q => (
-                <ToggleButton key={q} label={q === "major" ? "Maj" : "Min"}
-                  active={pentaQuality === q} onClick={() => setPentaQuality(q)}
-                  style={{ fontSize: "0.6rem", padding: "2px 7px" }} theme={theme} />
-              ))}
-            </>
-          )}
-          {activeShape === "all" && scaleMode !== "off" && <>
+        {isMobile ? (() => {
+          const mLabel = { fontSize: "0.5rem", color: theme.text.dim, letterSpacing: "0.12em", textTransform: "uppercase" };
+          const mDiv = { color: theme.divider, margin: "0 2px", fontSize: "0.7rem" };
+          const mBtn = { fontSize: "0.65rem", padding: "2px 6px" };
+          return (
+            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 4, marginBottom: 16, flexWrap: "wrap" }}>
+              <span style={mLabel}>Triads</span>
+              <ToggleButton label="Off" active={!showTriads} onClick={() => setShowTriads(false)} style={mBtn} theme={theme} />
+              <ToggleButton label="On" active={showTriads} onClick={() => setShowTriads(true)} style={mBtn} theme={theme} />
+              {advancedMode && showTriads && (
+                <>
+                  {["major", "minor"].map(q => (
+                    <ToggleButton key={q} label={q === "major" ? "Maj" : "Min"}
+                      active={triadQuality === q} onClick={() => setTriadQuality(q)}
+                      style={{ fontSize: "0.6rem", padding: "2px 7px" }} theme={theme} />
+                  ))}
+                </>
+              )}
+              <span style={mDiv}>│</span>
+              <span style={mLabel}>Penta</span>
+              <ToggleButton label="Off" active={scaleMode === "off"} onClick={() => { setPentaScale("off"); setShowFryingPan(false); }} style={mBtn} theme={theme} />
+              <ToggleButton label="On" active={scaleMode === "pentatonic"} onClick={() => setPentaScale("pentatonic")} style={mBtn} theme={theme} />
+              <ToggleButton label="Blues" active={scaleMode === "blues"} onClick={() => setPentaScale("blues")} style={mBtn} theme={theme} />
+              {advancedMode && scaleMode !== "off" && (
+                <>
+                  {["major", "minor"].map(q => (
+                    <ToggleButton key={q} label={q === "major" ? "Maj" : "Min"}
+                      active={pentaQuality === q} onClick={() => setPentaQuality(q)}
+                      style={{ fontSize: "0.6rem", padding: "2px 7px" }} theme={theme} />
+                  ))}
+                </>
+              )}
+              {activeShape === "all" && scaleMode !== "off" && <>
+                <span style={mDiv}>│</span>
+                <span style={mLabel}>Frying Pan</span>
+                <ToggleButton label="Off" active={!showFryingPan} onClick={() => setShowFryingPan(false)} style={mBtn} theme={theme} />
+                <ToggleButton label="On" active={showFryingPan} onClick={() => setShowFryingPan(true)} style={mBtn} theme={theme} />
+              </>}
+            </div>
+          );
+        })() : (
+          <div style={STYLE.optionRow(22)}>
+            <span style={STYLE.optionLabel}>Triads</span>
+            <ToggleButton label="Off" active={!showTriads} onClick={() => setShowTriads(false)} theme={theme} />
+            <ToggleButton label="On" active={showTriads} onClick={() => setShowTriads(true)} theme={theme} />
+            {advancedMode && showTriads && (
+              <>
+                {["major", "minor"].map(q => (
+                  <ToggleButton key={q} label={q === "major" ? "Maj" : "Min"}
+                    active={triadQuality === q} onClick={() => setTriadQuality(q)}
+                    style={{ fontSize: "0.6rem", padding: "2px 7px" }} theme={theme} />
+                ))}
+              </>
+            )}
             <span style={STYLE.divider}>│</span>
-            <span style={STYLE.optionLabel}>Frying Pan</span>
-            <ToggleButton label="Off" active={!showFryingPan} onClick={() => setShowFryingPan(false)} theme={theme} />
-            <ToggleButton label="On" active={showFryingPan} onClick={() => setShowFryingPan(true)} theme={theme} />
-          </>}
-        </div>
+            <span style={STYLE.optionLabel}>Pentatonic</span>
+            <ToggleButton label="Off" active={scaleMode === "off"} onClick={() => { setPentaScale("off"); setShowFryingPan(false); }} theme={theme} />
+            <ToggleButton label="On" active={scaleMode === "pentatonic"} onClick={() => setPentaScale("pentatonic")} theme={theme} />
+            <ToggleButton label="Blues" active={scaleMode === "blues"} onClick={() => setPentaScale("blues")} theme={theme} />
+            {advancedMode && scaleMode !== "off" && (
+              <>
+                {["major", "minor"].map(q => (
+                  <ToggleButton key={q} label={q === "major" ? "Maj" : "Min"}
+                    active={pentaQuality === q} onClick={() => setPentaQuality(q)}
+                    style={{ fontSize: "0.6rem", padding: "2px 7px" }} theme={theme} />
+                ))}
+              </>
+            )}
+            {activeShape === "all" && scaleMode !== "off" && <>
+              <span style={STYLE.divider}>│</span>
+              <span style={STYLE.optionLabel}>Frying Pan</span>
+              <ToggleButton label="Off" active={!showFryingPan} onClick={() => setShowFryingPan(false)} theme={theme} />
+              <ToggleButton label="On" active={showFryingPan} onClick={() => setShowFryingPan(true)} theme={theme} />
+            </>}
+          </div>
+        )}
 
         {/* Fretboard */}
         <div style={{ background: theme.bg.panel, borderRadius: 12, padding: "10px 0", border: `1px solid ${theme.border.subtle}`,
