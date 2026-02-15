@@ -47,3 +47,12 @@ body {
   background: rgba(0,0,0,0.15);
   border-radius: 4px;
 }
+
+/* Mobile select dropdowns */
+.caged-select {
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+}

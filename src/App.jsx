@@ -783,33 +783,57 @@ export default function CAGEDExplorer() {
           {subtitle}
         </p>
 
-        {/* Key Selector: Major Row */}
-        <div style={STYLE.keyRow(4)}>
-          <span style={STYLE.rowLabel}>Major</span>
-          {NOTES.map((n, i) => {
-            const sel = keyIndex === i;
-            return (
-              <button key={n} onClick={() => { setKeyIndex(i); setIsMinorKey(false); if (!advancedMode) { setTriadQuality("major"); setPentaQuality("major"); } }}
-                style={STYLE.keyBtn(sel && !isMinorKey, sel)}>
-                {n}
-              </button>
-            );
-          })}
-        </div>
+        {isMobile ? (
+          /* Mobile Key Selector: dropdown + Major/Minor toggle */
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 14 }}>
+            <select
+              className="caged-select"
+              value={keyIndex}
+              onChange={e => { setKeyIndex(Number(e.target.value)); }}
+              style={{ background: theme.bg.btnOff, color: theme.text.primary, border: `1px solid ${theme.border.light}` }}
+            >
+              {NOTES.map((n, i) => (
+                <option key={i} value={i}>{isMinorKey ? NOTES[(i + 9) % 12] + "m" : n}</option>
+              ))}
+            </select>
+            <ToggleButton label="Major" active={!isMinorKey}
+              onClick={() => { setIsMinorKey(false); if (!advancedMode) { setTriadQuality("major"); setPentaQuality("major"); } }}
+              theme={theme} />
+            <ToggleButton label="Minor" active={isMinorKey}
+              onClick={() => { setIsMinorKey(true); if (!advancedMode) { setTriadQuality("minor"); setPentaQuality("minor"); } }}
+              theme={theme} />
+          </div>
+        ) : (
+          <>
+            {/* Key Selector: Major Row */}
+            <div style={STYLE.keyRow(4)}>
+              <span style={STYLE.rowLabel}>Major</span>
+              {NOTES.map((n, i) => {
+                const sel = keyIndex === i;
+                return (
+                  <button key={n} onClick={() => { setKeyIndex(i); setIsMinorKey(false); if (!advancedMode) { setTriadQuality("major"); setPentaQuality("major"); } }}
+                    style={STYLE.keyBtn(sel && !isMinorKey, sel)}>
+                    {n}
+                  </button>
+                );
+              })}
+            </div>
 
-        {/* Key Selector: Minor Row */}
-        <div style={STYLE.keyRow(20)}>
-          <span style={STYLE.rowLabel}>Rel. Minor</span>
-          {NOTES.map((_, i) => {
-            const sel = keyIndex === i;
-            return (
-              <button key={i} onClick={() => { setKeyIndex(i); setIsMinorKey(true); if (!advancedMode) { setTriadQuality("minor"); setPentaQuality("minor"); } }}
-                style={STYLE.minorKeyBtn(sel && isMinorKey, sel)}>
-                {NOTES[(i + 9) % 12] + "m"}
-              </button>
-            );
-          })}
-        </div>
+            {/* Key Selector: Minor Row */}
+            <div style={STYLE.keyRow(20)}>
+              <span style={STYLE.rowLabel}>Rel. Minor</span>
+              {NOTES.map((_, i) => {
+                const sel = keyIndex === i;
+                return (
+                  <button key={i} onClick={() => { setKeyIndex(i); setIsMinorKey(true); if (!advancedMode) { setTriadQuality("minor"); setPentaQuality("minor"); } }}
+                    style={STYLE.minorKeyBtn(sel && isMinorKey, sel)}>
+                    {NOTES[(i + 9) % 12] + "m"}
+                  </button>
+                );
+              })}
+            </div>
+          </>
+        )}
 
         {/* Shapes + Labels */}
         <div style={STYLE.optionRow(14)}>
