@@ -192,7 +192,7 @@ const MARGIN_TOP_M     = 30;   // space for string names at top
 
 const fretY  = (fret) => MARGIN_TOP_M + FRET_X[fret];
 const noteY  = (fret) => fret === 0 ? MARGIN_TOP_M - 16 : MARGIN_TOP_M + (fretXAt(fret - 1) + fretXAt(fret)) / 2;
-const strX   = (str)  => MARGIN_LEFT_M + (str - 1) * STRING_SPACING_M;
+const strX   = (str)  => MARGIN_LEFT_M + (6 - str) * STRING_SPACING_M;
 
 // Shared layout styles extracted from JSX
 const makeStyles = (theme) => ({
@@ -796,8 +796,9 @@ export default function CAGEDExplorer() {
         </p>
 
         {isMobile ? (
-          /* Mobile Key Selector: dropdown + Major/Minor toggle */
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 14 }}>
+          /* Mobile: Key dropdown + Major/Minor, Shape dropdown, Labels — all on one row */
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 14, flexWrap: "wrap" }}>
+            <span style={{ fontSize: "0.5rem", color: theme.text.dim, letterSpacing: "0.12em", textTransform: "uppercase" }}>Key</span>
             <select
               className="caged-select"
               value={keyIndex}
@@ -814,6 +815,26 @@ export default function CAGEDExplorer() {
             <ToggleButton label="Minor" active={isMinorKey}
               onClick={() => { setIsMinorKey(true); if (!advancedMode) { setTriadQuality("minor"); setPentaQuality("minor"); } }}
               theme={theme} />
+            <span style={{ color: theme.divider, margin: "0 2px", fontSize: "0.7rem" }}>│</span>
+            <span style={{ fontSize: "0.5rem", color: theme.text.dim, letterSpacing: "0.12em", textTransform: "uppercase" }}>Shape</span>
+            <select
+              className="caged-select"
+              value={activeShape}
+              onChange={e => changeShape(e.target.value)}
+              style={{ background: theme.bg.btnOff, color: theme.text.primary, border: `1px solid ${theme.border.light}` }}
+            >
+              {["off", ...SHAPE_ORDER, "all"].map(s => (
+                <option key={s} value={s}>
+                  {s === "off" ? "Off" : s === "all" ? "All" : isMinorKey ? s + "m" : s}
+                </option>
+              ))}
+            </select>
+            <span style={{ color: theme.divider, margin: "0 2px", fontSize: "0.7rem" }}>│</span>
+            <span style={{ fontSize: "0.5rem", color: theme.text.dim, letterSpacing: "0.12em", textTransform: "uppercase" }}>Labels</span>
+            {["intervals", "notes", "both"].map(m => (
+              <ToggleButton key={m} label={m === "intervals" ? "Intervals" : m === "notes" ? "Notes" : "Both"}
+                active={labelMode === m} onClick={() => setLabelMode(m)} theme={theme} />
+            ))}
           </div>
         ) : (
           <>
@@ -844,47 +865,26 @@ export default function CAGEDExplorer() {
                 );
               })}
             </div>
-          </>
-        )}
 
-        {/* Shapes + Labels */}
-        {isMobile ? (
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 10 }}>
-            <select
-              className="caged-select"
-              value={activeShape}
-              onChange={e => changeShape(e.target.value)}
-              style={{ background: theme.bg.btnOff, color: theme.text.primary, border: `1px solid ${theme.border.light}` }}
-            >
-              {["off", ...SHAPE_ORDER, "all"].map(s => (
-                <option key={s} value={s}>
-                  {s === "off" ? "Off" : s === "all" ? "All" : isMinorKey ? s + "m" : s}
-                </option>
+            {/* Shapes + Labels */}
+            <div style={STYLE.optionRow(14)}>
+              <span style={STYLE.optionLabel}>Shapes</span>
+              {["off", ...SHAPE_ORDER, "all"].map(s => {
+                const label = s === "off" ? "Off" : s === "all" ? "All"
+                  : isMinorKey ? s + "m" : s;
+                return (
+                  <ToggleButton key={s} label={label}
+                    active={activeShape === s} onClick={() => changeShape(s)} theme={theme} />
+                );
+              })}
+              <span style={STYLE.divider}>│</span>
+              <span style={STYLE.optionLabel}>Labels</span>
+              {["intervals", "notes", "both"].map(m => (
+                <ToggleButton key={m} label={m === "intervals" ? "Intervals" : m === "notes" ? "Notes" : "Both"}
+                  active={labelMode === m} onClick={() => setLabelMode(m)} theme={theme} />
               ))}
-            </select>
-            {["intervals", "notes", "both"].map(m => (
-              <ToggleButton key={m} label={m === "intervals" ? "Int" : m === "notes" ? "Notes" : "Both"}
-                active={labelMode === m} onClick={() => setLabelMode(m)} theme={theme} />
-            ))}
-          </div>
-        ) : (
-          <div style={STYLE.optionRow(14)}>
-            <span style={STYLE.optionLabel}>Shapes</span>
-            {["off", ...SHAPE_ORDER, "all"].map(s => {
-              const label = s === "off" ? "Off" : s === "all" ? "All"
-                : isMinorKey ? s + "m" : s;
-              return (
-                <ToggleButton key={s} label={label}
-                  active={activeShape === s} onClick={() => changeShape(s)} theme={theme} />
-              );
-            })}
-            <span style={STYLE.divider}>│</span>
-            <span style={STYLE.optionLabel}>Labels</span>
-            {["intervals", "notes", "both"].map(m => (
-              <ToggleButton key={m} label={m === "intervals" ? "Intervals" : m === "notes" ? "Notes" : "Both"}
-                active={labelMode === m} onClick={() => setLabelMode(m)} theme={theme} />
-            ))}
-          </div>
+            </div>
+          </>
         )}
 
         {/* Options Row: Triads + Pentatonic + Frying Pan */}
@@ -892,8 +892,8 @@ export default function CAGEDExplorer() {
           const mLabel = { fontSize: "0.5rem", color: theme.text.dim, letterSpacing: "0.12em", textTransform: "uppercase" };
           const mDiv = { color: theme.divider, margin: "0 2px", fontSize: "0.7rem" };
           const mBtn = { fontSize: "0.65rem", padding: "2px 6px" };
-          return (
-            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 4, marginBottom: 16, flexWrap: "wrap" }}>
+          return (<>
+            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 4, marginBottom: 8, flexWrap: "wrap" }}>
               <span style={mLabel}>Triads</span>
               <ToggleButton label="Off" active={!showTriads} onClick={() => setShowTriads(false)} style={mBtn} theme={theme} />
               <ToggleButton label="On" active={showTriads} onClick={() => setShowTriads(true)} style={mBtn} theme={theme} />
@@ -920,14 +920,15 @@ export default function CAGEDExplorer() {
                   ))}
                 </>
               )}
-              {activeShape === "all" && scaleMode !== "off" && <>
-                <span style={mDiv}>│</span>
+            </div>
+            {activeShape === "all" && scaleMode !== "off" &&
+              <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 4, marginBottom: 8 }}>
                 <span style={mLabel}>Frying Pan</span>
                 <ToggleButton label="Off" active={!showFryingPan} onClick={() => setShowFryingPan(false)} style={mBtn} theme={theme} />
                 <ToggleButton label="On" active={showFryingPan} onClick={() => setShowFryingPan(true)} style={mBtn} theme={theme} />
-              </>}
-            </div>
-          );
+              </div>
+            }
+          </>);
         })() : (
           <div style={STYLE.optionRow(22)}>
             <span style={STYLE.optionLabel}>Triads</span>
