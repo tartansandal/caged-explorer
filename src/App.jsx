@@ -388,9 +388,8 @@ function HelpPanel({ isOpen, onClose, theme }) {
           The guitar fretboard can feel like an unmapped country &mdash; six strings,
           dozens of frets, and no obvious landmarks. Like any explorer, you need
           a map. But a map of every note on every fret is almost as overwhelming
-          as the fretboard itself.
+          as the fretboard itself. What you really need are landmarks.
         </p>
-        <p style={para}>What you really need are landmarks.</p>
 
         <h3 style={heading}>The Landmarks</h3>
         <p style={para}>
@@ -399,42 +398,42 @@ function HelpPanel({ isOpen, onClose, theme }) {
           These familiar shapes are your reference points.
         </p>
         <p style={para}>
-          Start by selecting a single shape and exploring its details. Each shape
-          is built from triads &mdash; three-note groups on adjacent strings containing
-          a root, a third, and a fifth. Try switching between major and minor to
-          see the effect of the flat 3rd (this is clearest with E/Em, A/Am, and
-          D/Dm).
+          Pick a shape &mdash; any shape &mdash; and poke around. You&rsquo;ll
+          see it&rsquo;s built from triads: three-note clusters on adjacent
+          strings. A root, a third, a fifth. Flip between major and minor and
+          watch the third drop &mdash; it&rsquo;s easiest to spot with E, A,
+          and D.
         </p>
         <p style={para}>
-          These shapes are movable. Pick a shape, then change the key &mdash; watch it
-          slide up the neck. This is the basis of barre chords for the E, A, and
-          C shapes. The G and D shapes are harder to barre physically, but the
-          concept still applies.
+          Now change the key and watch your shape slide up the neck.
+          Congratulations, you&rsquo;ve just discovered barre chords. The G
+          and D shapes are harder to barre physically, but the concept still
+          applies.
         </p>
 
         <h3 style={heading}>Expanding the Territory</h3>
         <p style={para}>
-          Each chord shape can be extended into a pentatonic scale by adding two
-          extra notes. This gives you five pentatonic box patterns &mdash; one for each
-          CAGED shape. Add one more note (the blue note) and you have blues
-          scales.
+          Each shape is really a skeleton. Flesh it out with two more notes and
+          you&rsquo;ve got a pentatonic box. Five shapes, five boxes &mdash; one
+          for each. Throw in the blue note and suddenly you&rsquo;re playing
+          blues.
         </p>
         <p style={para}>
-          Switch to &ldquo;All&rdquo; shapes view and you&rsquo;ll see the entire
-          fretboard as a pattern of five movable, interlocking shapes.
+          Switch to &ldquo;All&rdquo; and step back. The whole fretboard is just
+          five interlocking shapes, repeating up the neck.
         </p>
 
         <h3 style={heading}>Connecting the Shapes</h3>
         <p style={para}>
-          Now shift your focus from vertical shapes to horizontal ones. Turn on
-          the frying pan overlay and notice how just two pan shapes repeat across
-          the entire fretboard, cutting across the CAGED shapes. Hover over the
-          shape regions to see how the vertical and horizontal patterns intersect.
+          So far you&rsquo;ve been thinking in vertical slices. Turn on the
+          frying pan overlay and something surprising happens &mdash; just two
+          little pan shapes tile across the entire fretboard, cutting right
+          through the CAGED boundaries. Hover over the shape regions and watch
+          the two systems overlap.
         </p>
         <p style={para}>
-          Organising your learning this way lets you progressively build
-          understanding without getting lost &mdash; and if you do get lost, you can
-          always find your way back to a familiar landmark.
+          And if you ever get lost up the neck, just look for the nearest
+          landmark. It&rsquo;s never far.
         </p>
 
         <h3 style={heading}>Putting the Map Away</h3>
@@ -445,8 +444,8 @@ function HelpPanel({ isOpen, onClose, theme }) {
           in months. That&rsquo;s not failure &mdash; that&rsquo;s the whole point.
         </p>
         <p style={{ margin: 0 }}>
-          You&rsquo;ve freed yourself up to explore concepts of harmony and melody
-          more deeply &mdash; perhaps you now need a Modal or Arpeggio Explorer?
+          You&rsquo;ve outgrown the map. Time to explore harmony and melody on
+          your own terms &mdash; perhaps with a Modal or Arpeggio Explorer?
         </p>
       </div>
       </div>

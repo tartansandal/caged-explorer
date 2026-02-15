@@ -32,14 +32,16 @@ Music theory logic lives in `src/music.js` (pure functions + data constants), ke
 - `clusterFrets(frets, gapThreshold)` — Groups sorted frets into `{lo, hi}` clusters separated by gaps > threshold.
 - `computeHoverRanges(shapeRanges, shapes)` — Computes non-overlapping hover regions from shape clusters, splitting at midpoints between adjacent cluster centers. Excludes partial clusters.
 - `FRET_X` — Precomputed cumulative x-offset array for proportional fret spacing (length `NUM_FRETS + 1`). Each fret is `r = 2^(-1/12)` times the width of the previous, matching real guitar geometry. Total width preserved at `NUM_FRETS * 56` (same as the old uniform spacing). `FRET_X[0] = 0`, `FRET_X[NUM_FRETS] = 840`.
-- `FRET_W(f)` — Returns the pixel width of fret `f` (1-indexed). Fret 1 ≈ 81px, fret 7 ≈ 57px, fret 13 = half of fret 1 (octave relationship).
+- `FRET_W(f)` — Returns the pixel width of fret `f` (1-indexed, integer only). Fret 1 ≈ 81px, fret 7 ≈ 57px, fret 13 = half of fret 1 (octave relationship). `FRET_W(0)` is `NaN` — use `fretWAt` for fret 0 or fractional values.
+- `fretXAt(f)` — Linearly interpolates `FRET_X` for fractional fret values. Returns `FRET_X[f]` for integers. Used by hover ranges which produce fractional boundaries.
+- `fretWAt(f)` — Width at fractional fret `f`. For `f < 1` (open strings area), returns `FRET_W(1)`. For integers ≥ 1, matches `FRET_W(f)`. For fractional values, interpolates via `fretXAt`.
 - Constants: `FRYING_PAN` (overlay geometry), `SHAPE_ORDER`, `SHAPE_ORIENTATION`, `NUM_FRETS`, `posKey`, `CHORD_MAJ/MIN` (open chord fingerings), `INTERVAL_SEMITONES` (interval-to-semitone mapping)
 
 **`src/App.jsx`** — Single `CAGEDExplorer` component with subcomponents:
 - `ToggleButton`, `FretDot`, `LegendSection`, `ChordDiagram`
 - `fretX(fret)` — X position of fret wire: `MARGIN_LEFT + FRET_X[fret]`
-- `noteX(fret)` — X position of a note dot (midpoint between adjacent fret wires): `(FRET_X[fret-1] + FRET_X[fret]) / 2`. Fret 0 (open strings) is a special case offset left of the nut.
-- Shape highlights and hover rects use `FRET_W(fret) * 0.48` for per-fret half-width padding (not a uniform constant).
+- `noteX(fret)` — X position of a note dot (midpoint via `fretXAt`): `(fretXAt(fret-1) + fretXAt(fret)) / 2`. Supports fractional frets. Fret 0 (open strings) is a special case offset left of the nut.
+- Shape highlights and hover rects use `fretWAt(fret) * 0.48` for per-fret half-width padding (supports fret 0 and fractional values from hover ranges).
 - Theme constants: `THEME_COMMON`, `THEME_DARK`, `THEME_LIGHT` (color palettes), `makeStyles(theme)` (layout styles)
 - UI constants: `LEGEND` (context-sensitive legend entries)
 - The mini `ChordDiagram` component uses its own uniform `FRET_GAP` — it represents a zoomed-in 4-fret window, not the full fretboard.
