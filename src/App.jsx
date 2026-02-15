@@ -1231,7 +1231,11 @@ export default function CAGEDExplorer() {
         </div>
 
         {/* Bottom Section: Legend + Chord Diagrams */}
-        <div style={{ display: "flex", alignItems: "stretch", justifyContent: "center", marginTop: 20, gap: 16, flexWrap: "wrap" }}>
+        <div style={{
+          display: "flex", alignItems: "stretch", justifyContent: "center",
+          marginTop: 20, gap: 16, flexWrap: "wrap",
+          ...(isMobile && { flexDirection: "column", alignItems: "center" })
+        }}>
           {showTriads && (
             <div style={{ minWidth: 140, padding: "8px 12px", border: `1px solid ${theme.border.subtle}`, borderRadius: 8 }}>
               <LegendSection title={triadQuality === "minor" ? "Minor Triad" : "Triad"}
