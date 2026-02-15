@@ -186,9 +186,9 @@ const TRIAD_RADIUS   = 10;
 const PENTA_RADIUS   = 8;
 
 // Mobile (vertical) fretboard layout: nut at top, frets descending
-const STRING_SPACING_M = 48;
-const MARGIN_LEFT_M    = 40;   // space for fret numbers on left
-const MARGIN_TOP_M     = 30;   // space for string names at top
+const STRING_SPACING_M = 42;
+const MARGIN_LEFT_M    = 55;   // space for fret numbers + shape labels on left
+const MARGIN_TOP_M     = 45;   // space for string names at top
 
 const fretY  = (fret) => MARGIN_TOP_M + FRET_X[fret];
 const noteY  = (fret) => fret === 0 ? MARGIN_TOP_M - 16 : MARGIN_TOP_M + (fretXAt(fret - 1) + fretXAt(fret)) / 2;
@@ -969,7 +969,7 @@ export default function CAGEDExplorer() {
         {/* Fretboard */}
         <div style={{ background: theme.bg.panel, borderRadius: 12, padding: "10px 0", border: `1px solid ${theme.border.subtle}`,
           boxShadow: theme.fretboard.shadow,
-          ...(isMobile ? { overflowY: "auto", maxHeight: "70vh" } : { overflowX: "auto" }) }}>
+          ...(isMobile ? {} : { overflowX: "auto" }) }}>
           <svg viewBox={`0 0 ${isMobile ? svgW_M : svgW} ${isMobile ? svgH_M : svgH}`}
                style={{ width: "100%", ...(isMobile ? {} : { minWidth: 700 }), display: "block" }}>
             <defs>
@@ -1020,7 +1020,7 @@ export default function CAGEDExplorer() {
 
             {Array.from({ length: NUM_FRETS + 1 }, (_, i) => i).map(f =>
               isMobile
-                ? <text key={f} x={MARGIN_LEFT_M - 16} y={f === 0 ? MARGIN_TOP_M : noteY(f)}
+                ? <text key={f} x={MARGIN_LEFT_M - 28} y={f === 0 ? MARGIN_TOP_M : noteY(f)}
                     textAnchor="middle" dominantBaseline="central" fill={theme.text.dim} fontSize={9} fontFamily="ui-monospace, monospace">{f}</text>
                 : <text key={f} x={f === 0 ? MARGIN_LEFT : noteX(f)} y={MARGIN_TOP + 5 * STRING_SPACING + 34}
                     textAnchor="middle" fill={theme.text.dim} fontSize={9} fontFamily="ui-monospace, monospace">{f}</text>
@@ -1028,7 +1028,7 @@ export default function CAGEDExplorer() {
 
             {STR_NAMES.map((l, i) =>
               isMobile
-                ? <text key={i} x={strX(6 - i)} y={MARGIN_TOP_M - 12} textAnchor="middle" fill={theme.text.dim} fontSize={10} fontFamily="ui-monospace, monospace">{l}</text>
+                ? <text key={i} x={strX(6 - i)} y={MARGIN_TOP_M - 32} textAnchor="middle" fill={theme.text.dim} fontSize={10} fontFamily="ui-monospace, monospace">{l}</text>
                 : <text key={i} x={14} y={strY(6 - i) + 4} textAnchor="middle" fill={theme.text.dim} fontSize={10} fontFamily="ui-monospace, monospace">{l}</text>
             )}
 
@@ -1093,7 +1093,7 @@ export default function CAGEDExplorer() {
                   const cy = avg < 0.5 ? MARGIN_TOP_M : noteY(Math.round(avg));
                   return <text
                     key={`${sh}-${ci}`}
-                    x={MARGIN_LEFT_M - 22}
+                    x={MARGIN_LEFT_M - 42}
                     y={cy}
                     textAnchor="middle"
                     dominantBaseline="central"
