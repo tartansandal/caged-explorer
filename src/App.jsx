@@ -11,6 +11,19 @@ import {
  * An interactive fretboard visualization tool for learning the CAGED system on guitar.
  */
 
+function useIsMobile(maxWidth) {
+  const [mobile, setMobile] = useState(
+    () => typeof window !== "undefined" && window.innerWidth <= maxWidth
+  );
+  useEffect(() => {
+    const mql = window.matchMedia(`(max-width: ${maxWidth}px)`);
+    const onChange = (e) => setMobile(e.matches);
+    mql.addEventListener("change", onChange);
+    return () => mql.removeEventListener("change", onChange);
+  }, [maxWidth]);
+  return mobile;
+}
+
 const STR_NAMES = ["E", "A", "D", "G", "B", "e"];
 
 const THEME_COMMON = {
@@ -467,6 +480,7 @@ export default function CAGEDExplorer() {
   const [showHelp, setShowHelp] = useState(false);
 
   const [hoveredShape, setHoveredShape] = useState(null);
+  const isMobile = useIsMobile(639); // eslint-disable-line no-unused-vars -- used in later responsive tasks
 
   const [themeMode, setThemeMode] = useState(() => {
     const saved = typeof window !== "undefined" ? localStorage.getItem("theme") : null;
