@@ -974,7 +974,7 @@ export default function CAGEDExplorer() {
 
         {/* Fretboard */}
         <div style={isMobile
-          ? {}
+          ? { marginTop: 10 }
           : { background: theme.bg.panel, borderRadius: 12, padding: "10px 0", border: `1px solid ${theme.border.subtle}`,
               boxShadow: theme.fretboard.shadow, overflowX: "auto" }
         }>
@@ -1039,7 +1039,7 @@ export default function CAGEDExplorer() {
 
             {STR_NAMES.map((l, i) =>
               isMobile
-                ? <text key={i} x={strX(6 - i)} y={MARGIN_TOP_M - 42} textAnchor="middle" fill={theme.text.dim} fontSize={10} fontFamily="ui-monospace, monospace">{l}</text>
+                ? <text key={i} x={strX(6 - i)} y={MARGIN_TOP_M - 40} textAnchor="middle" fill={theme.text.dim} fontSize={10} fontFamily="ui-monospace, monospace">{l}</text>
                 : <text key={i} x={14} y={strY(6 - i) + 4} textAnchor="middle" fill={theme.text.dim} fontSize={10} fontFamily="ui-monospace, monospace">{l}</text>
             )}
 
