@@ -824,16 +824,17 @@ export default function CAGEDExplorer() {
             <span style={{ fontSize: "0.5rem", color: theme.text.dim, letterSpacing: "0.12em", textTransform: "uppercase" }}>Shape</span>
             <select
               className="caged-select"
-              value={activeShape}
+              value={activeShape === "all" ? "off" : activeShape}
               onChange={e => changeShape(e.target.value)}
               style={{ background: theme.bg.btnOff, color: theme.text.primary, border: `1px solid ${theme.border.light}` }}
             >
-              {["off", ...SHAPE_ORDER, "all"].map(s => (
+              {["off", ...SHAPE_ORDER].map(s => (
                 <option key={s} value={s}>
-                  {s === "off" ? "Off" : s === "all" ? "All" : isMinorKey ? s + "m" : s}
+                  {s === "off" ? "Off" : isMinorKey ? s + "m" : s}
                 </option>
               ))}
             </select>
+            <ToggleButton label="All" active={activeShape === "all"} onClick={() => changeShape(activeShape === "all" ? "off" : "all")} theme={theme} />
             <span style={{ color: theme.divider, margin: "0 2px", fontSize: "0.7rem" }}>│</span>
             <span style={{ display: "inline-flex", alignItems: "center", gap: 4, flexWrap: "nowrap" }}>
               <span style={{ fontSize: "0.5rem", color: theme.text.dim, letterSpacing: "0.12em", textTransform: "uppercase" }}>Labels</span>
