@@ -186,12 +186,17 @@ const TRIAD_RADIUS   = 10;
 const PENTA_RADIUS   = 8;
 
 // Mobile (vertical) fretboard layout: nut at top, frets descending
+// Uniform fret spacing on mobile — proportional spacing wastes vertical space
 const STRING_SPACING_M = 42;
 const MARGIN_LEFT_M    = 55;   // space for fret numbers + shape labels on left
 const MARGIN_TOP_M     = 58;   // space for string names + open-string notes at top
+const FRET_SPACING_M   = 56;   // uniform fret width (same total as proportional)
+const FRET_TOTAL_M     = NUM_FRETS * FRET_SPACING_M;
 
-const fretY  = (fret) => MARGIN_TOP_M + FRET_X[fret];
-const noteY  = (fret) => fret === 0 ? MARGIN_TOP_M - 20 : MARGIN_TOP_M + (fretXAt(fret - 1) + fretXAt(fret)) / 2;
+const fretY_M  = (fret) => fret * FRET_SPACING_M;   // uniform position (no margin)
+const fretY  = (fret) => MARGIN_TOP_M + fretY_M(fret);
+const noteY  = (fret) => fret === 0 ? MARGIN_TOP_M - 20 : MARGIN_TOP_M + (fret - 0.5) * FRET_SPACING_M;
+const fretWAt_M = () => FRET_SPACING_M;              // constant width for uniform spacing
 const strX   = (str)  => MARGIN_LEFT_M + (6 - str) * STRING_SPACING_M;
 
 // Shared layout styles extracted from JSX
@@ -691,7 +696,7 @@ export default function CAGEDExplorer() {
   const svgH = MARGIN_TOP + 5 * STRING_SPACING + 48;
 
   const svgW_M = MARGIN_LEFT_M + 5 * STRING_SPACING_M + 25;
-  const svgH_M = MARGIN_TOP_M + FRET_X[NUM_FRETS] + 48;
+  const svgH_M = MARGIN_TOP_M + FRET_TOTAL_M + 48;
 
   const triadLegend = triadQuality === "minor" ? LEGEND.triadMin : LEGEND.triadMaj;
   const pentaLegendKey = scaleMode === "off" ? "off"
@@ -982,13 +987,13 @@ export default function CAGEDExplorer() {
             </defs>
 
             {isMobile
-              ? <rect x={MARGIN_LEFT_M - 13} y={MARGIN_TOP_M - 3} width={5 * STRING_SPACING_M + 26} height={FRET_X[NUM_FRETS] + 6} rx={3} fill="url(#fb)" />
+              ? <rect x={MARGIN_LEFT_M - 13} y={MARGIN_TOP_M - 3} width={5 * STRING_SPACING_M + 26} height={FRET_TOTAL_M + 6} rx={3} fill="url(#fb)" />
               : <rect x={MARGIN_LEFT - 3} y={MARGIN_TOP - 13} width={FRET_X[NUM_FRETS] + 6} height={5 * STRING_SPACING + 26} rx={3} fill="url(#fb)" />
             }
 
             {[6, 5, 4, 3, 2, 1].map(s =>
               isMobile
-                ? <line key={s} x1={strX(s)} y1={MARGIN_TOP_M - 20} x2={strX(s)} y2={MARGIN_TOP_M + FRET_X[NUM_FRETS]}
+                ? <line key={s} x1={strX(s)} y1={MARGIN_TOP_M - 20} x2={strX(s)} y2={MARGIN_TOP_M + FRET_TOTAL_M}
                     stroke={theme.text.secondary} strokeWidth={0.3 + (s - 1) * 0.16} opacity={0.45} />
                 : <line key={s} x1={MARGIN_LEFT - 20} y1={strY(s)} x2={MARGIN_LEFT + FRET_X[NUM_FRETS]} y2={strY(s)}
                     stroke={theme.text.secondary} strokeWidth={0.3 + (s - 1) * 0.16} opacity={0.45} />
@@ -1039,8 +1044,8 @@ export default function CAGEDExplorer() {
               return SHAPE_ORDER.filter(sh => sh === hoveredShape).flatMap(sh =>
                 shapeRanges[sh].map(({ lo, hi }, ci) => {
                   if (isMobile) {
-                    const y1 = noteY(lo) - fretWAt(lo) * 0.48;
-                    const y2 = noteY(hi) + fretWAt(hi) * 0.48;
+                    const y1 = noteY(lo) - fretWAt_M() * 0.48;
+                    const y2 = noteY(hi) + fretWAt_M() * 0.48;
                     return <rect key={`bg-${sh}-${ci}`} x={MARGIN_LEFT_M - 13} y={y1} width={5 * STRING_SPACING_M + 26} height={y2 - y1} fill={theme.shape[sh]} opacity={theme.fretboard.shapeHighlight} rx={3} />;
                   }
                   const x1 = noteX(lo) - fretWAt(lo) * 0.48;
@@ -1057,8 +1062,8 @@ export default function CAGEDExplorer() {
             {/* Hit rects for shape hover/click in all-view */}
             {(showTriads || showPenta) && activeShape === "all" && hoverRanges.map(({ shape, ci, hoverLo, hoverHi }) => {
               if (isMobile) {
-                const y1 = noteY(hoverLo) - fretWAt(hoverLo) * 0.48;
-                const y2 = noteY(hoverHi) + fretWAt(hoverHi) * 0.48;
+                const y1 = noteY(hoverLo) - fretWAt_M() * 0.48;
+                const y2 = noteY(hoverHi) + fretWAt_M() * 0.48;
                 return <rect
                   key={`hit-${shape}-${ci}`}
                   x={MARGIN_LEFT_M - 38}
