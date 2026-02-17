@@ -188,10 +188,10 @@ const PENTA_RADIUS   = 8;
 // Mobile (vertical) fretboard layout: nut at top, frets descending
 const STRING_SPACING_M = 42;
 const MARGIN_LEFT_M    = 55;   // space for fret numbers + shape labels on left
-const MARGIN_TOP_M     = 45;   // space for string names at top
+const MARGIN_TOP_M     = 58;   // space for string names + open-string notes at top
 
 const fretY  = (fret) => MARGIN_TOP_M + FRET_X[fret];
-const noteY  = (fret) => fret === 0 ? MARGIN_TOP_M - 16 : MARGIN_TOP_M + (fretXAt(fret - 1) + fretXAt(fret)) / 2;
+const noteY  = (fret) => fret === 0 ? MARGIN_TOP_M - 20 : MARGIN_TOP_M + (fretXAt(fret - 1) + fretXAt(fret)) / 2;
 const strX   = (str)  => MARGIN_LEFT_M + (6 - str) * STRING_SPACING_M;
 
 // Shared layout styles extracted from JSX
@@ -967,9 +967,11 @@ export default function CAGEDExplorer() {
         )}
 
         {/* Fretboard */}
-        <div style={{ background: theme.bg.panel, borderRadius: 12, padding: "10px 0", border: `1px solid ${theme.border.subtle}`,
-          boxShadow: theme.fretboard.shadow,
-          ...(isMobile ? {} : { overflowX: "auto" }) }}>
+        <div style={isMobile
+          ? {}
+          : { background: theme.bg.panel, borderRadius: 12, padding: "10px 0", border: `1px solid ${theme.border.subtle}`,
+              boxShadow: theme.fretboard.shadow, overflowX: "auto" }
+        }>
           <svg viewBox={`0 0 ${isMobile ? svgW_M : svgW} ${isMobile ? svgH_M : svgH}`}
                style={{ width: "100%", ...(isMobile ? {} : { minWidth: 700 }), display: "block" }}>
             <defs>
@@ -1028,7 +1030,7 @@ export default function CAGEDExplorer() {
 
             {STR_NAMES.map((l, i) =>
               isMobile
-                ? <text key={i} x={strX(6 - i)} y={MARGIN_TOP_M - 32} textAnchor="middle" fill={theme.text.dim} fontSize={10} fontFamily="ui-monospace, monospace">{l}</text>
+                ? <text key={i} x={strX(6 - i)} y={MARGIN_TOP_M - 42} textAnchor="middle" fill={theme.text.dim} fontSize={10} fontFamily="ui-monospace, monospace">{l}</text>
                 : <text key={i} x={14} y={strY(6 - i) + 4} textAnchor="middle" fill={theme.text.dim} fontSize={10} fontFamily="ui-monospace, monospace">{l}</text>
             )}
 
@@ -1098,7 +1100,7 @@ export default function CAGEDExplorer() {
                     textAnchor="middle"
                     dominantBaseline="central"
                     fill={theme.shape[sh]}
-                    fontSize={10}
+                    fontSize={13}
                     fontWeight={700}
                     opacity={partial ? 0.25 : (isAllView ? (isActive ? 1 : 0.6) : 1)}
                   >{lbl}</text>;
@@ -1127,8 +1129,11 @@ export default function CAGEDExplorer() {
               if (isMobile) {
                 const panY1 = noteY(pan.panMinFret) - PENTA_RADIUS - 6;
                 const panY2 = noteY(pan.panMaxFret) + PENTA_RADIUS + 6;
-                const panX1 = strX(pan.upperStr) - 9;
-                const panX2 = strX(pan.lowerStr) + 9;
+                // strX reverses string order (6-str), so use min/max
+                const sx1 = strX(pan.upperStr);
+                const sx2 = strX(pan.lowerStr);
+                const panX1 = Math.min(sx1, sx2) - 9;
+                const panX2 = Math.max(sx1, sx2) + 9;
                 const handleX = strX(pan.handleString);
 
                 let handleY1, handleY2;
