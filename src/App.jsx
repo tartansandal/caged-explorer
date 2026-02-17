@@ -719,7 +719,7 @@ export default function CAGEDExplorer() {
 
   return (
     <div style={{ background: theme.bg.page,
-      minHeight: "100vh", padding: "24px 16px", boxSizing: "border-box", fontFamily: "system-ui, -apple-system, 'Segoe UI', sans-serif", color: theme.text.primary }}>
+      minHeight: "100vh", padding: isMobile ? "12px 4px" : "24px 16px", boxSizing: "border-box", fontFamily: "system-ui, -apple-system, 'Segoe UI', sans-serif", color: theme.text.primary }}>
       <div style={{ maxWidth: 1000, margin: "0 auto", position: "relative" }}>
 
         {!isMobile && <img src={`${import.meta.env.BASE_URL}logo.svg`} width={80} height={80} alt="" style={{ position: "absolute", top: -4, left: 0, opacity: 0.85 }} />}
@@ -985,6 +985,9 @@ export default function CAGEDExplorer() {
                 <stop offset="0%" stopColor={theme.fretboard.gradientTop} stopOpacity="0.22" />
                 <stop offset="100%" stopColor={theme.fretboard.gradientBottom} stopOpacity="0.22" />
               </linearGradient>
+              {isMobile && <clipPath id="fb-clip">
+                <rect x={0} y={MARGIN_TOP_M - 24} width={svgW_M} height={FRET_TOTAL_M + 30} />
+              </clipPath>}
             </defs>
 
             {isMobile
@@ -1127,6 +1130,7 @@ export default function CAGEDExplorer() {
             })}
 
             {/* Frying-pan overlay - render behind notes */}
+            <g clipPath={isMobile ? "url(#fb-clip)" : undefined}>
             {fryingPanShapes.map((pan, i) => {
               const panColor = pan.handleDirection === "left"
                 ? theme.overlay.fryingPanLeft
@@ -1217,7 +1221,7 @@ export default function CAGEDExplorer() {
                 </g>
               );
             })}
-
+            </g>
 
             {pentaNotes.map(([s, f, interval]) => (
               <FretDot key={posKey(s, f)} cx={isMobile ? strX(s) : noteX(f)} cy={isMobile ? noteY(f) : strY(s)} radius={PENTA_RADIUS} interval={interval}
@@ -1255,7 +1259,7 @@ export default function CAGEDExplorer() {
             </div>
           )}
 
-          <div style={{ display: "flex", gap: 16, flexWrap: "wrap", alignItems: "stretch" }}>
+          <div style={{ display: "flex", gap: 16, flexWrap: "wrap", alignItems: "stretch", justifyContent: "center" }}>
             {pentaLegend.length > 0 && (
               <div style={{ minWidth: 140, padding: "8px 12px", border: `1px solid ${theme.border.subtle}`, borderRadius: 8 }}>
                 <LegendSection title={scaleName(scaleMode, pentaQuality)} items={pentaLegend} dotSize={16}
