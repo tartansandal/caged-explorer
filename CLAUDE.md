@@ -46,6 +46,25 @@ Music theory logic lives in `src/music.js` (pure functions + data constants), ke
 - UI constants: `LEGEND` (context-sensitive legend entries)
 - The mini `ChordDiagram` component uses its own uniform `FRET_GAP` — it represents a zoomed-in 4-fret window, not the full fretboard.
 
+### Responsive / Mobile Layout
+
+The app detects mobile viewports (≤639px) via the `useIsMobile` hook (uses `matchMedia`, not resize events). Mobile and desktop share the same component tree but diverge at render time via `isMobile` conditionals.
+
+**Desktop layout:** Horizontal fretboard (nut on left, frets extending right), button rows for key/shape/options, proportional fret spacing (`FRET_X` from `music.js`).
+
+**Mobile layout:** Vertical fretboard (nut at top, frets descending), dropdowns replacing button rows, uniform fret spacing. Key differences:
+
+- **Coordinate functions:** `fretY(fret)`, `noteY(fret)`, `strX(str)` replace desktop `fretX`/`noteX`/`strY`. The X/Y axes are swapped.
+- **Uniform fret spacing:** `FRET_SPACING_M = 56` px per fret (vs proportional on desktop). Same total width (`NUM_FRETS * 56 = 840`), but evenly distributed so more frets are visible in the viewport.
+- **Reversed string axis:** `strX(str) = MARGIN_LEFT_M + (6 - str) * STRING_SPACING_M` — string 6 on the left, string 1 on the right. Code using string coordinates (e.g. frying pan overlay) must use `Math.min`/`Math.max` rather than assuming ordering.
+- **Controls:** Key and shape selectors use `<select>` dropdowns. "All" shapes is a separate toggle button. Frying pan label shortened to "Pan" and inlined with penta controls.
+- **Fretboard container:** No panel box (background/border/shadow) on mobile — saves margin space.
+- **Frying pan clipping:** A `<clipPath>` constrains frying pan overlay shapes to the fretboard bounds on mobile.
+- **Touch support:** Shape hover hit rects include `onClick` toggle for touch devices (mouse hover doesn't work on mobile).
+- **Hamburger menu:** Header controls (help, settings, GitHub, theme toggle) collapse into a hamburger menu. `menuOpen = isMobile && showMenu` derived value prevents stale state on breakpoint change.
+
+Mobile layout constants: `STRING_SPACING_M` (42), `MARGIN_LEFT_M` (55), `MARGIN_TOP_M` (58), `FRET_SPACING_M` (56).
+
 ### Key Concept: effectiveKey
 
 The `effectiveKey` variable transforms between the displayed key and the underlying music theory. For major keys it equals `keyIndex` directly; for minor keys it's `(keyIndex + 9) % 12` (relative major). All note data is shifted by `effectiveKey` via `shiftNotes`.
@@ -56,7 +75,7 @@ All fretboard note positions follow the same pattern as `FRYING_PAN`: defined fo
 
 ### State Management
 
-React hooks only (`useState`, `useMemo`). Main state: `themeMode` (dark/light), `keyIndex` (0-11), `isMinorKey`, `activeShape` (C/A/G/E/D/all/off), `showTriads`, `scaleMode` (off/pentatonic/blues), `triadQuality` (major/minor), `pentaQuality` (major/minor), `labelMode` (intervals/notes/both), `showFryingPan` (boolean), `hoveredShape`.
+React hooks only (`useState`, `useMemo`, `useEffect`). Main state: `themeMode` (dark/light), `keyIndex` (0-11), `isMinorKey`, `activeShape` (C/A/G/E/D/all/off), `showTriads`, `scaleMode` (off/pentatonic/blues), `triadQuality` (major/minor), `pentaQuality` (major/minor), `labelMode` (intervals/notes/both), `showFryingPan` (boolean), `hoveredShape`, `showMenu` (mobile hamburger). Derived: `menuOpen = isMobile && showMenu`.
 
 ### Overlay System
 
@@ -92,8 +111,9 @@ Tests use Vitest (`src/App.test.js`) and cover the static data tables and overla
 - `computeHoverRanges` — no overlaps, full coverage, no partial leaks, tiling without gaps
 - `FRET_X` geometry — total width, monotonicity, `2^(-1/12)` ratio between consecutive frets, octave relationship (fret 13 = half of fret 1)
 - Theme structure — `THEME_DARK` and `THEME_LIGHT` have identical keys, no undefined values
+- Mobile layout geometry — uniform total matches proportional, `fretY` monotonicity and constant gaps, `noteY` placement between fret wires, `strX` reversed ordering and uniform spacing
 
-Tests are property-based where possible, iterating all 12 keys × major/minor scales to verify invariants.
+Tests are property-based where possible, iterating all 12 keys × major/minor scales to verify invariants. Mobile layout tests mirror the coordinate functions from `App.jsx` locally (can't export without breaking React Fast Refresh).
 
 ## Deployment
 
