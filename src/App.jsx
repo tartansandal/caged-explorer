@@ -193,10 +193,8 @@ const MARGIN_TOP_M     = 58;   // space for string names + open-string notes at 
 const FRET_SPACING_M   = 56;   // uniform fret width (same total as proportional)
 const FRET_TOTAL_M     = NUM_FRETS * FRET_SPACING_M;
 
-const fretY_M  = (fret) => fret * FRET_SPACING_M;   // uniform position (no margin)
-const fretY  = (fret) => MARGIN_TOP_M + fretY_M(fret);
+const fretY  = (fret) => MARGIN_TOP_M + fret * FRET_SPACING_M;
 const noteY  = (fret) => fret === 0 ? MARGIN_TOP_M - 20 : MARGIN_TOP_M + (fret - 0.5) * FRET_SPACING_M;
-const fretWAt_M = () => FRET_SPACING_M;              // constant width for uniform spacing
 const strX   = (str)  => MARGIN_LEFT_M + (6 - str) * STRING_SPACING_M;
 
 // Shared layout styles extracted from JSX
@@ -496,6 +494,7 @@ export default function CAGEDExplorer() {
 
   const [hoveredShape, setHoveredShape] = useState(null);
   const isMobile = useIsMobile(639);
+  const menuOpen = isMobile && showMenu;
 
   const [themeMode, setThemeMode] = useState(() => {
     const saved = typeof window !== "undefined" ? localStorage.getItem("theme") : null;
@@ -734,7 +733,7 @@ export default function CAGEDExplorer() {
                 fontSize: "1.4rem", color: theme.text.dim, opacity: 0.7 }}>
               ☰
             </button>
-            {showMenu && (
+            {menuOpen && (
               <>
                 <div style={{ position: "fixed", inset: 0, zIndex: 99 }} onClick={() => setShowMenu(false)} />
                 <div style={{ position: "absolute", top: 32, right: 0, zIndex: 100,
@@ -826,7 +825,8 @@ export default function CAGEDExplorer() {
               className="caged-select"
               value={activeShape === "all" ? "off" : activeShape}
               onChange={e => changeShape(e.target.value)}
-              style={{ background: theme.bg.btnOff, color: theme.text.primary, border: `1px solid ${theme.border.light}` }}
+              style={{ background: theme.bg.btnOff, color: theme.text.primary, border: `1px solid ${theme.border.light}`,
+                ...(activeShape === "all" && { opacity: 0.4, pointerEvents: "none" }) }}
             >
               {["off", ...SHAPE_ORDER].map(s => (
                 <option key={s} value={s}>
@@ -1048,8 +1048,8 @@ export default function CAGEDExplorer() {
               return SHAPE_ORDER.filter(sh => sh === hoveredShape).flatMap(sh =>
                 shapeRanges[sh].map(({ lo, hi }, ci) => {
                   if (isMobile) {
-                    const y1 = noteY(lo) - fretWAt_M() * 0.48;
-                    const y2 = noteY(hi) + fretWAt_M() * 0.48;
+                    const y1 = noteY(lo) - FRET_SPACING_M * 0.48;
+                    const y2 = noteY(hi) + FRET_SPACING_M * 0.48;
                     return <rect key={`bg-${sh}-${ci}`} x={MARGIN_LEFT_M - 13} y={y1} width={5 * STRING_SPACING_M + 26} height={y2 - y1} fill={theme.shape[sh]} opacity={theme.fretboard.shapeHighlight} rx={3} />;
                   }
                   const x1 = noteX(lo) - fretWAt(lo) * 0.48;
@@ -1066,8 +1066,8 @@ export default function CAGEDExplorer() {
             {/* Hit rects for shape hover/click in all-view */}
             {(showTriads || showPenta) && activeShape === "all" && hoverRanges.map(({ shape, ci, hoverLo, hoverHi }) => {
               if (isMobile) {
-                const y1 = noteY(hoverLo) - fretWAt_M() * 0.48;
-                const y2 = noteY(hoverHi) + fretWAt_M() * 0.48;
+                const y1 = noteY(hoverLo) - FRET_SPACING_M * 0.48;
+                const y2 = noteY(hoverHi) + FRET_SPACING_M * 0.48;
                 return <rect
                   key={`hit-${shape}-${ci}`}
                   x={MARGIN_LEFT_M - 38}
@@ -1077,6 +1077,7 @@ export default function CAGEDExplorer() {
                   fill="transparent"
                   onMouseEnter={() => setHoveredShape(shape)}
                   onMouseLeave={() => setHoveredShape(null)}
+                  onClick={() => setHoveredShape(h => h === shape ? null : shape)}
                 />;
               }
               const x1 = noteX(hoverLo) - fretWAt(hoverLo) * 0.48;
