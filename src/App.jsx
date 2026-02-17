@@ -835,7 +835,6 @@ export default function CAGEDExplorer() {
               ))}
             </select>
             <ToggleButton label="All" active={activeShape === "all"} onClick={() => changeShape(activeShape === "all" ? "off" : "all")} theme={theme} />
-            <span style={{ color: theme.divider, margin: "0 2px", fontSize: "0.7rem" }}>│</span>
             <span style={{ display: "inline-flex", alignItems: "center", gap: 4, flexWrap: "nowrap" }}>
               <span style={{ fontSize: "0.5rem", color: theme.text.dim, letterSpacing: "0.12em", textTransform: "uppercase" }}>Labels</span>
               {["intervals", "notes", "both"].map(m => (
