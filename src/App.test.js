@@ -852,7 +852,7 @@ describe("hover rect coordinates with proportional frets", () => {
     }
   });
 
-  it("all hover hoverLo/hoverHi values produce finite fretWAt results across all keys", () => {
+  it("all hover hoverLo/hoverHi values produce finite fretWAt results across all keys (desktop)", () => {
     for (const q of ["major", "minor"]) {
       for (let ek = 0; ek < 12; ek++) {
         const ranges = buildShapeRanges(ek, [q]);
@@ -864,6 +864,63 @@ describe("hover rect coordinates with proportional frets", () => {
           expect(Number.isFinite(fretWAt(h.hoverHi)), `${q} ek=${ek} ${h.shape}[${h.ci}] fretWAt(${h.hoverHi})`).toBe(true);
         });
       }
+    }
+  });
+});
+
+// ─── Mobile layout geometry ─────────────────────────────────────────────────
+// Mirror the mobile layout constants from App.jsx (can't export without breaking Fast Refresh)
+const STRING_SPACING_M = 42;
+const MARGIN_LEFT_M    = 55;
+const MARGIN_TOP_M     = 58;
+const FRET_SPACING_M   = 56;
+const FRET_TOTAL_M     = NUM_FRETS * FRET_SPACING_M;
+const fretY  = (fret) => MARGIN_TOP_M + fret * FRET_SPACING_M;
+const noteY  = (fret) => fret === 0 ? MARGIN_TOP_M - 20 : MARGIN_TOP_M + (fret - 0.5) * FRET_SPACING_M;
+const strX   = (str)  => MARGIN_LEFT_M + (6 - str) * STRING_SPACING_M;
+
+describe("Mobile layout geometry", () => {
+  it("uniform total matches proportional total", () => {
+    expect(FRET_TOTAL_M).toBeCloseTo(FRET_X[NUM_FRETS], 5);
+  });
+
+  it("fretY is monotonically increasing", () => {
+    for (let f = 1; f <= NUM_FRETS; f++) {
+      expect(fretY(f)).toBeGreaterThan(fretY(f - 1));
+    }
+  });
+
+  it("fretY uses uniform spacing (constant gap between frets)", () => {
+    const gap = fretY(1) - fretY(0);
+    expect(gap).toBe(FRET_SPACING_M);
+    for (let f = 2; f <= NUM_FRETS; f++) {
+      expect(fretY(f) - fretY(f - 1)).toBe(gap);
+    }
+  });
+
+  it("noteY places notes between fret wires", () => {
+    for (let f = 1; f <= NUM_FRETS; f++) {
+      const y = noteY(f);
+      expect(y).toBeGreaterThan(fretY(f - 1));
+      expect(y).toBeLessThan(fretY(f));
+    }
+  });
+
+  it("noteY(0) is above the nut", () => {
+    expect(noteY(0)).toBeLessThan(fretY(0));
+  });
+
+  it("strX reverses string order (string 1 rightmost, string 6 leftmost)", () => {
+    for (let s = 2; s <= 6; s++) {
+      expect(strX(s)).toBeLessThan(strX(s - 1));
+    }
+  });
+
+  it("strX spacing is uniform", () => {
+    const gap = strX(1) - strX(2);
+    expect(gap).toBe(STRING_SPACING_M);
+    for (let s = 2; s <= 5; s++) {
+      expect(strX(s) - strX(s + 1)).toBe(gap);
     }
   });
 });
