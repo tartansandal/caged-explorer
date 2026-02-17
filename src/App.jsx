@@ -835,11 +835,13 @@ export default function CAGEDExplorer() {
               ))}
             </select>
             <span style={{ color: theme.divider, margin: "0 2px", fontSize: "0.7rem" }}>│</span>
-            <span style={{ fontSize: "0.5rem", color: theme.text.dim, letterSpacing: "0.12em", textTransform: "uppercase" }}>Labels</span>
-            {["intervals", "notes", "both"].map(m => (
-              <ToggleButton key={m} label={m === "intervals" ? "Intervals" : m === "notes" ? "Notes" : "Both"}
-                active={labelMode === m} onClick={() => setLabelMode(m)} theme={theme} />
-            ))}
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 4, flexWrap: "nowrap" }}>
+              <span style={{ fontSize: "0.5rem", color: theme.text.dim, letterSpacing: "0.12em", textTransform: "uppercase" }}>Labels</span>
+              {["intervals", "notes", "both"].map(m => (
+                <ToggleButton key={m} label={m === "intervals" ? "Intervals" : m === "notes" ? "Notes" : "Both"}
+                  active={labelMode === m} onClick={() => setLabelMode(m)} theme={theme} />
+              ))}
+            </span>
           </div>
         ) : (
           <>
@@ -925,14 +927,13 @@ export default function CAGEDExplorer() {
                   ))}
                 </>
               )}
-            </div>
-            {activeShape === "all" && scaleMode !== "off" &&
-              <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 4, marginBottom: 8 }}>
-                <span style={mLabel}>Frying Pan</span>
+              {activeShape === "all" && scaleMode !== "off" && <>
+                <span style={mDiv}>│</span>
+                <span style={mLabel}>Pan</span>
                 <ToggleButton label="Off" active={!showFryingPan} onClick={() => setShowFryingPan(false)} style={mBtn} theme={theme} />
                 <ToggleButton label="On" active={showFryingPan} onClick={() => setShowFryingPan(true)} style={mBtn} theme={theme} />
-              </div>
-            }
+              </>}
+            </div>
           </>);
         })() : (
           <div style={STYLE.optionRow(22)}>
