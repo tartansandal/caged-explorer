@@ -696,7 +696,7 @@ export default function CAGEDExplorer() {
   const svgH = MARGIN_TOP + 5 * STRING_SPACING + 48;
 
   const svgW_M = MARGIN_LEFT_M + 5 * STRING_SPACING_M + 25;
-  const svgH_M = MARGIN_TOP_M + FRET_TOTAL_M + 48;
+  const svgH_M = MARGIN_TOP_M + FRET_TOTAL_M + 20;
 
   const triadLegend = triadQuality === "minor" ? LEGEND.triadMin : LEGEND.triadMaj;
   const pentaLegendKey = scaleMode === "off" ? "off"
@@ -1249,7 +1249,7 @@ export default function CAGEDExplorer() {
         {/* Bottom Section: Legend + Chord Diagrams */}
         <div style={{
           display: "flex", alignItems: "stretch", justifyContent: "center",
-          marginTop: 20, gap: 16, flexWrap: "wrap",
+          marginTop: isMobile ? 8 : 20, gap: isMobile ? 10 : 16, flexWrap: "wrap",
           ...(isMobile && { flexDirection: "column", alignItems: "center" })
         }}>
           {showTriads && (
