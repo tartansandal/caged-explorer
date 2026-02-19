@@ -874,9 +874,9 @@ export default function CAGEDExplorer() {
                 );
               })}
               <span style={STYLE.divider}>│</span>
-              <ToggleButton label="Intervals" active={labelMode === "intervals"} onClick={() => setLabelMode("intervals")} theme={theme} />
-              <span style={{ color: theme.text.dim, fontSize: "0.7rem" }}>/</span>
               <ToggleButton label="Notes" active={labelMode === "notes"} onClick={() => setLabelMode("notes")} theme={theme} />
+              <span style={{ color: theme.text.dim, fontSize: "0.7rem" }}>/</span>
+              <ToggleButton label="Intervals" active={labelMode === "intervals"} onClick={() => setLabelMode("intervals")} theme={theme} />
             </div>
           </>
         )}
@@ -1396,9 +1396,9 @@ export default function CAGEDExplorer() {
                     </div>
                     {/* Intervals / Notes toggle */}
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 4 }}>
-                      <ToggleButton label="Intervals" active={labelMode === "intervals"} onClick={() => setLabelMode("intervals")} theme={theme} />
-                      <span style={{ color: theme.text.dim, fontSize: "0.7rem" }}>/</span>
                       <ToggleButton label="Notes" active={labelMode === "notes"} onClick={() => setLabelMode("notes")} theme={theme} />
+                      <span style={{ color: theme.text.dim, fontSize: "0.7rem" }}>/</span>
+                      <ToggleButton label="Intervals" active={labelMode === "intervals"} onClick={() => setLabelMode("intervals")} theme={theme} />
                     </div>
                     {/* Options */}
                     {(() => {
