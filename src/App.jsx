@@ -912,8 +912,7 @@ export default function CAGEDExplorer() {
           return (<>
             <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 4, marginBottom: 8, flexWrap: "wrap" }}>
               <span style={mLabel}>Triads</span>
-              <ToggleButton label="Off" active={!showTriads} onClick={() => setShowTriads(false)} style={mBtn} theme={theme} />
-              <ToggleButton label="On" active={showTriads} onClick={() => setShowTriads(true)} style={mBtn} theme={theme} />
+              <PillToggle on={showTriads} onToggle={() => setShowTriads(t => !t)} theme={theme} />
               {advancedMode && showTriads && (
                 <>
                   {["major", "minor"].map(q => (
@@ -948,8 +947,7 @@ export default function CAGEDExplorer() {
         })() : (
           <div style={STYLE.optionRow(22)}>
             <span style={STYLE.optionLabel}>Triads</span>
-            <ToggleButton label="Off" active={!showTriads} onClick={() => setShowTriads(false)} theme={theme} />
-            <ToggleButton label="On" active={showTriads} onClick={() => setShowTriads(true)} theme={theme} />
+            <PillToggle on={showTriads} onToggle={() => setShowTriads(t => !t)} theme={theme} />
             {advancedMode && showTriads && (
               <>
                 {["major", "minor"].map(q => (
