@@ -1254,21 +1254,16 @@ export default function CAGEDExplorer() {
             )}
           </div>
 
-          {scaleMode === "pentatonic" && pentaQuality === "minor" && (
-            <p style={{ fontSize: "0.68rem", color: theme.text.muted, lineHeight: 1.55, fontStyle: "italic", margin: 0, alignSelf: "center" }}>
-              The ♭3 sits beside the major 3rd — the tension at the heart of the blues.
-            </p>
-          )}
-          {scaleMode === "blues" && pentaQuality === "minor" && (
-            <p style={{ fontSize: "0.68rem", color: theme.text.muted, lineHeight: 1.55, fontStyle: "italic", margin: 0, alignSelf: "center" }}>
-              The ♭5 squeezes between the 4th and 5th — a chromatic passing tone that gives the blues its grit.
-            </p>
-          )}
-          {scaleMode === "blues" && pentaQuality === "major" && (
-            <p style={{ fontSize: "0.68rem", color: theme.text.muted, lineHeight: 1.55, fontStyle: "italic", margin: 0, alignSelf: "center" }}>
-              The ♭3 bends into the major 3rd — adding soul to a major key.
-            </p>
-          )}
+          {(() => {
+            const t = scaleMode === "pentatonic" && pentaQuality === "minor"
+              ? "The \u266d3 sits beside the major 3rd \u2014 the tension at the heart of the blues."
+              : scaleMode === "blues" && pentaQuality === "minor"
+              ? "The \u266d5 squeezes between the 4th and 5th \u2014 a chromatic passing tone that gives the blues its grit."
+              : scaleMode === "blues" && pentaQuality === "major"
+              ? "The \u266d3 bends into the major 3rd \u2014 adding soul to a major key."
+              : null;
+            return t && <p style={{ fontSize: "0.68rem", color: theme.text.muted, lineHeight: 1.55, fontStyle: "italic", margin: 0, alignSelf: "center" }}>{t}</p>;
+          })()}
 
           {showTriads && (
             <div style={{ flexBasis: "100%", minWidth: 0 }}>
