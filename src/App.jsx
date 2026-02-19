@@ -509,6 +509,7 @@ export default function CAGEDExplorer() {
   const [showFryingPan, setShowFryingPan] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  const [_sheetOpen, _setSheetOpen] = useState(false);
 
   const [hoveredShape, setHoveredShape] = useState(null);
   const isMobile = useIsMobile(639);
@@ -732,6 +733,19 @@ export default function CAGEDExplorer() {
   const subtitle = (() => {
     const triadPart = triadQuality === "minor" ? "Minor Triads" : "Major Triads";
     return showPenta ? `${triadPart} · ${scaleName(scaleMode, pentaQuality)}` : triadPart;
+  })();
+
+  const _sheetSummary = (() => {
+    const parts = [];
+    const kn = isMinorKey ? NOTES[(keyIndex + 9) % 12] + "m" : NOTES[keyIndex];
+    parts.push(kn);
+    if (activeShape === "all") parts.push("All");
+    else if (activeShape === "off") parts.push("Off");
+    else parts.push(isMinorKey ? activeShape + "m" : activeShape);
+    if (showTriads) parts.push("Triads");
+    if (scaleMode === "pentatonic") parts.push("Pentatonic");
+    else if (scaleMode === "blues") parts.push("Blues");
+    return parts.join(" \u00b7 ");
   })();
 
   return (
