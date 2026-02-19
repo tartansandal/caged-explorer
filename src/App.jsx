@@ -1024,9 +1024,9 @@ export default function CAGEDExplorer() {
                 const y2 = noteY(hoverHi) + FRET_SPACING_M * 0.48;
                 return <rect
                   key={`hit-${shape}-${ci}`}
-                  x={MARGIN_LEFT_M - 38}
+                  x={MARGIN_LEFT_M - 68}
                   y={y1}
-                  width={5 * STRING_SPACING_M + 26 + 38 - 13}
+                  width={5 * STRING_SPACING_M + 26 + 68 - 13}
                   height={y2 - y1}
                   fill="transparent"
                   onMouseEnter={() => setHoveredShape(shape)}
