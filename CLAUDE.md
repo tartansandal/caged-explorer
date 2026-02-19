@@ -38,7 +38,11 @@ Music theory logic lives in `src/music.js` (pure functions + data constants), ke
 - Constants: `FRYING_PAN` (overlay geometry), `SHAPE_ORDER`, `SHAPE_ORIENTATION`, `NUM_FRETS`, `posKey`, `CHORD_MAJ/MIN` (open chord fingerings), `INTERVAL_SEMITONES` (interval-to-semitone mapping)
 
 **`src/App.jsx`** — Single `CAGEDExplorer` component with subcomponents:
-- `ToggleButton`, `FretDot`, `LegendSection`, `ChordDiagram`
+- `PillToggle` — iOS-style sliding pill toggle (~36x18px), used for Triads on/off, Pentatonic on/off, and Quality override. Props: `on`, `onToggle`, `theme`.
+- `ToggleButton` — Standard labeled button toggle. Used for shape selection, Blues, Pan, Intervals/Notes swap, and Maj/Min quality overrides.
+- `FretDot` — SVG note dot that always shows both interval and note name. The `labelMode` state (`"intervals"` or `"notes"`) controls which is inside the dot (prominent) vs outside (small text). The `fret` prop (default 1) suppresses outside text at fret 0 (open strings are too cramped).
+- `LegendSection` — Legend entries always show both interval and note. Dot shows the `labelMode` primary, text shows `"label · secondary"`.
+- `ChordDiagram` — Mini chord diagram; only shows one label inside dots (no secondary text).
 - `fretX(fret)` — X position of fret wire: `MARGIN_LEFT + FRET_X[fret]`
 - `noteX(fret)` — X position of a note dot (midpoint via `fretXAt`): `(fretXAt(fret-1) + fretXAt(fret)) / 2`. Supports fractional frets. Fret 0 (open strings) is a special case offset left of the nut.
 - Shape highlights and hover rects use `fretWAt(fret) * 0.48` for per-fret half-width padding (supports fret 0 and fractional values from hover ranges).
@@ -61,9 +65,15 @@ The app detects mobile viewports (≤639px) via the `useIsMobile` hook (uses `ma
 - **Fretboard container:** No panel box (background/border/shadow) on mobile — saves margin space.
 - **Frying pan clipping:** A `<clipPath>` constrains frying pan overlay shapes to the fretboard bounds on mobile.
 - **Touch support:** Shape hover hit rects include `onClick` toggle for touch devices (mouse hover doesn't work on mobile).
-- **Hamburger menu:** Header controls (help, settings, GitHub, theme toggle) collapse into a hamburger menu. `menuOpen = isMobile && showMenu` derived value prevents stale state on breakpoint change.
+- **Hamburger menu:** Header controls (help, GitHub, theme toggle) collapse into a hamburger menu. `menuOpen = isMobile && showMenu` derived value prevents stale state on breakpoint change.
 
 Mobile layout constants: `STRING_SPACING_M` (42), `MARGIN_LEFT_M` (55), `MARGIN_TOP_M` (58), `FRET_SPACING_M` (56).
+
+### Controls Layout
+
+**Shapes/Labels row:** Shape selector (buttons on desktop, dropdown on mobile) │ `[Intervals] / [Notes]` swap toggle │ `Quality` pill toggle. The Quality pill replaces the old header gear icon; it controls whether triad/penta quality tracks the key automatically (off) or allows manual Maj/Min override (on).
+
+**Options row:** `Triads [pill]` with conditional Maj/Min overrides │ `Penta [pill]` with conditional `[Blues]` button (appears when penta on) and conditional `[Pan]` button (appears when penta on + All shapes). Blues and Pan are single toggle buttons — no separator between them.
 
 ### Key Concept: effectiveKey
 
@@ -75,7 +85,7 @@ All fretboard note positions follow the same pattern as `FRYING_PAN`: defined fo
 
 ### State Management
 
-React hooks only (`useState`, `useMemo`, `useEffect`). Main state: `themeMode` (dark/light), `keyIndex` (0-11), `isMinorKey`, `activeShape` (C/A/G/E/D/all/off), `showTriads`, `scaleMode` (off/pentatonic/blues), `triadQuality` (major/minor), `pentaQuality` (major/minor), `labelMode` (intervals/notes/both), `showFryingPan` (boolean), `hoveredShape`, `showMenu` (mobile hamburger). Derived: `menuOpen = isMobile && showMenu`.
+React hooks only (`useState`, `useMemo`, `useEffect`). Main state: `themeMode` (dark/light), `keyIndex` (0-11), `isMinorKey`, `activeShape` (C/A/G/E/D/all/off), `showTriads`, `scaleMode` (off/pentatonic/blues), `triadQuality` (major/minor), `pentaQuality` (major/minor), `labelMode` (intervals/notes), `showFryingPan` (boolean), `advancedMode` (quality override), `hoveredShape`, `showMenu` (mobile hamburger). Derived: `menuOpen = isMobile && showMenu`.
 
 ### Overlay System
 
