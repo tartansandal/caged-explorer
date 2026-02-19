@@ -798,6 +798,13 @@ export default function CAGEDExplorer() {
             </div>
           </div>
         ) : (
+          <>
+            <img src={`${import.meta.env.BASE_URL}logo.svg`} width={80} height={80} alt=""
+              style={{ position: "absolute", top: -4, left: 0, opacity: 0.85 }} />
+            <h1 style={{ textAlign: "center", fontSize: "2.5rem", fontWeight: 300, margin: "0 0 2px",
+              letterSpacing: "0.25em", color: theme.text.heading, fontFamily: "Georgia, 'Times New Roman', serif" }}>
+              CAGED Explorer
+            </h1>
           <div style={{ position: "absolute", top: 8, right: 8, display: "flex", alignItems: "center", gap: 12 }}>
             <button onClick={() => setShowHelp(true)} title="About CAGED Explorer"
               style={{ background: "none", border: "none", cursor: "pointer",
@@ -818,6 +825,7 @@ export default function CAGEDExplorer() {
               {themeMode === "dark" ? "☀" : "☾"}
             </button>
           </div>
+          </>
         )}
         <p style={{ textAlign: "center", fontSize: isMobile ? "0.55rem" : "0.62rem", color: theme.text.muted, margin: "0 0 22px",
           letterSpacing: "0.28em", textTransform: "uppercase" }}>
