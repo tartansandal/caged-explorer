@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import {
   posKey, shiftNotes, clusterFrets, computeHoverRanges, noteName,
   NUM_FRETS, SHAPE_ORDER, FRYING_PAN, NOTES, FRET_X, FRET_W, fretXAt, fretWAt,
@@ -510,6 +510,7 @@ export default function CAGEDExplorer() {
   const [showHelp, setShowHelp] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const sheetTouchRef = useRef(null);
 
   const [hoveredShape, setHoveredShape] = useState(null);
   const isMobile = useIsMobile(639);
@@ -1287,7 +1288,30 @@ export default function CAGEDExplorer() {
                 background: "rgba(0,0,0,0.3)", transition: "opacity 0.25s",
               }} />
             )}
-            <div style={{
+            <div
+              onTouchStart={e => {
+                sheetTouchRef.current = { y: e.touches[0].clientY, open: sheetOpen };
+              }}
+              onTouchMove={e => {
+                if (!sheetTouchRef.current) return;
+                const dy = e.touches[0].clientY - sheetTouchRef.current.y;
+                e.currentTarget.style.transition = "none";
+                const base = sheetTouchRef.current.open ? 0 : e.currentTarget.offsetHeight - 44;
+                e.currentTarget.style.transform = `translateY(${Math.max(0, base + dy)}px)`;
+              }}
+              onTouchEnd={e => {
+                if (!sheetTouchRef.current) return;
+                const dy = e.changedTouches[0].clientY - sheetTouchRef.current.y;
+                e.currentTarget.style.transition = "transform 0.25s ease-out";
+                if (sheetTouchRef.current.open && dy > 40) {
+                  setSheetOpen(false);
+                } else if (!sheetTouchRef.current.open && dy < -40) {
+                  setSheetOpen(true);
+                }
+                e.currentTarget.style.transform = "";
+                sheetTouchRef.current = null;
+              }}
+              style={{
               position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 50,
               background: theme.bg.modal,
               borderTop: `1px solid ${theme.border.subtle}`,
