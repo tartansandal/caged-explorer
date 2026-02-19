@@ -845,10 +845,6 @@ export default function CAGEDExplorer() {
               <span style={{ color: theme.text.dim, fontSize: "0.7rem" }}>/</span>
               <ToggleButton label="Notes" active={labelMode === "notes"} onClick={() => setLabelMode("notes")} theme={theme} />
             </span>
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-              <span style={{ fontSize: "0.5rem", color: theme.text.dim, letterSpacing: "0.12em", textTransform: "uppercase" }}>Quality</span>
-              <PillToggle on={advancedMode} onToggle={toggleAdvanced} theme={theme} />
-            </span>
           </div>
         ) : (
           <>
@@ -895,11 +891,6 @@ export default function CAGEDExplorer() {
               <ToggleButton label="Intervals" active={labelMode === "intervals"} onClick={() => setLabelMode("intervals")} theme={theme} />
               <span style={{ color: theme.text.dim, fontSize: "0.7rem" }}>/</span>
               <ToggleButton label="Notes" active={labelMode === "notes"} onClick={() => setLabelMode("notes")} theme={theme} />
-              <span style={STYLE.divider}>│</span>
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                <span style={STYLE.optionLabel}>Quality</span>
-                <PillToggle on={advancedMode} onToggle={toggleAdvanced} theme={theme} />
-              </span>
             </div>
           </>
         )}
@@ -945,6 +936,11 @@ export default function CAGEDExplorer() {
                 <ToggleButton label="Pan" active={showFryingPan}
                   onClick={() => setShowFryingPan(p => !p)} style={mBtn} theme={theme} />
               )}
+              <span style={mDiv}>│</span>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                <span style={mLabel}>Quality</span>
+                <PillToggle on={advancedMode} onToggle={toggleAdvanced} theme={theme} />
+              </span>
             </div>
           </>);
         })() : (
@@ -983,6 +979,11 @@ export default function CAGEDExplorer() {
               <ToggleButton label="Pan" active={showFryingPan}
                 onClick={() => setShowFryingPan(p => !p)} theme={theme} />
             )}
+            <span style={STYLE.divider}>│</span>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+              <span style={STYLE.optionLabel}>Quality</span>
+              <PillToggle on={advancedMode} onToggle={toggleAdvanced} theme={theme} />
+            </span>
           </div>
         )}
 

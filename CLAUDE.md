@@ -71,9 +71,9 @@ Mobile layout constants: `STRING_SPACING_M` (42), `MARGIN_LEFT_M` (55), `MARGIN_
 
 ### Controls Layout
 
-**Shapes/Labels row:** Shape selector (buttons on desktop, dropdown on mobile) │ `[Intervals] / [Notes]` swap toggle │ `Quality` pill toggle. The Quality pill replaces the old header gear icon; it controls whether triad/penta quality tracks the key automatically (off) or allows manual Maj/Min override (on).
+**Shapes/Labels row:** Shape selector (buttons on desktop, dropdown on mobile) │ `[Intervals] / [Notes]` swap toggle.
 
-**Options row:** `Triads [pill]` with conditional Maj/Min overrides │ `Penta [pill]` with conditional `[Blues]` button (appears when penta on) and conditional `[Pan]` button (appears when penta on + All shapes). Blues and Pan are single toggle buttons — no separator between them.
+**Options row:** `Triads [pill]` with conditional Maj/Min overrides │ `Penta [pill]` with conditional `[Blues]` and `[Pan]` buttons (Blues appears when penta on, Pan when penta on + All shapes) │ `Quality` pill toggle. The Quality pill replaces the old header gear icon; it controls whether triad/penta quality tracks the key automatically (off) or allows manual Maj/Min override (on).
 
 ### Key Concept: effectiveKey
 
