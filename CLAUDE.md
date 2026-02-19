@@ -74,9 +74,9 @@ Mobile layout constants: `STRING_SPACING_M` (42), `MARGIN_LEFT_M` (68), `MARGIN_
 
 ### Controls Layout
 
-**Desktop:** Button rows for key selection, shape selection (`[Intervals] / [Notes]` swap toggle), and options.
+**Desktop:** Button rows for key selection, shape selection (`[Notes] / [Intervals]` swap toggle), and options. Shape button order: All, C, A, G, E, D, Off.
 
-**Mobile (bottom sheet):** Two-panel layout. Left panel: 12-row × 2-column grid of major ("Major") and relative minor ("Rel. Minor") key buttons, reusing desktop `STYLE.keyBtn`/`STYLE.minorKeyBtn`. Right panel (flex column, `justify-content: space-between`): shapes (2-column grid with "All" spanning full width), `[Intervals] / [Notes]` toggle, and options (vertical stack, 20px gap between groups).
+**Mobile (bottom sheet):** Two-panel layout. Left panel: 12-row × 2-column grid of major ("Major") and relative minor ("Rel. Minor") key buttons, reusing desktop `STYLE.keyBtn`/`STYLE.minorKeyBtn`. Right panel (flex column, `justify-content: space-between`): shapes (2-column grid — "All" spans full width at top, C/A/G/E/D in pairs, Off inline with D), `[Notes] / [Intervals]` toggle, and options (vertical stack, 20px gap between groups).
 
 **Options (both layouts):** `Triads [pill]` with conditional Maj/Min overrides │ `Penta [pill]` with conditional `[Blues]` and `[Pan]` buttons (Blues appears when penta on, Pan when penta on + All shapes) │ `Quality` pill toggle. The Quality pill controls whether triad/penta quality tracks the key automatically (off) or allows manual Maj/Min override (on). On mobile, option labels have `minWidth: 42` for pill alignment, and conditional Maj/Min buttons appear on their own line with `marginLeft: 46` to align under the pills.
 
@@ -90,7 +90,7 @@ All fretboard note positions follow the same pattern as `FRYING_PAN`: defined fo
 
 ### State Management
 
-React hooks only (`useState`, `useMemo`, `useEffect`). Main state: `themeMode` (dark/light), `keyIndex` (0-11), `isMinorKey`, `activeShape` (C/A/G/E/D/all/off), `showTriads`, `scaleMode` (off/pentatonic/blues), `triadQuality` (major/minor), `pentaQuality` (major/minor), `labelMode` (intervals/notes), `showFryingPan` (boolean), `advancedMode` (quality override), `hoveredShape`, `showMenu` (mobile hamburger), `sheetOpen` (mobile bottom sheet). Derived: `menuOpen = isMobile && showMenu`, `sheetSummary` (peek bar text).
+React hooks only (`useState`, `useMemo`, `useEffect`). Main state: `themeMode` (dark/light), `keyIndex` (0-11, default 0 = C), `isMinorKey` (default false), `activeShape` (C/A/G/E/D/all/off, default "all"), `showTriads` (default true), `scaleMode` (off/pentatonic/blues, default "pentatonic"), `triadQuality` (major/minor), `pentaQuality` (major/minor), `labelMode` (intervals/notes, default "notes"), `showFryingPan` (boolean), `advancedMode` (quality override), `hoveredShape`, `showMenu` (mobile hamburger), `sheetOpen` (mobile bottom sheet). Derived: `menuOpen = isMobile && showMenu`, `sheetSummary` (peek bar text).
 
 ### Overlay System
 
