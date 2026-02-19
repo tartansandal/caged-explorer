@@ -852,11 +852,9 @@ export default function CAGEDExplorer() {
             </select>
             <ToggleButton label="All" active={activeShape === "all"} onClick={() => changeShape(activeShape === "all" ? "off" : "all")} theme={theme} />
             <span style={{ display: "inline-flex", alignItems: "center", gap: 4, flexWrap: "nowrap" }}>
-              <span style={{ fontSize: "0.5rem", color: theme.text.dim, letterSpacing: "0.12em", textTransform: "uppercase" }}>Labels</span>
-              {["intervals", "notes", "both"].map(m => (
-                <ToggleButton key={m} label={m === "intervals" ? "Intervals" : m === "notes" ? "Notes" : "Both"}
-                  active={labelMode === m} onClick={() => setLabelMode(m)} theme={theme} />
-              ))}
+              <ToggleButton label="Intervals" active={labelMode === "intervals"} onClick={() => setLabelMode("intervals")} theme={theme} />
+              <span style={{ color: theme.text.dim, fontSize: "0.7rem" }}>/</span>
+              <ToggleButton label="Notes" active={labelMode === "notes"} onClick={() => setLabelMode("notes")} theme={theme} />
             </span>
           </div>
         ) : (
@@ -901,11 +899,9 @@ export default function CAGEDExplorer() {
                 );
               })}
               <span style={STYLE.divider}>│</span>
-              <span style={STYLE.optionLabel}>Labels</span>
-              {["intervals", "notes", "both"].map(m => (
-                <ToggleButton key={m} label={m === "intervals" ? "Intervals" : m === "notes" ? "Notes" : "Both"}
-                  active={labelMode === m} onClick={() => setLabelMode(m)} theme={theme} />
-              ))}
+              <ToggleButton label="Intervals" active={labelMode === "intervals"} onClick={() => setLabelMode("intervals")} theme={theme} />
+              <span style={{ color: theme.text.dim, fontSize: "0.7rem" }}>/</span>
+              <ToggleButton label="Notes" active={labelMode === "notes"} onClick={() => setLabelMode("notes")} theme={theme} />
             </div>
           </>
         )}
