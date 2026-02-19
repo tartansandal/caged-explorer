@@ -123,14 +123,14 @@ const THEME_LIGHT = {
     card: "rgba(245,235,220,0.6)",
     btnOff: "rgba(0,0,0,0.04)",
     btnOn: "rgba(0,0,0,0.08)",
-    btnAccent: "rgba(59,130,246,0.12)",
+    btnAccent: "rgba(120,90,60,0.12)",
     page: "linear-gradient(160deg, #f5ebe0 0%, #ede0d0 50%, #f5ebe0 100%)",
   },
   border: {
     subtle: "rgba(120,90,60,0.1)",
     light: "rgba(120,90,60,0.15)",
     medium: "rgba(120,90,60,0.2)",
-    accent: "rgba(59,130,246,0.3)",
+    accent: "rgba(120,90,60,0.3)",
   },
   text: {
     primary: "#2a2018",
@@ -150,7 +150,7 @@ const THEME_LIGHT = {
     medium: "rgba(0,0,0,0.2)",
   },
   accent: {
-    blue: "#2563eb",
+    blue: "#7a6050",
   },
   fretboard: {
     gradientTop: "#d4b896",
