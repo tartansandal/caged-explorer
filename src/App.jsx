@@ -959,7 +959,7 @@ export default function CAGEDExplorer() {
               </>
             )}
             <span style={STYLE.divider}>│</span>
-            <span style={STYLE.optionLabel}>Pentatonic</span>
+            <span style={STYLE.optionLabel}>Pentatonics</span>
             <PillToggle on={scaleMode !== "off"} onToggle={() => {
               if (scaleMode !== "off") { setPentaScale("off"); setShowFryingPan(false); }
               else { setPentaScale("pentatonic"); }
