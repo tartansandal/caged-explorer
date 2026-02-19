@@ -421,9 +421,10 @@ function HelpPanel({ isOpen, onClose, theme }) {
         transition: "transform 0.3s ease"
       }}>
         <button onClick={onClose} style={{
-          position: "absolute", top: 8, left: 8, background: "none",
-          border: "none", cursor: "pointer", fontSize: "1.2rem",
-          color: theme.text.dim, opacity: 0.7, zIndex: 1
+          alignSelf: "flex-start", background: "none",
+          border: "none", cursor: "pointer", fontSize: "1.3rem",
+          color: theme.text.dim, opacity: 0.7,
+          padding: "0 4px 4px 0", marginBottom: 2,
         }}>&times;</button>
         <div className="themed-scroll" style={{ overflowY: "auto", paddingRight: 12, minHeight: 0 }}>
         <h3 style={{ ...heading, marginTop: 0 }}>The Map</h3>
