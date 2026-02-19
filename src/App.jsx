@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from "react";
+import { Fragment, useState, useMemo, useEffect, useRef } from "react";
 import {
   posKey, shiftNotes, clusterFrets, computeHoverRanges, noteName,
   NUM_FRETS, SHAPE_ORDER, FRYING_PAN, NOTES, FRET_X, FRET_W, fretXAt, fretWAt,
@@ -1337,100 +1337,112 @@ export default function CAGEDExplorer() {
                   {sheetSummary}
                 </div>
               </div>
-              {sheetOpen && (
-                <div style={{ padding: "8px 12px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
-                  {/* Key/Shape/Labels row */}
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, flexWrap: "wrap" }}>
-                    <span style={{ fontSize: "0.5rem", color: theme.text.dim, letterSpacing: "0.12em", textTransform: "uppercase" }}>Key</span>
-                    <select
-                      className="caged-select"
-                      value={keyIndex}
-                      onChange={e => { setKeyIndex(Number(e.target.value)); }}
-                      style={{ background: theme.bg.btnOff, color: theme.text.primary, border: `1px solid ${theme.border.light}` }}
-                    >
-                      {NOTES.map((n, i) => (
-                        <option key={i} value={i}>{isMinorKey ? NOTES[(i + 9) % 12] + "m" : n}</option>
-                      ))}
-                    </select>
-                    <ToggleButton label="Major" active={!isMinorKey}
-                      onClick={() => { setIsMinorKey(false); if (!advancedMode) { setTriadQuality("major"); setPentaQuality("major"); } }}
-                      theme={theme} />
-                    <ToggleButton label="Minor" active={isMinorKey}
-                      onClick={() => { setIsMinorKey(true); if (!advancedMode) { setTriadQuality("minor"); setPentaQuality("minor"); } }}
-                      theme={theme} />
-                    <span style={{ color: theme.divider, margin: "0 2px", fontSize: "0.7rem" }}>│</span>
-                    <span style={{ fontSize: "0.5rem", color: theme.text.dim, letterSpacing: "0.12em", textTransform: "uppercase" }}>Shape</span>
-                    <select
-                      className="caged-select"
-                      value={activeShape === "all" ? "off" : activeShape}
-                      onChange={e => changeShape(e.target.value)}
-                      style={{ background: theme.bg.btnOff, color: theme.text.primary, border: `1px solid ${theme.border.light}`,
-                        ...(activeShape === "all" && { opacity: 0.4, pointerEvents: "none" }) }}
-                    >
-                      {["off", ...SHAPE_ORDER].map(s => (
-                        <option key={s} value={s}>
-                          {s === "off" ? "Off" : isMinorKey ? s + "m" : s}
-                        </option>
-                      ))}
-                    </select>
-                    <ToggleButton label="All" active={activeShape === "all"} onClick={() => changeShape(activeShape === "all" ? "off" : "all")} theme={theme} />
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: 4, flexWrap: "nowrap" }}>
+              {sheetOpen && (() => {
+                const sheetLabel = { fontSize: "0.5rem", color: theme.text.dim, letterSpacing: "0.12em", textTransform: "uppercase" };
+                return (
+                <div style={{ padding: "8px 12px 16px", display: "flex", gap: 12 }}>
+                  {/* Left panel: Key grid */}
+                  <div style={{ width: "50%", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "3px 6px", alignContent: "start" }}>
+                    <span style={{ ...sheetLabel, textAlign: "center", padding: "2px 0" }}>Major</span>
+                    <span style={{ ...sheetLabel, textAlign: "center", padding: "2px 0" }}>Minor</span>
+                    {NOTES.map((n, i) => {
+                      const sel = keyIndex === i;
+                      return (
+                        <Fragment key={i}>
+                          <button
+                            aria-pressed={sel && !isMinorKey}
+                            onClick={() => { setKeyIndex(i); setIsMinorKey(false); if (!advancedMode) { setTriadQuality("major"); setPentaQuality("major"); } }}
+                            style={{ ...STYLE.keyBtn(sel && !isMinorKey, sel), padding: "5px 8px", fontSize: "0.7rem", minWidth: 0 }}>
+                            {n}
+                          </button>
+                          <button
+                            aria-pressed={sel && isMinorKey}
+                            onClick={() => { setKeyIndex(i); setIsMinorKey(true); if (!advancedMode) { setTriadQuality("minor"); setPentaQuality("minor"); } }}
+                            style={{ ...STYLE.minorKeyBtn(sel && isMinorKey, sel), padding: "5px 6px", fontSize: "0.63rem", minWidth: 0 }}>
+                            {NOTES[(i + 9) % 12] + "m"}
+                          </button>
+                        </Fragment>
+                      );
+                    })}
+                  </div>
+                  {/* Right panel: Shapes, Labels, Options */}
+                  <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 10 }}>
+                    {/* Shapes */}
+                    <div>
+                      <span style={sheetLabel}>Shapes</span>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 3, marginTop: 4 }}>
+                        {["off", ...SHAPE_ORDER].map(s => {
+                          const label = s === "off" ? "Off" : isMinorKey ? s + "m" : s;
+                          return (
+                            <ToggleButton key={s} label={label}
+                              active={activeShape === s} onClick={() => changeShape(s)} theme={theme} />
+                          );
+                        })}
+                        <ToggleButton label="All" active={activeShape === "all"}
+                          onClick={() => changeShape(activeShape === "all" ? "off" : "all")}
+                          style={{ gridColumn: "1 / -1" }} theme={theme} />
+                      </div>
+                    </div>
+                    {/* Intervals / Notes toggle */}
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 4 }}>
                       <ToggleButton label="Intervals" active={labelMode === "intervals"} onClick={() => setLabelMode("intervals")} theme={theme} />
                       <span style={{ color: theme.text.dim, fontSize: "0.7rem" }}>/</span>
                       <ToggleButton label="Notes" active={labelMode === "notes"} onClick={() => setLabelMode("notes")} theme={theme} />
-                    </span>
+                    </div>
+                    {/* Options */}
+                    {(() => {
+                      const mBtn = { fontSize: "0.65rem", padding: "2px 6px" };
+                      const optRow = { display: "flex", alignItems: "center", gap: 4, flexWrap: "wrap" };
+                      return (
+                        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                          <div style={optRow}>
+                            <span style={sheetLabel}>Triads</span>
+                            <PillToggle on={showTriads} onToggle={() => setShowTriads(t => !t)} theme={theme} />
+                            {advancedMode && showTriads && (
+                              <>
+                                {["major", "minor"].map(q => (
+                                  <ToggleButton key={q} label={q === "major" ? "Maj" : "Min"}
+                                    active={triadQuality === q} onClick={() => setTriadQuality(q)}
+                                    style={{ fontSize: "0.6rem", padding: "2px 7px" }} theme={theme} />
+                                ))}
+                              </>
+                            )}
+                          </div>
+                          <div style={optRow}>
+                            <span style={sheetLabel}>Penta</span>
+                            <PillToggle on={scaleMode !== "off"} onToggle={() => {
+                              if (scaleMode !== "off") { setPentaScale("off"); setShowFryingPan(false); }
+                              else { setPentaScale("pentatonic"); }
+                            }} theme={theme} />
+                            {scaleMode !== "off" && (
+                              <ToggleButton label="Blues" active={scaleMode === "blues"}
+                                onClick={() => setPentaScale(scaleMode === "blues" ? "pentatonic" : "blues")} style={mBtn} theme={theme} />
+                            )}
+                            {advancedMode && scaleMode !== "off" && (
+                              <>
+                                {["major", "minor"].map(q => (
+                                  <ToggleButton key={q} label={q === "major" ? "Maj" : "Min"}
+                                    active={pentaQuality === q} onClick={() => setPentaQuality(q)}
+                                    style={{ fontSize: "0.6rem", padding: "2px 7px" }} theme={theme} />
+                                ))}
+                              </>
+                            )}
+                            {activeShape === "all" && scaleMode !== "off" && (
+                              <ToggleButton label="Pan" active={showFryingPan}
+                                onClick={() => setShowFryingPan(p => !p)} style={mBtn} theme={theme} />
+                            )}
+                          </div>
+                          <div style={optRow}>
+                            <span style={sheetLabel}>Quality</span>
+                            <PillToggle on={advancedMode} onToggle={toggleAdvanced} theme={theme} />
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </div>
-                  {/* Options row */}
-                  {(() => {
-                    const mLabel = { fontSize: "0.5rem", color: theme.text.dim, letterSpacing: "0.12em", textTransform: "uppercase" };
-                    const mDiv = { color: theme.divider, margin: "0 2px", fontSize: "0.7rem" };
-                    const mBtn = { fontSize: "0.65rem", padding: "2px 6px" };
-                    return (
-                      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 4, flexWrap: "wrap" }}>
-                        <span style={mLabel}>Triads</span>
-                        <PillToggle on={showTriads} onToggle={() => setShowTriads(t => !t)} theme={theme} />
-                        {advancedMode && showTriads && (
-                          <>
-                            {["major", "minor"].map(q => (
-                              <ToggleButton key={q} label={q === "major" ? "Maj" : "Min"}
-                                active={triadQuality === q} onClick={() => setTriadQuality(q)}
-                                style={{ fontSize: "0.6rem", padding: "2px 7px" }} theme={theme} />
-                            ))}
-                          </>
-                        )}
-                        <span style={mDiv}>│</span>
-                        <span style={mLabel}>Penta</span>
-                        <PillToggle on={scaleMode !== "off"} onToggle={() => {
-                          if (scaleMode !== "off") { setPentaScale("off"); setShowFryingPan(false); }
-                          else { setPentaScale("pentatonic"); }
-                        }} theme={theme} />
-                        {scaleMode !== "off" && (
-                          <ToggleButton label="Blues" active={scaleMode === "blues"}
-                            onClick={() => setPentaScale(scaleMode === "blues" ? "pentatonic" : "blues")} style={mBtn} theme={theme} />
-                        )}
-                        {advancedMode && scaleMode !== "off" && (
-                          <>
-                            {["major", "minor"].map(q => (
-                              <ToggleButton key={q} label={q === "major" ? "Maj" : "Min"}
-                                active={pentaQuality === q} onClick={() => setPentaQuality(q)}
-                                style={{ fontSize: "0.6rem", padding: "2px 7px" }} theme={theme} />
-                            ))}
-                          </>
-                        )}
-                        {activeShape === "all" && scaleMode !== "off" && (
-                          <ToggleButton label="Pan" active={showFryingPan}
-                            onClick={() => setShowFryingPan(p => !p)} style={mBtn} theme={theme} />
-                        )}
-                        <span style={mDiv}>│</span>
-                        <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                          <span style={mLabel}>Quality</span>
-                          <PillToggle on={advancedMode} onToggle={toggleAdvanced} theme={theme} />
-                        </span>
-                      </div>
-                    );
-                  })()}
                 </div>
-              )}
+                );
+              })()}
             </div>
           </>
         )}
