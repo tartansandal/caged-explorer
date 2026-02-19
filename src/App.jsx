@@ -509,7 +509,7 @@ export default function CAGEDExplorer() {
   const [showFryingPan, setShowFryingPan] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
-  const [_sheetOpen, _setSheetOpen] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   const [hoveredShape, setHoveredShape] = useState(null);
   const isMobile = useIsMobile(639);
@@ -735,7 +735,7 @@ export default function CAGEDExplorer() {
     return showPenta ? `${triadPart} · ${scaleName(scaleMode, pentaQuality)}` : triadPart;
   })();
 
-  const _sheetSummary = (() => {
+  const sheetSummary = (() => {
     const parts = [];
     const kn = isMinorKey ? NOTES[(keyIndex + 9) % 12] + "m" : NOTES[keyIndex];
     parts.push(kn);
@@ -1368,6 +1368,51 @@ export default function CAGEDExplorer() {
           </span>
         </div>
       </div>
+      {isMobile && (
+          <>
+            {sheetOpen && (
+              <div onClick={() => setSheetOpen(false)} style={{
+                position: "fixed", inset: 0, zIndex: 49,
+                background: "rgba(0,0,0,0.3)", transition: "opacity 0.25s",
+              }} />
+            )}
+            <div style={{
+              position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 50,
+              background: theme.bg.modal,
+              borderTop: `1px solid ${theme.border.subtle}`,
+              borderRadius: "12px 12px 0 0",
+              boxShadow: "0 -4px 20px rgba(0,0,0,0.3)",
+              transform: sheetOpen ? "translateY(0)" : "translateY(calc(100% - 44px))",
+              transition: "transform 0.25s ease-out",
+            }}>
+              {/* Handle bar */}
+              <div onClick={() => setSheetOpen(o => !o)} style={{
+                display: "flex", flexDirection: "column", alignItems: "center",
+                padding: "8px 16px 6px", cursor: "pointer",
+              }}>
+                <div style={{
+                  width: 32, height: 4, borderRadius: 2,
+                  background: theme.text.dim, marginBottom: 6,
+                }} />
+                <div style={{
+                  fontSize: "0.65rem", color: theme.text.secondary,
+                  letterSpacing: "0.05em", whiteSpace: "nowrap",
+                  overflow: "hidden", textOverflow: "ellipsis", maxWidth: "90vw",
+                }}>
+                  {sheetSummary}
+                </div>
+              </div>
+              {/* Controls placeholder - will be replaced in Task 3 */}
+              {sheetOpen && (
+                <div style={{ padding: "8px 12px 16px" }}>
+                  <div style={{ fontSize: "0.7rem", color: theme.text.dim, textAlign: "center" }}>
+                    Controls placeholder
+                  </div>
+                </div>
+              )}
+            </div>
+          </>
+        )}
       <HelpPanel isOpen={showHelp} onClose={() => setShowHelp(false)} theme={theme} />
     </div>
   );
