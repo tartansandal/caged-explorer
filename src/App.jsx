@@ -628,24 +628,20 @@ export default function CAGEDExplorer() {
   // Uses only the active quality's triads + pentatonics so ranges tightly bound the
   // notes that can actually appear. In advanced mode triad and penta qualities can
   // differ, so both are included. Blues excluded: ♭5s bridge the octave gap.
-  const rangeQualities = useMemo(() => {
-    const q = new Set([triadQuality, pentaQuality]);
-    return [...q];
-  }, [triadQuality, pentaQuality]);
-
   const shapeRanges = useMemo(() => {
+    const qualities = triadQuality === pentaQuality
+      ? [triadQuality] : [triadQuality, pentaQuality];
     const ranges = {};
-    const q0 = rangeQualities[0];
     SHAPE_ORDER.forEach(sh => {
       const noteSets = (q) => [
         ...(showTriads ? TRIAD_SHAPE[q][sh] : []),
         ...(showPenta ? PENTA_BOX[q][sh] : []),
       ];
-      const allNotes = rangeQualities.flatMap(noteSets);
+      const allNotes = qualities.flatMap(noteSets);
       const shifted = shiftNotes(allNotes, effectiveKey);
       const frets = shifted.map(([, f]) => f);
       // Canonical span from same note types at ek=0, used for partial detection.
-      const canClusters = clusterFrets(noteSets(q0).map(([, f]) => f));
+      const canClusters = clusterFrets(noteSets(qualities[0]).map(([, f]) => f));
       const canSpan = canClusters.length > 0 ? canClusters[0].hi - canClusters[0].lo : 0;
       ranges[sh] = clusterFrets(frets).map(c => ({
         ...c,
@@ -653,7 +649,7 @@ export default function CAGEDExplorer() {
       }));
     });
     return ranges;
-  }, [effectiveKey, rangeQualities, showTriads, showPenta]);
+  }, [effectiveKey, triadQuality, pentaQuality, showTriads, showPenta]);
 
   const hoverRanges = useMemo(
     () => computeHoverRanges(shapeRanges, SHAPE_ORDER),
