@@ -754,19 +754,19 @@ export default function CAGEDExplorer() {
       minHeight: "100vh", padding: isMobile ? "12px 4px 52px" : "24px 16px", boxSizing: "border-box", fontFamily: "system-ui, -apple-system, 'Segoe UI', sans-serif", color: theme.text.primary }}>
       <div style={{ maxWidth: 1000, margin: "0 auto", position: "relative" }}>
 
-        <img src={`${import.meta.env.BASE_URL}logo.svg`} width={isMobile ? 32 : 80} height={isMobile ? 32 : 80} alt=""
-          style={{ position: "absolute", top: isMobile ? 2 : -4, left: isMobile ? 8 : 0, opacity: 0.85 }} />
-        <h1 style={{ textAlign: "center", fontSize: isMobile ? "1.4rem" : "2.5rem", fontWeight: 300, margin: "0 0 2px",
-          letterSpacing: "0.25em", color: theme.text.heading, fontFamily: "Georgia, 'Times New Roman', serif" }}>
-          CAGED Explorer
-        </h1>
         {isMobile ? (
-          <div style={{ position: "absolute", top: 4, right: 8 }}>
-            <button onClick={() => setShowMenu(m => !m)} title="Menu"
-              style={{ background: "none", border: "none", cursor: "pointer",
-                fontSize: "1.4rem", color: theme.text.dim, opacity: 0.7 }}>
-              ☰
-            </button>
+          <div style={{ display: "flex", alignItems: "center", marginBottom: 2 }}>
+            <img src={`${import.meta.env.BASE_URL}logo.svg`} width={60} height={60} alt="" style={{ opacity: 0.85, flexShrink: 0 }} />
+            <h1 style={{ flex: 1, textAlign: "center", fontSize: "1.4rem", fontWeight: 300, margin: 0,
+              letterSpacing: "0.25em", color: theme.text.heading, fontFamily: "Georgia, 'Times New Roman', serif" }}>
+              CAGED Explorer
+            </h1>
+            <div style={{ flexShrink: 0, position: "relative" }}>
+              <button onClick={() => setShowMenu(m => !m)} title="Menu"
+                style={{ background: "none", border: "none", cursor: "pointer", padding: 0,
+                  fontSize: "1.4rem", color: theme.text.dim, opacity: 0.7 }}>
+                ☰
+              </button>
             {menuOpen && (
               <>
                 <div style={{ position: "fixed", inset: 0, zIndex: 99 }} onClick={() => setShowMenu(false)} />
@@ -794,6 +794,7 @@ export default function CAGEDExplorer() {
                 </div>
               </>
             )}
+            </div>
           </div>
         ) : (
           <div style={{ position: "absolute", top: 8, right: 8, display: "flex", alignItems: "center", gap: 12 }}>
