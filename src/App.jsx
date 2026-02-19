@@ -1323,8 +1323,8 @@ export default function CAGEDExplorer() {
             }}>
               {/* Handle bar */}
               <div onClick={() => setSheetOpen(o => !o)} style={{
-                display: "flex", flexDirection: "column", alignItems: "center",
-                padding: "8px 16px 6px", cursor: "pointer",
+                display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                height: 44, boxSizing: "border-box", padding: "0 16px", cursor: "pointer",
               }}>
                 <div style={{
                   width: 32, height: 4, borderRadius: 2,
