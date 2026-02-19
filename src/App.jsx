@@ -326,7 +326,7 @@ function LegendSection({ title, items, dotSize, mt = 0, keyIdx, labelMode, theme
         {items.map(([interval, label]) => {
           const note = noteName(interval, keyIdx);
           const dotLabel = labelMode === "notes" ? note : interval;
-          const textLabel = labelMode === "notes" ? `${note} (${label})` : labelMode === "both" ? `${label} · ${note}` : label;
+          const textLabel = labelMode === "notes" ? `${label} · ${interval}` : `${label} · ${note}`;
           return (
             <div key={interval} style={{ display: "flex", alignItems: "center", gap: 5 }}>
               <div style={{ width: dotSize, height: dotSize, borderRadius: "50%", background: theme.interval[interval],
