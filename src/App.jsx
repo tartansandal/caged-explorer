@@ -553,6 +553,14 @@ export default function CAGEDExplorer() {
     setActiveShape(s);
     if (s !== "all") setShowFryingPan(false);
   };
+  const selectMajorKey = (i) => {
+    setKeyIndex(i); setIsMinorKey(false);
+    if (!advancedMode) { setTriadQuality("major"); setPentaQuality("major"); }
+  };
+  const selectMinorKey = (i) => {
+    setKeyIndex(i); setIsMinorKey(true);
+    if (!advancedMode) { setTriadQuality("minor"); setPentaQuality("minor"); }
+  };
 
   const effectiveKey = isMinorKey ? (keyIndex + 9) % 12 : keyIndex;
   const showMajTriad = showTriads && triadQuality === "major";
@@ -840,7 +848,7 @@ export default function CAGEDExplorer() {
               {NOTES.map((n, i) => {
                 const sel = keyIndex === i;
                 return (
-                  <button key={n} onClick={() => { setKeyIndex(i); setIsMinorKey(false); if (!advancedMode) { setTriadQuality("major"); setPentaQuality("major"); } }}
+                  <button key={n} onClick={() => selectMajorKey(i)}
                     style={STYLE.keyBtn(sel && !isMinorKey, sel)}>
                     {n}
                   </button>
@@ -854,7 +862,7 @@ export default function CAGEDExplorer() {
               {NOTES.map((_, i) => {
                 const sel = keyIndex === i;
                 return (
-                  <button key={i} onClick={() => { setKeyIndex(i); setIsMinorKey(true); if (!advancedMode) { setTriadQuality("minor"); setPentaQuality("minor"); } }}
+                  <button key={i} onClick={() => selectMinorKey(i)}
                     style={STYLE.minorKeyBtn(sel && isMinorKey, sel)}>
                     {NOTES[(i + 9) % 12] + "m"}
                   </button>
@@ -1369,13 +1377,13 @@ export default function CAGEDExplorer() {
                         <Fragment key={i}>
                           <button
                             aria-pressed={sel && !isMinorKey}
-                            onClick={() => { setKeyIndex(i); setIsMinorKey(false); if (!advancedMode) { setTriadQuality("major"); setPentaQuality("major"); } }}
+                            onClick={() => selectMajorKey(i)}
                             style={{ ...STYLE.keyBtn(sel && !isMinorKey, sel), padding: "5px 8px", fontSize: "0.7rem", minWidth: 0 }}>
                             {n}
                           </button>
                           <button
                             aria-pressed={sel && isMinorKey}
-                            onClick={() => { setKeyIndex(i); setIsMinorKey(true); if (!advancedMode) { setTriadQuality("minor"); setPentaQuality("minor"); } }}
+                            onClick={() => selectMinorKey(i)}
                             style={{ ...STYLE.minorKeyBtn(sel && isMinorKey, sel), padding: "5px 6px", fontSize: "0.63rem", minWidth: 0 }}>
                             {NOTES[(i + 9) % 12] + "m"}
                           </button>
