@@ -260,14 +260,16 @@ const strY = (str) => MARGIN_TOP + (str - 1) * STRING_SPACING;
 function PillToggle({ on, onToggle, theme }) {
   return (
     <button onClick={onToggle} aria-pressed={on} style={{
-      width: 36, height: 18, borderRadius: 9, border: "none", cursor: "pointer",
-      background: on ? theme.accent.blue : theme.border.subtle,
-      position: "relative", transition: "background 0.15s", padding: 0,
+      width: 36, height: 18, borderRadius: 9, border: `1px solid ${on ? theme.border.accent : theme.border.light}`,
+      cursor: "pointer",
+      background: on ? theme.bg.btnAccent : theme.bg.btnOff,
+      position: "relative", transition: "all 0.15s", padding: 0,
     }}>
       <span style={{
-        position: "absolute", top: 2, left: on ? 20 : 2,
+        position: "absolute", top: 1, left: on ? 19 : 1,
         width: 14, height: 14, borderRadius: "50%",
-        background: "#fff", transition: "left 0.15s",
+        background: on ? theme.accent.blue : theme.text.dim,
+        transition: "left 0.15s, background 0.15s",
       }} />
     </button>
   );
