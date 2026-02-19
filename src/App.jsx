@@ -941,12 +941,10 @@ export default function CAGEDExplorer() {
                   ))}
                 </>
               )}
-              {activeShape === "all" && scaleMode !== "off" && <>
-                <span style={mDiv}>│</span>
-                <span style={mLabel}>Pan</span>
-                <ToggleButton label="Off" active={!showFryingPan} onClick={() => setShowFryingPan(false)} style={mBtn} theme={theme} />
-                <ToggleButton label="On" active={showFryingPan} onClick={() => setShowFryingPan(true)} style={mBtn} theme={theme} />
-              </>}
+              {activeShape === "all" && scaleMode !== "off" && (
+                <ToggleButton label="Pan" active={showFryingPan}
+                  onClick={() => setShowFryingPan(p => !p)} style={mBtn} theme={theme} />
+              )}
             </div>
           </>);
         })() : (
@@ -981,12 +979,10 @@ export default function CAGEDExplorer() {
                 ))}
               </>
             )}
-            {activeShape === "all" && scaleMode !== "off" && <>
-              <span style={STYLE.divider}>│</span>
-              <span style={STYLE.optionLabel}>Frying Pan</span>
-              <ToggleButton label="Off" active={!showFryingPan} onClick={() => setShowFryingPan(false)} theme={theme} />
-              <ToggleButton label="On" active={showFryingPan} onClick={() => setShowFryingPan(true)} theme={theme} />
-            </>}
+            {activeShape === "all" && scaleMode !== "off" && (
+              <ToggleButton label="Pan" active={showFryingPan}
+                onClick={() => setShowFryingPan(p => !p)} theme={theme} />
+            )}
           </div>
         )}
 
