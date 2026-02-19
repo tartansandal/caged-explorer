@@ -61,6 +61,7 @@ The app detects mobile viewports (≤639px) via the `useIsMobile` hook (uses `ma
 - **Coordinate functions:** `fretY(fret)`, `noteY(fret)`, `strX(str)` replace desktop `fretX`/`noteX`/`strY`. The X/Y axes are swapped.
 - **Uniform fret spacing:** `FRET_SPACING_M = 56` px per fret (vs proportional on desktop). Same total width (`NUM_FRETS * 56 = 840`), but evenly distributed so more frets are visible in the viewport.
 - **Reversed string axis:** `strX(str) = MARGIN_LEFT_M + (6 - str) * STRING_SPACING_M` — string 6 on the left, string 1 on the right. Code using string coordinates (e.g. frying pan overlay) must use `Math.min`/`Math.max` rather than assuming ordering.
+- **Bottom sheet:** All controls (key, shape, labels, triads, penta, quality) live in a fixed bottom sheet. Collapsed state shows a 44px peek bar with a drag handle nub and settings summary string (e.g. `C Major · E shape · Triads`). Expanded state slides up to overlay the fretboard. Controlled by `sheetOpen` state. Supports tap toggle and touch drag gestures (swipe up to open, swipe down to close, 40px threshold). A backdrop overlay closes the sheet on tap. The sheet uses `position: fixed` with `transform: translateY()` animation.
 - **Controls:** Key and shape selectors use `<select>` dropdowns. "All" shapes is a separate toggle button. Frying pan label shortened to "Pan" and inlined with penta controls.
 - **Fretboard container:** No panel box (background/border/shadow) on mobile — saves margin space.
 - **Frying pan clipping:** A `<clipPath>` constrains frying pan overlay shapes to the fretboard bounds on mobile.
@@ -71,7 +72,7 @@ Mobile layout constants: `STRING_SPACING_M` (42), `MARGIN_LEFT_M` (55), `MARGIN_
 
 ### Controls Layout
 
-**Shapes/Labels row:** Shape selector (buttons on desktop, dropdown on mobile) │ `[Intervals] / [Notes]` swap toggle.
+**Shapes/Labels row:** Shape selector (buttons on desktop, dropdown on mobile) │ `[Intervals] / [Notes]` swap toggle. On mobile, this row lives inside the bottom sheet.
 
 **Options row:** `Triads [pill]` with conditional Maj/Min overrides │ `Penta [pill]` with conditional `[Blues]` and `[Pan]` buttons (Blues appears when penta on, Pan when penta on + All shapes) │ `Quality` pill toggle. The Quality pill replaces the old header gear icon; it controls whether triad/penta quality tracks the key automatically (off) or allows manual Maj/Min override (on).
 
@@ -85,7 +86,7 @@ All fretboard note positions follow the same pattern as `FRYING_PAN`: defined fo
 
 ### State Management
 
-React hooks only (`useState`, `useMemo`, `useEffect`). Main state: `themeMode` (dark/light), `keyIndex` (0-11), `isMinorKey`, `activeShape` (C/A/G/E/D/all/off), `showTriads`, `scaleMode` (off/pentatonic/blues), `triadQuality` (major/minor), `pentaQuality` (major/minor), `labelMode` (intervals/notes), `showFryingPan` (boolean), `advancedMode` (quality override), `hoveredShape`, `showMenu` (mobile hamburger). Derived: `menuOpen = isMobile && showMenu`.
+React hooks only (`useState`, `useMemo`, `useEffect`). Main state: `themeMode` (dark/light), `keyIndex` (0-11), `isMinorKey`, `activeShape` (C/A/G/E/D/all/off), `showTriads`, `scaleMode` (off/pentatonic/blues), `triadQuality` (major/minor), `pentaQuality` (major/minor), `labelMode` (intervals/notes), `showFryingPan` (boolean), `advancedMode` (quality override), `hoveredShape`, `showMenu` (mobile hamburger), `sheetOpen` (mobile bottom sheet). Derived: `menuOpen = isMobile && showMenu`, `sheetSummary` (peek bar text).
 
 ### Overlay System
 
