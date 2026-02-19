@@ -901,16 +901,12 @@ export default function CAGEDExplorer() {
           <div style={STYLE.optionRow(22)}>
             <span style={STYLE.optionLabel}>Triads</span>
             <PillToggle on={showTriads} onToggle={() => setShowTriads(t => !t)} title="Show root, 3rd, and 5th chord tones" theme={theme} />
-            {advancedMode && showTriads && (
-              <>
-                {["major", "minor"].map(q => (
-                  <ToggleButton key={q} label={q === "major" ? "Maj" : "Min"}
-                    title={`Force ${q} triad quality`}
-                    active={triadQuality === q} onClick={() => setTriadQuality(q)}
-                    style={{ fontSize: "0.6rem", padding: "2px 7px" }} theme={theme} />
-                ))}
-              </>
-            )}
+            {advancedMode && showTriads && ["major", "minor"].map(q => (
+              <ToggleButton key={q} label={q === "major" ? "Maj" : "Min"}
+                title={`Force ${q} triad quality`}
+                active={triadQuality === q} onClick={() => setTriadQuality(q)}
+                style={{ fontSize: "0.6rem", padding: "2px 7px" }} theme={theme} />
+            ))}
             <span style={STYLE.divider}>│</span>
             <span style={STYLE.optionLabel}>Pentatonics</span>
             <PillToggle on={scaleMode !== "off"} onToggle={() => {
@@ -922,16 +918,12 @@ export default function CAGEDExplorer() {
                 active={scaleMode === "blues"}
                 onClick={() => setPentaScale(scaleMode === "blues" ? "pentatonic" : "blues")} theme={theme} />
             )}
-            {advancedMode && scaleMode !== "off" && (
-              <>
-                {["major", "minor"].map(q => (
-                  <ToggleButton key={q} label={q === "major" ? "Maj" : "Min"}
-                    title={`Force ${q} pentatonic quality`}
-                    active={pentaQuality === q} onClick={() => setPentaQuality(q)}
-                    style={{ fontSize: "0.6rem", padding: "2px 7px" }} theme={theme} />
-                ))}
-              </>
-            )}
+            {advancedMode && scaleMode !== "off" && ["major", "minor"].map(q => (
+              <ToggleButton key={q} label={q === "major" ? "Maj" : "Min"}
+                title={`Force ${q} pentatonic quality`}
+                active={pentaQuality === q} onClick={() => setPentaQuality(q)}
+                style={{ fontSize: "0.6rem", padding: "2px 7px" }} theme={theme} />
+            ))}
             {activeShape === "all" && scaleMode !== "off" && (
               <ToggleButton label="Pan" title="Show frying pan overlay connecting pentatonic notes across strings"
                 active={showFryingPan}
