@@ -750,7 +750,7 @@ export default function CAGEDExplorer() {
 
   return (
     <div style={{ background: theme.bg.page,
-      minHeight: "100vh", padding: isMobile ? "12px 4px" : "24px 16px", boxSizing: "border-box", fontFamily: "system-ui, -apple-system, 'Segoe UI', sans-serif", color: theme.text.primary }}>
+      minHeight: "100vh", padding: isMobile ? "12px 4px 52px" : "24px 16px", boxSizing: "border-box", fontFamily: "system-ui, -apple-system, 'Segoe UI', sans-serif", color: theme.text.primary }}>
       <div style={{ maxWidth: 1000, margin: "0 auto", position: "relative" }}>
 
         {!isMobile && <img src={`${import.meta.env.BASE_URL}logo.svg`} width={80} height={80} alt="" style={{ position: "absolute", top: -4, left: 0, opacity: 0.85 }} />}
