@@ -500,13 +500,13 @@ function HelpPanel({ isOpen, onClose, theme }) {
 export default function CAGEDExplorer() {
   const [keyIndex, setKeyIndex] = useState(0);
   const [isMinorKey, setIsMinorKey] = useState(false);
-  const [activeShape, setActiveShape] = useState("C");
+  const [activeShape, setActiveShape] = useState("all");
   const [showTriads, setShowTriads] = useState(true);
-  const [scaleMode, setPentaScale] = useState("off");
+  const [scaleMode, setPentaScale] = useState("pentatonic");
   const [triadQuality, setTriadQuality] = useState("major");
   const [pentaQuality, setPentaQuality] = useState("major");
   const [advancedMode, setAdvancedMode] = useState(false);
-  const [labelMode, setLabelMode] = useState("intervals");
+  const [labelMode, setLabelMode] = useState("notes");
   const [showFryingPan, setShowFryingPan] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
