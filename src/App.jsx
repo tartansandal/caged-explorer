@@ -1024,37 +1024,6 @@ export default function CAGEDExplorer() {
               <text x={9} y={MARGIN_TOP - 27} textAnchor="start" fill={theme.text.dim} fontSize={9} fontWeight={700}>Shape:</text>
             )}
 
-            {/* Hit rects for shape hover/click in all-view */}
-            {(showTriads || showPenta) && activeShape === "all" && hoverRanges.map(({ shape, ci, hoverLo, hoverHi }) => {
-              if (isMobile) {
-                const y1 = noteY(hoverLo) - FRET_SPACING_M * 0.48;
-                const y2 = noteY(hoverHi) + FRET_SPACING_M * 0.48;
-                return <rect
-                  key={`hit-${shape}-${ci}`}
-                  x={MARGIN_LEFT_M - 68}
-                  y={y1}
-                  width={5 * STRING_SPACING_M + 26 + 68 - 13}
-                  height={y2 - y1}
-                  fill="transparent"
-                  onMouseEnter={() => setHoveredShape(shape)}
-                  onMouseLeave={() => setHoveredShape(null)}
-                  onClick={() => setHoveredShape(h => h === shape ? null : shape)}
-                />;
-              }
-              const x1 = noteX(hoverLo) - fretWAt(hoverLo) * 0.48;
-              const x2 = noteX(hoverHi) + fretWAt(hoverHi) * 0.48;
-              return <rect
-                key={`hit-${shape}-${ci}`}
-                x={x1}
-                y={MARGIN_TOP - 38}
-                width={x2 - x1}
-                height={5 * STRING_SPACING + 26 + 38 - 13}
-                fill="transparent"
-                onMouseEnter={() => setHoveredShape(shape)}
-                onMouseLeave={() => setHoveredShape(null)}
-              />;
-            })}
-
             {/* Shape labels */}
             {(showTriads || showPenta) && showShapeDistinctions && visibleShapes.flatMap(sh => {
               const lbl = isMinorKey ? sh + "m" : sh;
@@ -1205,6 +1174,37 @@ export default function CAGEDExplorer() {
                   fret={f} theme={theme} />
               ))
             )}
+
+            {/* Hit rects for shape hover/click in all-view — rendered last so they sit on top */}
+            {(showTriads || showPenta) && activeShape === "all" && hoverRanges.map(({ shape, ci, hoverLo, hoverHi }) => {
+              if (isMobile) {
+                const y1 = noteY(hoverLo) - FRET_SPACING_M * 0.48;
+                const y2 = noteY(hoverHi) + FRET_SPACING_M * 0.48;
+                return <rect
+                  key={`hit-${shape}-${ci}`}
+                  x={MARGIN_LEFT_M - 68}
+                  y={y1}
+                  width={5 * STRING_SPACING_M + 26 + 68 - 13}
+                  height={y2 - y1}
+                  fill="transparent"
+                  onMouseEnter={() => setHoveredShape(shape)}
+                  onMouseLeave={() => setHoveredShape(null)}
+                  onClick={() => setHoveredShape(h => h === shape ? null : shape)}
+                />;
+              }
+              const x1 = noteX(hoverLo) - fretWAt(hoverLo) * 0.48;
+              const x2 = noteX(hoverHi) + fretWAt(hoverHi) * 0.48;
+              return <rect
+                key={`hit-${shape}-${ci}`}
+                x={x1}
+                y={MARGIN_TOP - 38}
+                width={x2 - x1}
+                height={5 * STRING_SPACING + 26 + 38 - 13}
+                fill="transparent"
+                onMouseEnter={() => setHoveredShape(shape)}
+                onMouseLeave={() => setHoveredShape(null)}
+              />;
+            })}
           </svg>
         </div>
 
