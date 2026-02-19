@@ -738,11 +738,11 @@ export default function CAGEDExplorer() {
 
   const sheetSummary = (() => {
     const parts = [];
-    const kn = isMinorKey ? NOTES[(keyIndex + 9) % 12] + "m" : NOTES[keyIndex];
+    const kn = isMinorKey ? NOTES[(keyIndex + 9) % 12] + " Min" : NOTES[keyIndex] + " Maj";
     parts.push(kn);
-    if (activeShape === "all") parts.push("All");
-    else if (activeShape === "off") parts.push("Off");
-    else parts.push(isMinorKey ? activeShape + "m" : activeShape);
+    if (activeShape === "all") parts.push("All Shapes");
+    else if (activeShape === "off") parts.push("No Shape");
+    else parts.push((isMinorKey ? activeShape + "m" : activeShape) + " Shape");
     if (showTriads) parts.push("Triads");
     if (scaleMode === "pentatonic") parts.push("Pentatonic");
     else if (scaleMode === "blues") parts.push("Blues");
