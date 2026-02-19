@@ -288,10 +288,11 @@ function ToggleButton({ label, active, onClick, style = {}, theme }) {
   );
 }
 
-function FretDot({ cx, cy, radius, interval, keyIdx, labelMode, shapeBorder, showNoteName = false, theme }) {
+function FretDot({ cx, cy, radius, interval, keyIdx, labelMode, shapeBorder, fret = 1, theme }) {
   const color = theme.interval[interval];
   const note = noteName(interval, keyIdx);
   const primary = labelMode === "notes" ? note : interval;
+  const secondary = labelMode === "notes" ? interval : note;
   const isLong = primary.length > 1;
   const isTriad = radius === TRIAD_RADIUS;
 
@@ -304,10 +305,10 @@ function FretDot({ cx, cy, radius, interval, keyIdx, labelMode, shapeBorder, sho
         fontSize={isLong ? (isTriad ? 8 : 6) : (isTriad ? 10 : 8)} fontWeight={isTriad ? 700 : 600}>
         {primary}
       </text>
-      {showNoteName && (
+      {fret !== 0 && (
         <text x={cx + radius + 2} y={cy + radius + 2} textAnchor="start" fill={theme.text.secondary}
           fontSize={isTriad ? 7 : 6.5} fontWeight={500}>
-          {note}
+          {secondary}
         </text>
       )}
     </g>
@@ -1241,14 +1242,14 @@ export default function CAGEDExplorer() {
 
             {pentaNotes.map(([s, f, interval]) => (
               <FretDot key={posKey(s, f)} cx={isMobile ? strX(s) : noteX(f)} cy={isMobile ? noteY(f) : strY(s)} radius={PENTA_RADIUS} interval={interval}
-                keyIdx={effectiveKey} labelMode={labelMode} showNoteName={labelMode === "both" && f !== 0} theme={theme} />
+                keyIdx={effectiveKey} labelMode={labelMode} fret={f} theme={theme} />
             ))}
 
             {showMinTriad && visibleShapes.map(sh =>
               minTriads[sh].map(([s, f, interval], idx) => (
                   <FretDot key={`m-${sh}-${idx}`} cx={isMobile ? strX(s) : noteX(f)} cy={isMobile ? noteY(f) : strY(s)} radius={TRIAD_RADIUS} interval={interval}
                     keyIdx={effectiveKey} labelMode={labelMode} shapeBorder={activeShape === "all" ? theme.shape[sh] : null}
-                    showNoteName={labelMode === "both" && f !== 0} theme={theme} />
+                    fret={f} theme={theme} />
                 ))
             )}
 
@@ -1256,7 +1257,7 @@ export default function CAGEDExplorer() {
               majTriads[sh].map(([s, f, interval], idx) => (
                 <FretDot key={`t-${sh}-${idx}`} cx={isMobile ? strX(s) : noteX(f)} cy={isMobile ? noteY(f) : strY(s)} radius={TRIAD_RADIUS} interval={interval}
                   keyIdx={effectiveKey} labelMode={labelMode} shapeBorder={activeShape === "all" ? theme.shape[sh] : null}
-                  showNoteName={labelMode === "both" && f !== 0} theme={theme} />
+                  fret={f} theme={theme} />
               ))
             )}
           </svg>
