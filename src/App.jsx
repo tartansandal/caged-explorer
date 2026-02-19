@@ -257,9 +257,9 @@ const scaleName = (scaleMode, pentaQuality) => {
 const fretX = (fret) => MARGIN_LEFT + FRET_X[fret];
 const noteX = (fret) => fret === 0 ? MARGIN_LEFT - 16 : MARGIN_LEFT + (fretXAt(fret - 1) + fretXAt(fret)) / 2;
 const strY = (str) => MARGIN_TOP + (str - 1) * STRING_SPACING;
-function PillToggle({ on, onToggle, theme }) {
+function PillToggle({ on, onToggle, title, theme }) {
   return (
-    <button onClick={onToggle} aria-pressed={on} style={{
+    <button onClick={onToggle} aria-pressed={on} title={title} style={{
       width: 36, height: 18, borderRadius: 9, border: `1px solid ${on ? theme.border.accent : theme.border.light}`,
       cursor: "pointer",
       background: on ? theme.bg.btnAccent : theme.bg.btnOff,
@@ -274,13 +274,13 @@ function PillToggle({ on, onToggle, theme }) {
     </button>
   );
 }
-function ToggleButton({ label, active, onClick, style = {}, theme }) {
+function ToggleButton({ label, active, onClick, title, style = {}, theme }) {
   const bg = active ? theme.bg.btnAccent : theme.bg.btnOff;
   const color = active ? theme.accent.blue : theme.text.dim;
   const border = active ? theme.border.accent : theme.border.subtle;
 
   return (
-    <button onClick={onClick} aria-pressed={active} style={{
+    <button onClick={onClick} aria-pressed={active} title={title} style={{
       background: bg, color, border: `1px solid ${border}`,
       borderRadius: 5, padding: "3px 10px", fontSize: "0.7rem",
       cursor: "pointer", transition: "all 0.15s", ...style,
@@ -868,15 +868,18 @@ export default function CAGEDExplorer() {
               {["all", ...SHAPE_ORDER, "off"].map(s => {
                 const label = s === "off" ? "Off" : s === "all" ? "All"
                   : isMinorKey ? s + "m" : s;
+                const title = s === "all" ? "Show all five CAGED shapes across the fretboard"
+                  : s === "off" ? "Hide shape highlights"
+                  : `Highlight the ${s} shape region`;
                 return (
-                  <ToggleButton key={s} label={label}
+                  <ToggleButton key={s} label={label} title={title}
                     active={activeShape === s} onClick={() => changeShape(s)} theme={theme} />
                 );
               })}
               <span style={STYLE.divider}>│</span>
-              <ToggleButton label="Notes" active={labelMode === "notes"} onClick={() => setLabelMode("notes")} theme={theme} />
+              <ToggleButton label="Notes" title="Show note names (C, D, E…) on the fretboard" active={labelMode === "notes"} onClick={() => setLabelMode("notes")} theme={theme} />
               <span style={{ color: theme.text.dim, fontSize: "0.7rem" }}>/</span>
-              <ToggleButton label="Intervals" active={labelMode === "intervals"} onClick={() => setLabelMode("intervals")} theme={theme} />
+              <ToggleButton label="Intervals" title="Show intervals (R, 3, 5…) relative to the key" active={labelMode === "intervals"} onClick={() => setLabelMode("intervals")} theme={theme} />
             </div>
           </>
         )}
@@ -885,11 +888,12 @@ export default function CAGEDExplorer() {
         {!isMobile && (
           <div style={STYLE.optionRow(22)}>
             <span style={STYLE.optionLabel}>Triads</span>
-            <PillToggle on={showTriads} onToggle={() => setShowTriads(t => !t)} theme={theme} />
+            <PillToggle on={showTriads} onToggle={() => setShowTriads(t => !t)} title="Show root, 3rd, and 5th chord tones" theme={theme} />
             {advancedMode && showTriads && (
               <>
                 {["major", "minor"].map(q => (
                   <ToggleButton key={q} label={q === "major" ? "Maj" : "Min"}
+                    title={`Force ${q} triad quality`}
                     active={triadQuality === q} onClick={() => setTriadQuality(q)}
                     style={{ fontSize: "0.6rem", padding: "2px 7px" }} theme={theme} />
                 ))}
@@ -900,28 +904,31 @@ export default function CAGEDExplorer() {
             <PillToggle on={scaleMode !== "off"} onToggle={() => {
               if (scaleMode !== "off") { setPentaScale("off"); setShowFryingPan(false); }
               else { setPentaScale("pentatonic"); }
-            }} theme={theme} />
+            }} title="Show pentatonic scale positions" theme={theme} />
             {scaleMode !== "off" && (
-              <ToggleButton label="Blues" active={scaleMode === "blues"}
+              <ToggleButton label="Blues" title="Add blue notes (♭5 for minor, ♭3 for major)"
+                active={scaleMode === "blues"}
                 onClick={() => setPentaScale(scaleMode === "blues" ? "pentatonic" : "blues")} theme={theme} />
             )}
             {advancedMode && scaleMode !== "off" && (
               <>
                 {["major", "minor"].map(q => (
                   <ToggleButton key={q} label={q === "major" ? "Maj" : "Min"}
+                    title={`Force ${q} pentatonic quality`}
                     active={pentaQuality === q} onClick={() => setPentaQuality(q)}
                     style={{ fontSize: "0.6rem", padding: "2px 7px" }} theme={theme} />
                 ))}
               </>
             )}
             {activeShape === "all" && scaleMode !== "off" && (
-              <ToggleButton label="Pan" active={showFryingPan}
+              <ToggleButton label="Pan" title="Show frying pan overlay connecting pentatonic notes across strings"
+                active={showFryingPan}
                 onClick={() => setShowFryingPan(p => !p)} theme={theme} />
             )}
             <span style={STYLE.divider}>│</span>
             <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
               <span style={STYLE.optionLabel}>Quality</span>
-              <PillToggle on={advancedMode} onToggle={toggleAdvanced} theme={theme} />
+              <PillToggle on={advancedMode} onToggle={toggleAdvanced} title="Manually override major/minor quality instead of following the key" theme={theme} />
             </span>
           </div>
         )}
@@ -1382,13 +1389,16 @@ export default function CAGEDExplorer() {
                     <div>
                       <span style={{ ...sheetLabel, display: "block", textAlign: "center" }}>Shapes</span>
                       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 3, marginTop: 4 }}>
-                        <ToggleButton label="All" active={activeShape === "all"}
+                        <ToggleButton label="All" title="Show all five CAGED shapes across the fretboard"
+                          active={activeShape === "all"}
                           onClick={() => changeShape(activeShape === "all" ? "off" : "all")}
                           style={{ gridColumn: "1 / -1" }} theme={theme} />
                         {[...SHAPE_ORDER, "off"].map(s => {
                           const label = s === "off" ? "Off" : isMinorKey ? s + "m" : s;
+                          const title = s === "off" ? "Hide shape highlights"
+                            : `Highlight the ${s} shape region`;
                           return (
-                            <ToggleButton key={s} label={label}
+                            <ToggleButton key={s} label={label} title={title}
                               active={activeShape === s} onClick={() => changeShape(s)} theme={theme} />
                           );
                         })}
@@ -1396,9 +1406,9 @@ export default function CAGEDExplorer() {
                     </div>
                     {/* Intervals / Notes toggle */}
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 4 }}>
-                      <ToggleButton label="Notes" active={labelMode === "notes"} onClick={() => setLabelMode("notes")} theme={theme} />
+                      <ToggleButton label="Notes" title="Show note names (C, D, E…) on the fretboard" active={labelMode === "notes"} onClick={() => setLabelMode("notes")} theme={theme} />
                       <span style={{ color: theme.text.dim, fontSize: "0.7rem" }}>/</span>
-                      <ToggleButton label="Intervals" active={labelMode === "intervals"} onClick={() => setLabelMode("intervals")} theme={theme} />
+                      <ToggleButton label="Intervals" title="Show intervals (R, 3, 5…) relative to the key" active={labelMode === "intervals"} onClick={() => setLabelMode("intervals")} theme={theme} />
                     </div>
                     {/* Options */}
                     {(() => {
@@ -1410,12 +1420,13 @@ export default function CAGEDExplorer() {
                           <div>
                             <div style={optRow}>
                               <span style={{ ...sheetLabel, minWidth: 42 }}>Triads</span>
-                              <PillToggle on={showTriads} onToggle={() => setShowTriads(t => !t)} theme={theme} />
+                              <PillToggle on={showTriads} onToggle={() => setShowTriads(t => !t)} title="Show root, 3rd, and 5th chord tones" theme={theme} />
                             </div>
                             {advancedMode && showTriads && (
                               <div style={{ ...qualBtns, marginTop: 4 }}>
                                 {["major", "minor"].map(q => (
                                   <ToggleButton key={q} label={q === "major" ? "Maj" : "Min"}
+                                    title={`Force ${q} triad quality`}
                                     active={triadQuality === q} onClick={() => setTriadQuality(q)}
                                     style={{ fontSize: "0.6rem", padding: "2px 7px" }} theme={theme} />
                                 ))}
@@ -1428,13 +1439,15 @@ export default function CAGEDExplorer() {
                               <PillToggle on={scaleMode !== "off"} onToggle={() => {
                                 if (scaleMode !== "off") { setPentaScale("off"); setShowFryingPan(false); }
                                 else { setPentaScale("pentatonic"); }
-                              }} theme={theme} />
+                              }} title="Show pentatonic scale positions" theme={theme} />
                               {scaleMode !== "off" && (
-                                <ToggleButton label="Blues" active={scaleMode === "blues"}
+                                <ToggleButton label="Blues" title="Add blue notes (♭5 for minor, ♭3 for major)"
+                                  active={scaleMode === "blues"}
                                   onClick={() => setPentaScale(scaleMode === "blues" ? "pentatonic" : "blues")} style={mBtn} theme={theme} />
                               )}
                               {activeShape === "all" && scaleMode !== "off" && (
-                                <ToggleButton label="Pan" active={showFryingPan}
+                                <ToggleButton label="Pan" title="Show frying pan overlay connecting pentatonic notes across strings"
+                                  active={showFryingPan}
                                   onClick={() => setShowFryingPan(p => !p)} style={mBtn} theme={theme} />
                               )}
                             </div>
@@ -1442,6 +1455,7 @@ export default function CAGEDExplorer() {
                               <div style={{ ...qualBtns, marginTop: 4 }}>
                                 {["major", "minor"].map(q => (
                                   <ToggleButton key={q} label={q === "major" ? "Maj" : "Min"}
+                                    title={`Force ${q} pentatonic quality`}
                                     active={pentaQuality === q} onClick={() => setPentaQuality(q)}
                                     style={{ fontSize: "0.6rem", padding: "2px 7px" }} theme={theme} />
                                 ))}
@@ -1450,7 +1464,7 @@ export default function CAGEDExplorer() {
                           </div>
                           <div style={optRow}>
                             <span style={{ ...sheetLabel, minWidth: 42 }}>Quality</span>
-                            <PillToggle on={advancedMode} onToggle={toggleAdvanced} theme={theme} />
+                            <PillToggle on={advancedMode} onToggle={toggleAdvanced} title="Manually override major/minor quality instead of following the key" theme={theme} />
                           </div>
                         </div>
                       );
