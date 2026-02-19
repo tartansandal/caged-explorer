@@ -760,11 +760,6 @@ export default function CAGEDExplorer() {
                       cursor: "pointer", color: theme.text.primary, fontSize: "0.82rem", padding: "4px 0" }}>
                     <span style={{ fontFamily: "Georgia, serif", fontWeight: 600 }}>?</span> About
                   </button>
-                  <button onClick={() => { toggleAdvanced(); setShowMenu(false); }}
-                    style={{ display: "flex", alignItems: "center", gap: 8, background: "none", border: "none",
-                      cursor: "pointer", color: advancedMode ? theme.accent.blue : theme.text.primary, fontSize: "0.82rem", padding: "4px 0" }}>
-                    ⚙ Advanced
-                  </button>
                   <button onClick={() => { toggleTheme(); setShowMenu(false); }}
                     style={{ display: "flex", alignItems: "center", gap: 8, background: "none", border: "none",
                       cursor: "pointer", color: theme.text.primary, fontSize: "0.82rem", padding: "4px 0" }}>
@@ -788,12 +783,6 @@ export default function CAGEDExplorer() {
               style={{ background: "none", border: "none", cursor: "pointer",
                 fontSize: "1.3rem", fontWeight: 600, color: theme.text.dim, transition: "color 0.15s", opacity: 0.7, fontFamily: "Georgia, serif" }}>
               ?
-            </button>
-            <button onClick={toggleAdvanced} title={advancedMode ? "Hide quality overrides" : "Show quality overrides"}
-              style={{ background: "none", border: "none", cursor: "pointer",
-                fontSize: "1.5rem", color: advancedMode ? theme.accent.blue : theme.text.dim, transition: "color 0.15s",
-                opacity: advancedMode ? 1 : 0.6 }}>
-              ⚙
             </button>
             <a href="https://github.com/tartansandal/caged-explorer" target="_blank" rel="noopener noreferrer"
               title="View on GitHub"
@@ -856,6 +845,10 @@ export default function CAGEDExplorer() {
               <span style={{ color: theme.text.dim, fontSize: "0.7rem" }}>/</span>
               <ToggleButton label="Notes" active={labelMode === "notes"} onClick={() => setLabelMode("notes")} theme={theme} />
             </span>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+              <span style={{ fontSize: "0.5rem", color: theme.text.dim, letterSpacing: "0.12em", textTransform: "uppercase" }}>Quality</span>
+              <PillToggle on={advancedMode} onToggle={toggleAdvanced} theme={theme} />
+            </span>
           </div>
         ) : (
           <>
@@ -902,6 +895,11 @@ export default function CAGEDExplorer() {
               <ToggleButton label="Intervals" active={labelMode === "intervals"} onClick={() => setLabelMode("intervals")} theme={theme} />
               <span style={{ color: theme.text.dim, fontSize: "0.7rem" }}>/</span>
               <ToggleButton label="Notes" active={labelMode === "notes"} onClick={() => setLabelMode("notes")} theme={theme} />
+              <span style={STYLE.divider}>│</span>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                <span style={STYLE.optionLabel}>Quality</span>
+                <PillToggle on={advancedMode} onToggle={toggleAdvanced} theme={theme} />
+              </span>
             </div>
           </>
         )}
