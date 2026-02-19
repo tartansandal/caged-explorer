@@ -39,7 +39,7 @@ Music theory logic lives in `src/music.js` (pure functions + data constants), ke
 
 **`src/App.jsx`** — Single `CAGEDExplorer` component with subcomponents:
 - `PillToggle` — iOS-style sliding pill toggle (~36x18px), used for Triads on/off, Pentatonics on/off, and Quality override. Props: `on`, `onToggle`, `theme`.
-- `ToggleButton` — Standard labeled button toggle. Used for shape selection, Blues, Pan, Intervals/Notes swap, and Maj/Min quality overrides.
+- `ToggleButton` — Standard labeled button toggle. Accepts optional `style` prop (merged into inline styles). Used for shape selection, Blues, Pan, Intervals/Notes swap, and Maj/Min quality overrides.
 - `FretDot` — SVG note dot that always shows both interval and note name. The `labelMode` state (`"intervals"` or `"notes"`) controls which is inside the dot (prominent) vs outside (small text). The `fret` prop (default 1) suppresses outside text at fret 0 (open strings are too cramped).
 - `LegendSection` — Legend entries always show both interval and note. Dot shows the `labelMode` primary, text shows `"label · secondary"`.
 - `ChordDiagram` — Mini chord diagram; only shows one label inside dots (no secondary text).
@@ -56,7 +56,7 @@ The app detects mobile viewports (≤639px) via the `useIsMobile` hook (uses `ma
 
 **Desktop layout:** Horizontal fretboard (nut on left, frets extending right), button rows for key/shape/options, proportional fret spacing (`FRET_X` from `music.js`).
 
-**Mobile layout:** Vertical fretboard (nut at top, frets descending), dropdowns replacing button rows, uniform fret spacing. Key differences:
+**Mobile layout:** Vertical fretboard (nut at top, frets descending), uniform fret spacing, controls in a bottom sheet. Key differences:
 
 - **Coordinate functions:** `fretY(fret)`, `noteY(fret)`, `strX(str)` replace desktop `fretX`/`noteX`/`strY`. The X/Y axes are swapped.
 - **Uniform fret spacing:** `FRET_SPACING_M = 56` px per fret (vs proportional on desktop). Same total width (`NUM_FRETS * 56 = 840`), but evenly distributed so more frets are visible in the viewport.
@@ -65,16 +65,20 @@ The app detects mobile viewports (≤639px) via the `useIsMobile` hook (uses `ma
 - **Controls:** Key selectors use a 12-row major/minor button grid. Shape selectors use a 2-column button grid. Options (triads, penta, quality) stack vertically with one group per row.
 - **Fretboard container:** No panel box (background/border/shadow) on mobile — saves margin space.
 - **Frying pan clipping:** A `<clipPath>` constrains frying pan overlay shapes to the fretboard bounds on mobile.
-- **Touch support:** Shape hover hit rects include `onClick` toggle for touch devices (mouse hover doesn't work on mobile).
+- **Touch support:** Shape hover hit rects include `onClick` toggle for touch devices (mouse hover doesn't work on mobile). Hit rects extend to `x=0` (full `MARGIN_LEFT_M` width) to cover shape labels in the left margin.
+- **Mobile header:** Inline flex row: logo (60px) on the left, centered title, hamburger menu on the right. Desktop keeps absolute-positioned logo (80px) and header controls.
 - **Hamburger menu:** Header controls (help, GitHub, theme toggle) collapse into a hamburger menu. `menuOpen = isMobile && showMenu` derived value prevents stale state on breakpoint change.
+- **Left margin layout:** Shape labels at `MARGIN_LEFT_M - 55` (13px from edge), fret numbers at `MARGIN_LEFT_M - 28` (40px from edge), with 27px gap between them.
 
-Mobile layout constants: `STRING_SPACING_M` (42), `MARGIN_LEFT_M` (55), `MARGIN_TOP_M` (58), `FRET_SPACING_M` (56).
+Mobile layout constants: `STRING_SPACING_M` (42), `MARGIN_LEFT_M` (68), `MARGIN_TOP_M` (58), `FRET_SPACING_M` (56).
 
 ### Controls Layout
 
-**Shapes/Labels row:** Shape selector (buttons on desktop, dropdown on mobile) │ `[Intervals] / [Notes]` swap toggle. On mobile, this row lives inside the bottom sheet.
+**Desktop:** Button rows for key selection, shape selection (`[Intervals] / [Notes]` swap toggle), and options.
 
-**Options row:** `Triads [pill]` with conditional Maj/Min overrides │ `Penta [pill]` with conditional `[Blues]` and `[Pan]` buttons (Blues appears when penta on, Pan when penta on + All shapes) │ `Quality` pill toggle. The Quality pill replaces the old header gear icon; it controls whether triad/penta quality tracks the key automatically (off) or allows manual Maj/Min override (on).
+**Mobile (bottom sheet):** Two-panel layout. Left panel: 12-row × 2-column grid of major ("Major") and relative minor ("Rel. Minor") key buttons, reusing desktop `STYLE.keyBtn`/`STYLE.minorKeyBtn`. Right panel (flex column, `justify-content: space-between`): shapes (2-column grid with "All" spanning full width), `[Intervals] / [Notes]` toggle, and options (vertical stack, 20px gap between groups).
+
+**Options (both layouts):** `Triads [pill]` with conditional Maj/Min overrides │ `Penta [pill]` with conditional `[Blues]` and `[Pan]` buttons (Blues appears when penta on, Pan when penta on + All shapes) │ `Quality` pill toggle. The Quality pill controls whether triad/penta quality tracks the key automatically (off) or allows manual Maj/Min override (on). On mobile, option labels have `minWidth: 42` for pill alignment, and conditional Maj/Min buttons appear on their own line with `marginLeft: 46` to align under the pills.
 
 ### Key Concept: effectiveKey
 
@@ -100,8 +104,8 @@ In "All" shapes view, each shape's fretboard column has an invisible hit rect fo
 
 Dual theme support (light/dark) with three theme objects in `src/App.jsx`:
 - `THEME_COMMON` — Shared colors: shape (C/A/G/E/D) and interval colors, frying pan overlay
-- `THEME_DARK` — Dark palette (deep blue-purple gradient)
-- `THEME_LIGHT` — Light palette (warm wood-tone)
+- `THEME_DARK` — Dark palette (deep blue-purple gradient), blue accent (`#2563eb`)
+- `THEME_LIGHT` — Light palette (warm wood-tone), warm brown accent (`#7a6050`) for toggle buttons, pill borders, and active states
 
 Theme state uses `useState` with localStorage persistence and OS `prefers-color-scheme` detection via `matchMedia`. All subcomponents receive `theme` as a prop. The `STYLE` object is generated via `makeStyles(theme)` and memoized.
 
