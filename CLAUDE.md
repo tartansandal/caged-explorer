@@ -38,8 +38,8 @@ Music theory logic lives in `src/music.js` (pure functions + data constants), ke
 - Constants: `FRYING_PAN` (overlay geometry), `SHAPE_ORDER`, `SHAPE_ORIENTATION`, `NUM_FRETS`, `posKey`, `CHORD_MAJ/MIN` (open chord fingerings), `INTERVAL_SEMITONES` (interval-to-semitone mapping)
 
 **`src/App.jsx`** — Single `CAGEDExplorer` component with subcomponents:
-- `PillToggle` — iOS-style sliding pill toggle (~36x18px), used for Triads on/off, Pentatonics on/off, and Quality override. Props: `on`, `onToggle`, `theme`.
-- `ToggleButton` — Standard labeled button toggle. Accepts optional `style` prop (merged into inline styles). Used for shape selection, Blues, Pan, Intervals/Notes swap, and Maj/Min quality overrides.
+- `PillToggle` — iOS-style sliding pill toggle (~36x18px), used for Triads on/off, Pentatonics on/off, and Quality override. Props: `on`, `onToggle`, `title`, `theme`.
+- `ToggleButton` — Standard labeled button toggle. Accepts optional `style` and `title` props. Used for shape selection, Blues, Pan, Notes/Intervals swap, and Maj/Min quality overrides. All instances have `title` tooltips for hover help.
 - `FretDot` — SVG note dot that always shows both interval and note name. The `labelMode` state (`"intervals"` or `"notes"`) controls which is inside the dot (prominent) vs outside (small text). The `fret` prop (default 1) suppresses outside text at fret 0 (open strings are too cramped).
 - `LegendSection` — Legend entries always show both interval and note. Dot shows the `labelMode` primary, text shows `"label · secondary"`.
 - `ChordDiagram` — Mini chord diagram; only shows one label inside dots (no secondary text).
@@ -98,7 +98,7 @@ The **Frying Pan** overlay highlights 5-note groups across string pairs with pan
 
 ### Shape Hover System
 
-In "All" shapes view, each shape's fretboard column has an invisible hit rect for hover highlighting. `shapeRanges` clusters each shape's notes into `{lo, hi, partial}` ranges. Partial clusters (span < 70% of canonical) at fretboard edges are dimmed and excluded from interaction. `computeHoverRanges` splits adjacent clusters at midpoints to produce non-overlapping hover regions.
+In "All" shapes view, each shape's fretboard column has an invisible hit rect for hover highlighting. `shapeRanges` clusters each shape's notes into `{lo, hi, partial}` ranges. Partial clusters (span < 70% of canonical) at fretboard edges are dimmed and excluded from interaction. `computeHoverRanges` splits adjacent clusters at midpoints to produce non-overlapping hover regions. Hit rects must render last in the SVG (after all `FretDot` notes) so they sit on top and receive pointer events.
 
 ### Theme System
 
