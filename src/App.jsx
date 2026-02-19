@@ -865,7 +865,7 @@ export default function CAGEDExplorer() {
             {/* Shapes + Labels */}
             <div style={STYLE.optionRow(14)}>
               <span style={STYLE.optionLabel}>Shapes</span>
-              {["off", ...SHAPE_ORDER, "all"].map(s => {
+              {["all", ...SHAPE_ORDER, "off"].map(s => {
                 const label = s === "off" ? "Off" : s === "all" ? "All"
                   : isMinorKey ? s + "m" : s;
                 return (
@@ -1382,16 +1382,16 @@ export default function CAGEDExplorer() {
                     <div>
                       <span style={{ ...sheetLabel, display: "block", textAlign: "center" }}>Shapes</span>
                       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 3, marginTop: 4 }}>
-                        {["off", ...SHAPE_ORDER].map(s => {
+                        <ToggleButton label="All" active={activeShape === "all"}
+                          onClick={() => changeShape(activeShape === "all" ? "off" : "all")}
+                          style={{ gridColumn: "1 / -1" }} theme={theme} />
+                        {[...SHAPE_ORDER, "off"].map(s => {
                           const label = s === "off" ? "Off" : isMinorKey ? s + "m" : s;
                           return (
                             <ToggleButton key={s} label={label}
                               active={activeShape === s} onClick={() => changeShape(s)} theme={theme} />
                           );
                         })}
-                        <ToggleButton label="All" active={activeShape === "all"}
-                          onClick={() => changeShape(activeShape === "all" ? "off" : "all")}
-                          style={{ gridColumn: "1 / -1" }} theme={theme} />
                       </div>
                     </div>
                     {/* Intervals / Notes toggle */}
