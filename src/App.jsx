@@ -924,9 +924,14 @@ export default function CAGEDExplorer() {
               )}
               <span style={mDiv}>│</span>
               <span style={mLabel}>Penta</span>
-              <ToggleButton label="Off" active={scaleMode === "off"} onClick={() => { setPentaScale("off"); setShowFryingPan(false); }} style={mBtn} theme={theme} />
-              <ToggleButton label="On" active={scaleMode === "pentatonic"} onClick={() => setPentaScale("pentatonic")} style={mBtn} theme={theme} />
-              <ToggleButton label="Blues" active={scaleMode === "blues"} onClick={() => setPentaScale("blues")} style={mBtn} theme={theme} />
+              <PillToggle on={scaleMode !== "off"} onToggle={() => {
+                if (scaleMode !== "off") { setPentaScale("off"); setShowFryingPan(false); }
+                else { setPentaScale("pentatonic"); }
+              }} theme={theme} />
+              {scaleMode !== "off" && (
+                <ToggleButton label="Blues" active={scaleMode === "blues"}
+                  onClick={() => setPentaScale(scaleMode === "blues" ? "pentatonic" : "blues")} style={mBtn} theme={theme} />
+              )}
               {advancedMode && scaleMode !== "off" && (
                 <>
                   {["major", "minor"].map(q => (
@@ -959,9 +964,14 @@ export default function CAGEDExplorer() {
             )}
             <span style={STYLE.divider}>│</span>
             <span style={STYLE.optionLabel}>Pentatonic</span>
-            <ToggleButton label="Off" active={scaleMode === "off"} onClick={() => { setPentaScale("off"); setShowFryingPan(false); }} theme={theme} />
-            <ToggleButton label="On" active={scaleMode === "pentatonic"} onClick={() => setPentaScale("pentatonic")} theme={theme} />
-            <ToggleButton label="Blues" active={scaleMode === "blues"} onClick={() => setPentaScale("blues")} theme={theme} />
+            <PillToggle on={scaleMode !== "off"} onToggle={() => {
+              if (scaleMode !== "off") { setPentaScale("off"); setShowFryingPan(false); }
+              else { setPentaScale("pentatonic"); }
+            }} theme={theme} />
+            {scaleMode !== "off" && (
+              <ToggleButton label="Blues" active={scaleMode === "blues"}
+                onClick={() => setPentaScale(scaleMode === "blues" ? "pentatonic" : "blues")} theme={theme} />
+            )}
             {advancedMode && scaleMode !== "off" && (
               <>
                 {["major", "minor"].map(q => (
