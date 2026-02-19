@@ -321,7 +321,7 @@ function LegendSection({ title, items, dotSize, mt = 0, keyIdx, labelMode, theme
   return (
     <>
       <div style={{ fontSize: "0.55rem", color: theme.text.dim, textTransform: "uppercase",
-        letterSpacing: "0.2em", marginBottom: 8, marginTop: mt }}>
+        letterSpacing: "0.2em", marginBottom: 8, marginTop: mt, textAlign: "center" }}>
         {title}
       </div>
       <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
