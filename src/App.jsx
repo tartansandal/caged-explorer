@@ -188,7 +188,7 @@ const PENTA_RADIUS   = 8;
 // Mobile (vertical) fretboard layout: nut at top, frets descending
 // Uniform fret spacing on mobile — proportional spacing wastes vertical space
 const STRING_SPACING_M = 42;
-const MARGIN_LEFT_M    = 55;   // space for fret numbers + shape labels on left
+const MARGIN_LEFT_M    = 68;   // space for fret numbers + shape labels on left
 const MARGIN_TOP_M     = 58;   // space for string names + open-string notes at top
 const FRET_SPACING_M   = 56;   // uniform fret width (same total as proportional)
 const FRET_TOTAL_M     = NUM_FRETS * FRET_SPACING_M;
@@ -1050,7 +1050,7 @@ export default function CAGEDExplorer() {
                   const cy = avg < 0.5 ? MARGIN_TOP_M : noteY(Math.round(avg));
                   return <text
                     key={`${sh}-${ci}`}
-                    x={MARGIN_LEFT_M - 42}
+                    x={MARGIN_LEFT_M - 55}
                     y={cy}
                     textAnchor="middle"
                     dominantBaseline="central"
