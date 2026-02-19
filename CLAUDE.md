@@ -38,7 +38,7 @@ Music theory logic lives in `src/music.js` (pure functions + data constants), ke
 - Constants: `FRYING_PAN` (overlay geometry), `SHAPE_ORDER`, `SHAPE_ORIENTATION`, `NUM_FRETS`, `posKey`, `CHORD_MAJ/MIN` (open chord fingerings), `INTERVAL_SEMITONES` (interval-to-semitone mapping)
 
 **`src/App.jsx`** — Single `CAGEDExplorer` component with subcomponents:
-- `PillToggle` — iOS-style sliding pill toggle (~36x18px), used for Triads on/off, Pentatonic on/off, and Quality override. Props: `on`, `onToggle`, `theme`.
+- `PillToggle` — iOS-style sliding pill toggle (~36x18px), used for Triads on/off, Pentatonics on/off, and Quality override. Props: `on`, `onToggle`, `theme`.
 - `ToggleButton` — Standard labeled button toggle. Used for shape selection, Blues, Pan, Intervals/Notes swap, and Maj/Min quality overrides.
 - `FretDot` — SVG note dot that always shows both interval and note name. The `labelMode` state (`"intervals"` or `"notes"`) controls which is inside the dot (prominent) vs outside (small text). The `fret` prop (default 1) suppresses outside text at fret 0 (open strings are too cramped).
 - `LegendSection` — Legend entries always show both interval and note. Dot shows the `labelMode` primary, text shows `"label · secondary"`.
