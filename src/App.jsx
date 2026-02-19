@@ -761,7 +761,7 @@ export default function CAGEDExplorer() {
               letterSpacing: "0.25em", color: theme.text.heading, fontFamily: "Georgia, 'Times New Roman', serif" }}>
               CAGED Explorer
             </h1>
-            <div style={{ flexShrink: 0, position: "relative" }}>
+            <div style={{ flexShrink: 0, position: "relative", marginRight: 8 }}>
               <button onClick={() => setShowMenu(m => !m)} title="Menu"
                 style={{ background: "none", border: "none", cursor: "pointer", padding: 0,
                   fontSize: "1.4rem", color: theme.text.dim, opacity: 0.7 }}>
