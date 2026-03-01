@@ -16,6 +16,8 @@ import {
   FRET_W,
   fretXAt,
   fretWAt,
+  MODE_SHAPE,
+  INTERVAL_SEMITONES,
 } from "./music.js";
 
 // ─── FRYING_PAN geometry ────────────────────────────────────────────────────
@@ -922,5 +924,80 @@ describe("Mobile layout geometry", () => {
     for (let s = 2; s <= 5; s++) {
       expect(strX(s) - strX(s + 1)).toBe(gap);
     }
+  });
+});
+
+// ─── MODE_SHAPE data integrity ──────────────────────────────────────────────
+
+describe("MODE_SHAPE data integrity", () => {
+  const MODES = ["ionian", "mixolydian", "aeolian", "dorian"];
+  const MAJOR_MODES = ["ionian", "mixolydian"];
+  const MODE_INTERVALS = {
+    ionian: ["4", "7"],
+    mixolydian: ["4", "♭7"],
+    aeolian: ["2", "♭6"],
+    dorian: ["2", "6"],
+  };
+
+  it("every mode has all 5 CAGED shapes", () => {
+    MODES.forEach(mode => {
+      SHAPE_ORDER.forEach(sh => {
+        expect(MODE_SHAPE[mode][sh]).toBeDefined();
+        expect(MODE_SHAPE[mode][sh].length).toBeGreaterThan(0);
+      });
+    });
+  });
+
+  it("every note uses only the mode's two extra intervals", () => {
+    MODES.forEach(mode => {
+      const allowed = new Set(MODE_INTERVALS[mode]);
+      SHAPE_ORDER.forEach(sh => {
+        MODE_SHAPE[mode][sh].forEach(([,, iv]) => {
+          expect(allowed.has(iv)).toBe(true);
+        });
+      });
+    });
+  });
+
+  it("notes are [string, fret, interval] tuples with valid ranges", () => {
+    MODES.forEach(mode => {
+      SHAPE_ORDER.forEach(sh => {
+        MODE_SHAPE[mode][sh].forEach(([s, f, iv]) => {
+          expect(s).toBeGreaterThanOrEqual(1);
+          expect(s).toBeLessThanOrEqual(6);
+          expect(f).toBeGreaterThanOrEqual(0);
+          expect(typeof iv).toBe("string");
+        });
+      });
+    });
+  });
+
+  it("mode notes don't overlap with their base pentatonic", () => {
+    MODES.forEach(mode => {
+      const quality = MAJOR_MODES.includes(mode) ? "major" : "minor";
+      SHAPE_ORDER.forEach(sh => {
+        const pentaPositions = new Set(
+          PENTA_BOX[quality][sh].map(([s, f]) => `${s}-${f}`)
+        );
+        MODE_SHAPE[mode][sh].forEach(([s, f]) => {
+          expect(pentaPositions.has(`${s}-${f}`)).toBe(false);
+        });
+      });
+    });
+  });
+
+  it("new intervals 7 and ♭6 are in INTERVAL_SEMITONES", () => {
+    expect(INTERVAL_SEMITONES["7"]).toBe(11);
+    expect(INTERVAL_SEMITONES["♭6"]).toBe(8);
+  });
+
+  it("all mode intervals are in INTERVAL_SEMITONES", () => {
+    MODES.forEach(mode => {
+      SHAPE_ORDER.forEach(sh => {
+        MODE_SHAPE[mode][sh].forEach(([,, iv]) => {
+          expect(INTERVAL_SEMITONES[iv]).toBeDefined();
+        });
+      });
+    });
   });
 });
