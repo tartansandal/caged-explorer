@@ -881,7 +881,8 @@ export default function CAGEDExplorer() {
                   : `Highlight the ${s} shape region`;
                 return (
                   <ToggleButton key={s} label={label} title={title}
-                    active={activeShape === s} onClick={() => changeShape(s)} theme={theme} />
+                    active={activeShape === s} onClick={() => changeShape(s)} theme={theme}
+                    style={s !== "all" && s !== "off" ? { minWidth: 40, textAlign: "center" } : undefined} />
                 );
               })}
               <span style={STYLE.divider}>│</span>
