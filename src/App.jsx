@@ -709,7 +709,7 @@ export default function CAGEDExplorer() {
     return out;
   }, [pentaData, bluesNotes, majPenta, minPenta, visibleShapes, triadPositions, scaleMode, pentaQuality]);
 
-  const _modeNotes = useMemo(() => {
+  const modeNotes = useMemo(() => {
     if (!activeMode || scaleMode === "off") return [];
     const quality = ["ionian", "mixolydian"].includes(activeMode) ? "major" : "minor";
     const modeData = MODE_SHAPE[activeMode];
@@ -959,6 +959,17 @@ export default function CAGEDExplorer() {
                 active={pentaQuality === q} onClick={() => setPentaQ(q)}
                 style={{ fontSize: "0.6rem", padding: "2px 7px" }} theme={theme} />
             ))}
+            {scaleMode !== "off" && (() => {
+              const modes = pentaQuality === "major"
+                ? [["ionian", "Ion"], ["mixolydian", "Mix"]]
+                : [["aeolian", "Aeol"], ["dorian", "Dor"]];
+              return modes.map(([mode, label]) => (
+                <ToggleButton key={mode} label={label}
+                  title={`Show ${mode} mode scale tones`}
+                  active={activeMode === mode}
+                  onClick={() => setActiveMode(m => m === mode ? null : mode)} theme={theme} />
+              ));
+            })()}
             {activeShape === "all" && scaleMode !== "off" && (
               <ToggleButton label="Pan" title="Show frying pan overlay connecting pentatonic notes across strings"
                 active={showFryingPan}
@@ -1197,6 +1208,15 @@ export default function CAGEDExplorer() {
               <FretDot key={posKey(s, f)} cx={isMobile ? strX(s) : noteX(f)} cy={isMobile ? noteY(f) : strY(s)} radius={PENTA_RADIUS} interval={interval}
                 keyIdx={effectiveKey} labelMode={labelMode} fret={f} theme={theme} />
             ))}
+
+            {modeNotes.length > 0 && (
+              <g opacity={0.55}>
+                {modeNotes.map(([s, f, interval]) => (
+                  <FretDot key={`mode-${posKey(s, f)}`} cx={isMobile ? strX(s) : noteX(f)} cy={isMobile ? noteY(f) : strY(s)} radius={PENTA_RADIUS} interval={interval}
+                    keyIdx={effectiveKey} labelMode={labelMode} fret={f} theme={theme} />
+                ))}
+              </g>
+            )}
 
             {showMinTriad && visibleShapes.map(sh =>
               minTriads[sh].map(([s, f, interval], idx) => (
@@ -1479,6 +1499,17 @@ export default function CAGEDExplorer() {
                                   active={scaleMode === "blues"}
                                   onClick={() => setScaleMode(scaleMode === "blues" ? "pentatonic" : "blues")} style={mBtn} theme={theme} />
                               )}
+                              {scaleMode !== "off" && (() => {
+                                const modes = pentaQuality === "major"
+                                  ? [["ionian", "Ion"], ["mixolydian", "Mix"]]
+                                  : [["aeolian", "Aeol"], ["dorian", "Dor"]];
+                                return modes.map(([mode, label]) => (
+                                  <ToggleButton key={mode} label={label}
+                                    title={`Show ${mode} mode scale tones`}
+                                    active={activeMode === mode}
+                                    onClick={() => setActiveMode(m => m === mode ? null : mode)} style={mBtn} theme={theme} />
+                                ));
+                              })()}
                               {activeShape === "all" && scaleMode !== "off" && (
                                 <ToggleButton label="Pan" title="Show frying pan overlay connecting pentatonic notes across strings"
                                   active={showFryingPan}
