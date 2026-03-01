@@ -2,7 +2,7 @@ import { Fragment, useState, useMemo, useEffect, useRef } from "react";
 import {
   posKey, shiftNotes, clusterFrets, computeHoverRanges, noteName,
   NUM_FRETS, SHAPE_ORDER, FRYING_PAN, NOTES, FRET_X, FRET_W, fretXAt, fretWAt,
-  PENTA_BOX, TRIAD_SHAPE, BLUES_SHAPE, SHAPE_FRET_RANGES,
+  PENTA_BOX, TRIAD_SHAPE, BLUES_SHAPE, MODE_SHAPE, SHAPE_FRET_RANGES,
   CHORD_MAJ, CHORD_MIN,
 } from "./music.js";
 
@@ -43,7 +43,9 @@ const THEME_COMMON = {
     "♭3": "#d8ac90",
     "4":  "#88c8d0",
     "♭5": "#8cacd8",
+    "♭6": "#c4a8b8",
     "♭7": "#c4a0cc",
+    "7":  "#a8c4a0",
   },
   overlay: {
     fryingPanLeft: "#d4b070",
@@ -516,6 +518,7 @@ export default function CAGEDExplorer() {
   const [advancedMode, setAdvancedMode] = useState(false);
   const [labelMode, setLabelMode] = useState("notes");
   const [showFryingPan, setShowFryingPan] = useState(false);
+  const [activeMode, setActiveMode] = useState(null);
   const [showHelp, setShowHelp] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -550,6 +553,23 @@ export default function CAGEDExplorer() {
     document.documentElement.dataset.theme = themeMode;
   }, [themeMode]);
 
+  // Wrap setPentaScale to clear mode when pentatonic is turned off
+  const setScaleMode = (mode) => {
+    setPentaScale(mode);
+    if (mode === "off") setActiveMode(null);
+  };
+
+  // Wrap setPentaQuality to clear mode when quality no longer matches
+  const setPentaQ = (q) => {
+    setPentaQuality(q);
+    setActiveMode(prev => {
+      if (!prev) return null;
+      const majorModes = ["ionian", "mixolydian"];
+      const isMajorMode = majorModes.includes(prev);
+      return isMajorMode !== (q === "major") ? null : prev;
+    });
+  };
+
   const toggleTheme = () => {
     const next = themeMode === "dark" ? "light" : "dark";
     setThemeMode(next);
@@ -563,11 +583,11 @@ export default function CAGEDExplorer() {
   };
   const selectMajorKey = (i) => {
     setKeyIndex(i); setIsMinorKey(false);
-    if (!advancedMode) { setTriadQuality("major"); setPentaQuality("major"); }
+    if (!advancedMode) { setTriadQuality("major"); setPentaQ("major"); }
   };
   const selectMinorKey = (i) => {
     setKeyIndex(i); setIsMinorKey(true);
-    if (!advancedMode) { setTriadQuality("minor"); setPentaQuality("minor"); }
+    if (!advancedMode) { setTriadQuality("minor"); setPentaQ("minor"); }
   };
 
   const effectiveKey = isMinorKey ? (keyIndex + 9) % 12 : keyIndex;
@@ -580,7 +600,7 @@ export default function CAGEDExplorer() {
     if (advancedMode) {
       const q = isMinorKey ? "minor" : "major";
       setTriadQuality(q);
-      setPentaQuality(q);
+      setPentaQ(q);
     }
     setAdvancedMode(!advancedMode);
   };
@@ -689,6 +709,24 @@ export default function CAGEDExplorer() {
     return out;
   }, [pentaData, bluesNotes, majPenta, minPenta, visibleShapes, triadPositions, scaleMode, pentaQuality]);
 
+  const _modeNotes = useMemo(() => {
+    if (!activeMode || scaleMode === "off") return [];
+    const quality = ["ionian", "mixolydian"].includes(activeMode) ? "major" : "minor";
+    const modeData = MODE_SHAPE[activeMode];
+    const clusterSource = quality === "major" ? majPenta : minPenta;
+    const seen = new Set();
+    const out = [];
+    visibleShapes.forEach(sh => {
+      const pentaFrets = (clusterSource[sh] || []).map(([, f]) => f);
+      const clusters = clusterFrets(pentaFrets);
+      shiftNotes(modeData[sh], effectiveKey).forEach(([s, f, interval]) => {
+        const key = posKey(s, f);
+        const inRange = clusters.some(c => f >= c.lo - 1 && f <= c.hi + 1);
+        if (inRange && !seen.has(key) && !triadPositions.has(key)) { seen.add(key); out.push([s, f, interval]); }
+      });
+    });
+    return out;
+  }, [activeMode, scaleMode, visibleShapes, effectiveKey, triadPositions, majPenta, minPenta]);
 
   // Frying pan geometry: shift static geometry by keyIndex (not effectiveKey,
   // since minor pentatonic clusters are offset 3 semitones from relative major).
@@ -907,18 +945,18 @@ export default function CAGEDExplorer() {
             <span style={STYLE.divider}>│</span>
             <span style={STYLE.optionLabel}>Pentatonics</span>
             <PillToggle on={scaleMode !== "off"} onToggle={() => {
-              if (scaleMode !== "off") { setPentaScale("off"); setShowFryingPan(false); }
-              else { setPentaScale("pentatonic"); }
+              if (scaleMode !== "off") { setScaleMode("off"); setShowFryingPan(false); }
+              else { setScaleMode("pentatonic"); }
             }} title="Show pentatonic scale positions" theme={theme} />
             {scaleMode !== "off" && (
               <ToggleButton label="Blues" title="Add blue notes (♭5 for minor, ♭3 for major)"
                 active={scaleMode === "blues"}
-                onClick={() => setPentaScale(scaleMode === "blues" ? "pentatonic" : "blues")} theme={theme} />
+                onClick={() => setScaleMode(scaleMode === "blues" ? "pentatonic" : "blues")} theme={theme} />
             )}
             {advancedMode && scaleMode !== "off" && ["major", "minor"].map(q => (
               <ToggleButton key={q} label={q === "major" ? "Maj" : "Min"}
                 title={`Force ${q} pentatonic quality`}
-                active={pentaQuality === q} onClick={() => setPentaQuality(q)}
+                active={pentaQuality === q} onClick={() => setPentaQ(q)}
                 style={{ fontSize: "0.6rem", padding: "2px 7px" }} theme={theme} />
             ))}
             {activeShape === "all" && scaleMode !== "off" && (
@@ -1433,13 +1471,13 @@ export default function CAGEDExplorer() {
                             <div style={optRow}>
                               <span style={{ ...sheetLabel, minWidth: 42 }}>Penta</span>
                               <PillToggle on={scaleMode !== "off"} onToggle={() => {
-                                if (scaleMode !== "off") { setPentaScale("off"); setShowFryingPan(false); }
-                                else { setPentaScale("pentatonic"); }
+                                if (scaleMode !== "off") { setScaleMode("off"); setShowFryingPan(false); }
+                                else { setScaleMode("pentatonic"); }
                               }} title="Show pentatonic scale positions" theme={theme} />
                               {scaleMode !== "off" && (
                                 <ToggleButton label="Blues" title="Add blue notes (♭5 for minor, ♭3 for major)"
                                   active={scaleMode === "blues"}
-                                  onClick={() => setPentaScale(scaleMode === "blues" ? "pentatonic" : "blues")} style={mBtn} theme={theme} />
+                                  onClick={() => setScaleMode(scaleMode === "blues" ? "pentatonic" : "blues")} style={mBtn} theme={theme} />
                               )}
                               {activeShape === "all" && scaleMode !== "off" && (
                                 <ToggleButton label="Pan" title="Show frying pan overlay connecting pentatonic notes across strings"
@@ -1452,7 +1490,7 @@ export default function CAGEDExplorer() {
                                 {["major", "minor"].map(q => (
                                   <ToggleButton key={q} label={q === "major" ? "Maj" : "Min"}
                                     title={`Force ${q} pentatonic quality`}
-                                    active={pentaQuality === q} onClick={() => setPentaQuality(q)}
+                                    active={pentaQuality === q} onClick={() => setPentaQ(q)}
                                     style={{ fontSize: "0.6rem", padding: "2px 7px" }} theme={theme} />
                                 ))}
                               </div>

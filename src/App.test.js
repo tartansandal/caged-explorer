@@ -772,6 +772,14 @@ describe("Theme structure", () => {
     expect(collectKeys(THEME_DARK)).toEqual(collectKeys(THEME_LIGHT));
   });
 
+  it("theme has colors for all intervals including mode intervals", () => {
+    const requiredIntervals = ["R", "2", "3", "5", "6", "♭3", "4", "♭5", "♭7", "7", "♭6"];
+    requiredIntervals.forEach(iv => {
+      expect(THEME_DARK.interval[iv]).toBeDefined();
+      expect(THEME_LIGHT.interval[iv]).toBeDefined();
+    });
+  });
+
   it("no theme value is undefined", () => {
     const check = (obj, path = "") => {
       for (const [k, v] of Object.entries(obj)) {
