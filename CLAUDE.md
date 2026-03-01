@@ -27,7 +27,8 @@ Music theory logic lives in `src/music.js` (pure functions + data constants), ke
 - `PENTA_BOX[scale][shape]` — Pentatonic box note positions as `[string, fret, interval]` tuples for `effectiveKey=0`, two octaves. Scale is `"major"`/`"minor"`, shape is C/A/G/E/D.
 - `TRIAD_SHAPE[scale][shape]` — Triad note positions per CAGED shape, same format.
 - `BLUES_SHAPE[quality][shape]` — Blues note positions (minor: `♭5`, major: `♭3`) per shape.
-- `SHAPE_FRET_RANGES[quality][shape]` — Precomputed fret clusters at `effectiveKey=0` from triads + pentatonics (blues excluded to avoid merging octave clusters).
+- `MODE_SHAPE[mode][shape]` — Mode completion note positions as `[string, fret, interval]` tuples. Each mode contains only the 2 extra notes that complete the 7-note diatonic scale on top of the pentatonic. Four modes: `"ionian"` (adds 4, 7), `"mixolydian"` (adds 4, ♭7), `"aeolian"` (adds 2, ♭6), `"dorian"` (adds 2, 6). Same `effectiveKey=0` two-octave format as `PENTA_BOX`.
+- `SHAPE_FRET_RANGES[quality][shape]` — Precomputed fret clusters at `effectiveKey=0` from triads + pentatonics (blues and mode notes excluded to avoid merging octave clusters).
 - `shiftNotes(notes, effectiveKey)` — Shifts note positions by `effectiveKey` using double-shift (`+ek` and `+(ek-12)`) with dedup.
 - `clusterFrets(frets, gapThreshold)` — Groups sorted frets into `{lo, hi}` clusters separated by gaps > threshold.
 - `computeHoverRanges(shapeRanges, shapes)` — Computes non-overlapping hover regions from shape clusters, splitting at midpoints between adjacent cluster centers. Excludes partial clusters.
@@ -35,11 +36,11 @@ Music theory logic lives in `src/music.js` (pure functions + data constants), ke
 - `FRET_W(f)` — Returns the pixel width of fret `f` (1-indexed, integer only). Fret 1 ≈ 81px, fret 7 ≈ 57px, fret 13 = half of fret 1 (octave relationship). `FRET_W(0)` is `NaN` — use `fretWAt` for fret 0 or fractional values.
 - `fretXAt(f)` — Linearly interpolates `FRET_X` for fractional fret values. Returns `FRET_X[f]` for integers. Used by hover ranges which produce fractional boundaries.
 - `fretWAt(f)` — Width at fractional fret `f`. For `f < 1` (open strings area), returns `FRET_W(1)`. For integers ≥ 1, matches `FRET_W(f)`. For fractional values, interpolates via `fretXAt`.
-- Constants: `FRYING_PAN` (overlay geometry), `SHAPE_ORDER`, `SHAPE_ORIENTATION`, `NUM_FRETS`, `posKey`, `CHORD_MAJ/MIN` (open chord fingerings), `INTERVAL_SEMITONES` (interval-to-semitone mapping)
+- Constants: `FRYING_PAN` (overlay geometry), `SHAPE_ORDER`, `SHAPE_ORIENTATION`, `NUM_FRETS`, `posKey`, `CHORD_MAJ/MIN` (open chord fingerings), `INTERVAL_SEMITONES` (interval-to-semitone mapping, includes `"♭6"` and `"7"` for mode completions)
 
 **`src/App.jsx`** — Single `CAGEDExplorer` component with subcomponents:
 - `PillToggle` — iOS-style sliding pill toggle (~36x18px), used for Triads on/off, Pentatonics on/off, and Quality override. Props: `on`, `onToggle`, `title`, `theme`.
-- `ToggleButton` — Standard labeled button toggle. Accepts optional `style` and `title` props. Used for shape selection, Blues, Pan, Notes/Intervals swap, and Maj/Min quality overrides. All instances have `title` tooltips for hover help.
+- `ToggleButton` — Standard labeled button toggle. Accepts optional `style` and `title` props. Used for shape selection, Blues, Pan, mode selectors (Ion/Mix/Aeol/Dor), Notes/Intervals swap, and Maj/Min quality overrides. All instances have `title` tooltips for hover help.
 - `FretDot` — SVG note dot that always shows both interval and note name. The `labelMode` state (`"intervals"` or `"notes"`) controls which is inside the dot (prominent) vs outside (small text). The `fret` prop (default 1) suppresses outside text at fret 0 (open strings are too cramped).
 - `LegendSection` — Legend entries always show both interval and note. Dot shows the `labelMode` primary, text shows `"label · secondary"`.
 - `ChordDiagram` — Mini chord diagram; only shows one label inside dots (no secondary text).
@@ -47,7 +48,7 @@ Music theory logic lives in `src/music.js` (pure functions + data constants), ke
 - `noteX(fret)` — X position of a note dot (midpoint via `fretXAt`): `(fretXAt(fret-1) + fretXAt(fret)) / 2`. Supports fractional frets. Fret 0 (open strings) is a special case offset left of the nut.
 - Shape highlights and hover rects use `fretWAt(fret) * 0.48` for per-fret half-width padding (supports fret 0 and fractional values from hover ranges).
 - Theme constants: `THEME_COMMON`, `THEME_DARK`, `THEME_LIGHT` (color palettes), `makeStyles(theme)` (layout styles)
-- UI constants: `LEGEND` (context-sensitive legend entries)
+- UI constants: `LEGEND` (context-sensitive legend entries), `MODE_LEGEND` (mode interval pairs), `MODE_NAMES` (display names)
 - The mini `ChordDiagram` component uses its own uniform `FRET_GAP` — it represents a zoomed-in 4-fret window, not the full fretboard.
 
 ### Responsive / Mobile Layout
@@ -78,7 +79,7 @@ Mobile layout constants: `STRING_SPACING_M` (42), `MARGIN_LEFT_M` (68), `MARGIN_
 
 **Mobile (bottom sheet):** Two-panel layout. Left panel: 12-row × 2-column grid of major ("Major") and relative minor ("Rel. Minor") key buttons, reusing desktop `STYLE.keyBtn`/`STYLE.minorKeyBtn`. Right panel (flex column, `justify-content: space-between`): shapes (2-column grid — "All" spans full width at top, C/A/G/E/D in pairs, Off inline with D), `[Notes] / [Intervals]` toggle, and options (vertical stack, 20px gap between groups).
 
-**Options (both layouts):** `Triads [pill]` with conditional Maj/Min overrides │ `Penta [pill]` with conditional `[Blues]` and `[Pan]` buttons (Blues appears when penta on, Pan when penta on + All shapes) │ `Quality` pill toggle. The Quality pill controls whether triad/penta quality tracks the key automatically (off) or allows manual Maj/Min override (on). On mobile, option labels have `minWidth: 42` for pill alignment, and conditional Maj/Min buttons appear on their own line with `marginLeft: 46` to align under the pills.
+**Options (both layouts):** `Triads [pill]` with conditional Maj/Min overrides │ `Penta [pill]` with conditional `[Blues]`, mode (`[Ion]/[Mix]` or `[Aeol]/[Dor]`), and `[Pan]` buttons (all appear when penta on; mode buttons auto-filter by quality) │ `Quality` pill toggle. The Quality pill controls whether triad/penta quality tracks the key automatically (off) or allows manual Maj/Min override (on). On mobile, option labels have `minWidth: 42` for pill alignment, and conditional Maj/Min buttons appear on their own line with `marginLeft: 46` to align under the pills.
 
 ### Key Concept: effectiveKey
 
@@ -90,11 +91,13 @@ All fretboard note positions follow the same pattern as `FRYING_PAN`: defined fo
 
 ### State Management
 
-React hooks only (`useState`, `useMemo`, `useEffect`). Main state: `themeMode` (dark/light), `keyIndex` (0-11, default 0 = C), `isMinorKey` (default false), `activeShape` (C/A/G/E/D/all/off, default "all"), `showTriads` (default true), `scaleMode` (off/pentatonic/blues, default "pentatonic"), `triadQuality` (major/minor), `pentaQuality` (major/minor), `labelMode` (intervals/notes, default "notes"), `showFryingPan` (boolean), `advancedMode` (quality override), `hoveredShape`, `showMenu` (mobile hamburger), `sheetOpen` (mobile bottom sheet). Derived: `menuOpen = isMobile && showMenu`, `sheetSummary` (peek bar text).
+React hooks only (`useState`, `useMemo`, `useEffect`). Main state: `themeMode` (dark/light), `keyIndex` (0-11, default 0 = C), `isMinorKey` (default false), `activeShape` (C/A/G/E/D/all/off, default "all"), `showTriads` (default true), `scaleMode` (off/pentatonic/blues, default "pentatonic"), `triadQuality` (major/minor), `pentaQuality` (major/minor), `labelMode` (intervals/notes, default "notes"), `showFryingPan` (boolean), `advancedMode` (quality override), `activeMode` (null/ionian/mixolydian/aeolian/dorian, default null), `hoveredShape`, `showMenu` (mobile hamburger), `sheetOpen` (mobile bottom sheet). Derived: `menuOpen = isMobile && showMenu`, `sheetSummary` (peek bar text), `modeNotes` (shifted + cluster-bounded mode completion notes).
 
 ### Overlay System
 
-The **Frying Pan** overlay highlights 5-note groups across string pairs with pan+handle shapes, defined in `FRYING_PAN` geometry (shifted by `effectiveKey`). Only available when "All" shapes mode is active and pentatonic/blues scale is on (toggle hidden otherwise, auto-disabled when leaving either). Toggled via `showFryingPan` state.
+The **Frying Pan** overlay highlights 5-note groups across string pairs with pan+handle shapes, defined in `FRYING_PAN` geometry (shifted by `effectiveKey`). Available when pentatonic/blues scale is on (any shape mode). Tiles the full fretboard regardless of active shape, so users can see how pan shapes intersect with individual CAGED shapes. Toggled via `showFryingPan` state.
+
+The **Mode Completions** overlay layers 2 extra notes on top of the pentatonic scale to complete a 7-note diatonic mode. Rendered as `FretDot` components at 55% opacity inside a `<g>` wrapper, after pentatonic dots and before triads in SVG order. Mode notes are cluster-bounded to shape regions (same pattern as blues notes) to prevent notes from appearing in the gap between octave clusters. Auto-filtered by quality: major keys show Ionian/Mixolydian, minor keys show Aeolian/Dorian. Auto-clears via wrapper functions (`setScaleMode`, `setPentaQ`) when pentatonic is turned off or quality changes to incompatible mode.
 
 ### Shape Hover System
 
@@ -125,7 +128,8 @@ Tests use Vitest (`src/App.test.js`) and cover the static data tables and overla
 - Partial cluster detection — every shape has at least one full cluster across all 12 keys × major/minor
 - `computeHoverRanges` — no overlaps, full coverage, no partial leaks, tiling without gaps
 - `FRET_X` geometry — total width, monotonicity, `2^(-1/12)` ratio between consecutive frets, octave relationship (fret 13 = half of fret 1)
-- Theme structure — `THEME_DARK` and `THEME_LIGHT` have identical keys, no undefined values
+- `MODE_SHAPE` data integrity — correct intervals per mode, no overlap with base pentatonic, valid tuple ranges, all intervals in `INTERVAL_SEMITONES`
+- Theme structure — `THEME_DARK` and `THEME_LIGHT` have identical keys, no undefined values, all intervals (including mode intervals `7` and `♭6`) have colors
 - Mobile layout geometry — uniform total matches proportional, `fretY` monotonicity and constant gaps, `noteY` placement between fret wires, `strX` reversed ordering and uniform spacing
 
 Tests are property-based where possible, iterating all 12 keys × major/minor scales to verify invariants. Mobile layout tests mirror the coordinate functions from `App.jsx` locally (can't export without breaking React Fast Refresh).
