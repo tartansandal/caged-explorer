@@ -250,6 +250,20 @@ const PENTA_LEGEND = {
   "blues-major":   { off: LEGEND.bluesMajFull, major: LEGEND.bluesMaj, minor: LEGEND.bluesMajWithMin },
 };
 
+const MODE_LEGEND = {
+  ionian:     [["4", "Perfect 4th"], ["7", "Major 7th"]],
+  mixolydian: [["4", "Perfect 4th"], ["♭7", "Minor 7th"]],
+  aeolian:    [["2", "Major 2nd"], ["♭6", "Minor 6th"]],
+  dorian:     [["2", "Major 2nd"], ["6", "Major 6th"]],
+};
+
+const MODE_NAMES = {
+  ionian: "Ionian",
+  mixolydian: "Mixolydian",
+  aeolian: "Aeolian",
+  dorian: "Dorian",
+};
+
 const scaleName = (scaleMode, pentaQuality) => {
   if (scaleMode === "off") return "";
   if (scaleMode === "blues") return pentaQuality === "major" ? "Major Blues" : "Blues Scale";
@@ -774,17 +788,20 @@ export default function CAGEDExplorer() {
     : pentaQuality;
   const triadLegendKey = showTriads ? triadQuality : "off";
   const pentaLegend = PENTA_LEGEND[pentaLegendKey][triadLegendKey];
+  const modeLegend = activeMode ? MODE_LEGEND[activeMode] : [];
 
   const keyName = NOTES[effectiveKey];
   const footerKey = (() => {
     if (!showTriads) return showPenta ? `${keyName} ${scaleName(scaleMode, pentaQuality)}` : "";
     const base = triadQuality === "minor" ? `${keyName} Minor` : `${keyName} Major`;
-    return showPenta ? `${base} · ${scaleName(scaleMode, pentaQuality)}` : base;
+    const result = showPenta ? `${base} · ${scaleName(scaleMode, pentaQuality)}` : base;
+    return activeMode ? `${result} · ${MODE_NAMES[activeMode]}` : result;
   })();
 
   const subtitle = (() => {
     const triadPart = triadQuality === "minor" ? "Minor Triads" : "Major Triads";
-    return showPenta ? `${triadPart} · ${scaleName(scaleMode, pentaQuality)}` : triadPart;
+    const result = showPenta ? `${triadPart} · ${scaleName(scaleMode, pentaQuality)}` : triadPart;
+    return activeMode ? `${result} · ${MODE_NAMES[activeMode]}` : result;
   })();
 
   const sheetSummary = (() => {
@@ -797,6 +814,7 @@ export default function CAGEDExplorer() {
     if (showTriads) parts.push("Triads");
     if (scaleMode === "pentatonic") parts.push("Pentatonic");
     else if (scaleMode === "blues") parts.push("Blues");
+    if (activeMode) parts.push(MODE_NAMES[activeMode]);
     return parts.join(" \u00b7 ");
   })();
 
@@ -1284,6 +1302,13 @@ export default function CAGEDExplorer() {
             {pentaLegend.length > 0 && (
               <div style={{ minWidth: 140, padding: "8px 12px", border: `1px solid ${theme.border.subtle}`, borderRadius: 8 }}>
                 <LegendSection title={scaleName(scaleMode, pentaQuality)} items={pentaLegend} dotSize={16}
+                  keyIdx={effectiveKey} labelMode={labelMode} theme={theme} />
+              </div>
+            )}
+
+            {modeLegend.length > 0 && (
+              <div style={{ minWidth: 140, padding: "8px 12px", border: `1px solid ${theme.border.subtle}`, borderRadius: 8, opacity: 0.7 }}>
+                <LegendSection title={MODE_NAMES[activeMode]} items={modeLegend} dotSize={16}
                   keyIdx={effectiveKey} labelMode={labelMode} theme={theme} />
               </div>
             )}
