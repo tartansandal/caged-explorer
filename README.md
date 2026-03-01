@@ -15,6 +15,7 @@ CAGED Explorer lets you visualize how the five CAGED chord shapes (C, A, G, E, D
 - **Chord shapes** — open chord fingerings and their barre chord positions across the neck
 - **Triads** — major and minor triad tones within each shape
 - **Pentatonic scales** — major and minor pentatonic box patterns, with optional blues notes
+- **Modal completions** — layer Ionian, Mixolydian, Aeolian, or Dorian scale tones on top of the pentatonic, showing the 2 notes that complete each 7-note mode
 - **Frying pan overlay** — highlights 5-note pentatonic groups across string pairs, showing how shapes connect horizontally
 - **Shape hover regions** — in "All" mode, hover over fretboard regions to see where each shape lives
 
