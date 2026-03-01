@@ -593,7 +593,6 @@ export default function CAGEDExplorer() {
 
   const changeShape = (s) => {
     setActiveShape(s);
-    if (s !== "all") setShowFryingPan(false);
   };
   const selectMajorKey = (i) => {
     setKeyIndex(i); setIsMinorKey(false);
@@ -744,9 +743,9 @@ export default function CAGEDExplorer() {
 
   // Frying pan geometry: shift static geometry by keyIndex (not effectiveKey,
   // since minor pentatonic clusters are offset 3 semitones from relative major).
-  // Only available in "all" shapes mode.
+  // Tiles the full fretboard regardless of active shape.
   const fryingPanShapes = useMemo(() => {
-    if (!showFryingPan || activeShape !== "all") return [];
+    if (!showFryingPan) return [];
 
     const shapes = [];
     const addShifted = (templates, shift) => {
@@ -774,7 +773,7 @@ export default function CAGEDExplorer() {
     }
 
     return shapes;
-  }, [showFryingPan, activeShape, keyIndex]);
+  }, [showFryingPan, keyIndex]);
 
   const svgW = MARGIN_LEFT + FRET_X[NUM_FRETS] + 25;
   const svgH = MARGIN_TOP + 5 * STRING_SPACING + 48;
@@ -988,7 +987,7 @@ export default function CAGEDExplorer() {
                   onClick={() => setActiveMode(m => m === mode ? null : mode)} theme={theme} />
               ));
             })()}
-            {activeShape === "all" && scaleMode !== "off" && (
+            {scaleMode !== "off" && (
               <ToggleButton label="Pan" title="Show frying pan overlay connecting pentatonic notes across strings"
                 active={showFryingPan}
                 onClick={() => setShowFryingPan(p => !p)} theme={theme} />
@@ -1535,7 +1534,7 @@ export default function CAGEDExplorer() {
                                     onClick={() => setActiveMode(m => m === mode ? null : mode)} style={mBtn} theme={theme} />
                                 ));
                               })()}
-                              {activeShape === "all" && scaleMode !== "off" && (
+                              {scaleMode !== "off" && (
                                 <ToggleButton label="Pan" title="Show frying pan overlay connecting pentatonic notes across strings"
                                   active={showFryingPan}
                                   onClick={() => setShowFryingPan(p => !p)} style={mBtn} theme={theme} />
