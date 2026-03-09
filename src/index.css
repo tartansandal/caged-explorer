@@ -19,11 +19,11 @@ body {
 }
 
 [data-theme="dark"] body {
-  background: #0c1222;
+  background: #1c1a18;
 }
 
 [data-theme="light"] body {
-  background: #f5ebe0;
+  background: #f3f0ec;
 }
 
 /* Themed scrollbar for help modal */
