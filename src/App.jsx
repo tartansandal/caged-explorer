@@ -73,11 +73,11 @@ const THEME_DARK = {
   text: {
     primary:   "#e2e8f0",
     secondary: "#94a3b8",
-    muted:     "#64748b",
-    dim:       "#475569",
+    muted:     "#7e8e9f",
+    dim:       "#708090",
     dark:      "#1a1030",
     heading:   "#f1f5f9",
-    footer:    "#334155",
+    footer:    "#667888",
   },
   glow: {
     soft:   "rgba(255,255,255,0.08)",
@@ -155,12 +155,12 @@ const THEME_LIGHT = {
     blue: "#7a6050",
   },
   fretboard: {
-    gradientTop: "#d4b896",
-    gradientBottom: "#c4a880",
-    markerDot: "#b8a890",
-    shadow: "inset 0 0 30px rgba(0,0,0,0.08), 0 2px 12px rgba(0,0,0,0.1)",
-    fretLine: "#a09080",
-    shapeHighlight: 0.2,
+    gradientTop: "#624425",
+    gradientBottom: "#52361c",
+    markerDot: "#8a7858",
+    shadow: "inset 0 0 40px rgba(0,0,0,0.3), 0 4px 24px rgba(0,0,0,0.2)",
+    fretLine: "#96836a",
+    shapeHighlight: 0.12,
   },
   btn: {
     activeBg: "#2a2018",
@@ -1003,8 +1003,7 @@ export default function CAGEDExplorer() {
         {/* Fretboard */}
         <div style={isMobile
           ? { marginTop: 10 }
-          : { background: theme.bg.panel, borderRadius: 12, padding: "10px 0", border: `1px solid ${theme.border.subtle}`,
-              boxShadow: theme.fretboard.shadow, overflowX: "auto" }
+          : { padding: "10px 0", overflowX: "auto" }
         }>
           <svg viewBox={`0 0 ${isMobile ? svgW_M : svgW} ${isMobile ? svgH_M : svgH}`}
                style={{ width: "100%", ...(isMobile ? {} : { minWidth: 700 }), display: "block" }}>
